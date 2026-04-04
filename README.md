@@ -1,4 +1,4 @@
-# GraphMyCode.com
+# GraphMyCode
 
 **Visualize your codebase as an interactive knowledge graph — entirely in your browser.**
 
