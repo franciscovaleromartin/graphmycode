@@ -1,0 +1,17 @@
+# Dependencias
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Entorno
+.vercel
+.env
+.env*.local
+
+# Testing
+/playwright-report/
+/test-results/
+
+# Editor
+.DS_Store
+
