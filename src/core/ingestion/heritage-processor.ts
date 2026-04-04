@@ -6,6 +6,7 @@
  * - IMPLEMENTS: Class implements an Interface (TS only)
  */
 
+import { Query } from 'web-tree-sitter';
 import { KnowledgeGraph } from '../graph/types';
 import { ASTCache } from './ast-cache';
 import { SymbolTable } from './symbol-table';
@@ -38,18 +39,19 @@ export const processHeritage = async (
     await loadLanguage(language, file.path);
 
     // 3. Get AST
-    let tree = astCache.get(file.path);
+    let tree: import("web-tree-sitter").Tree | null | undefined = astCache.get(file.path);
     let wasReparsed = false;
 
     if (!tree) {
       tree = parser.parse(file.content);
       wasReparsed = true;
     }
+    if (!tree) continue;
 
     let query;
     let matches;
     try {
-      query = parser.getLanguage().query(queryStr);
+      query = new Query(parser.language!, queryStr);
       matches = query.matches(tree.rootNode);
     } catch (queryError) {
       console.warn(`Heritage query error for ${file.path}:`, queryError);
@@ -58,9 +60,9 @@ export const processHeritage = async (
     }
 
     // 4. Process heritage matches
-    matches.forEach(match => {
+    matches.forEach((match: any) => {
       const captureMap: Record<string, any> = {};
-      match.captures.forEach(c => {
+      match.captures.forEach((c: any) => {
         captureMap[c.name] = c.node;
       });
 

@@ -10,7 +10,8 @@
  * Processes help agents understand how features work through the codebase.
  */
 
-import { KnowledgeGraph, GraphNode, GraphRelationship, NodeLabel } from '../graph/types';
+import type { GraphNode, GraphRelationship, NodeLabel } from 'gitnexus-shared';
+import { KnowledgeGraph } from '../graph/types';
 import { CommunityMembership } from './community-processor';
 import { calculateEntryPointScore, isTestFile } from './entry-point-scoring';
 

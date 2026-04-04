@@ -1,4 +1,6 @@
-import { KnowledgeGraph, GraphNode, GraphRelationship } from '../graph/types';
+import { Query } from 'web-tree-sitter';
+import type { GraphNode, GraphRelationship } from 'gitnexus-shared';
+import { KnowledgeGraph } from '../graph/types';
 import { loadParser, loadLanguage } from '../tree-sitter/parser-loader';
 import { LANGUAGE_QUERIES } from './tree-sitter-queries';
 import { generateId } from '../../lib/utils';
@@ -109,6 +111,10 @@ const isNodeExported = (node: any, name: string, language: string): boolean => {
     case 'ruby':
       return true;
 
+    // Dart: Public if no leading underscore (same convention as Python)
+    case 'dart':
+      return !name.startsWith('_');
+
     default:
       return false;
   }
@@ -139,7 +145,8 @@ export const processParsing = async (
     
     // 3. Parse the text content into an AST
     const tree = parser.parse(file.content);
-    
+    if (!tree) continue;
+
     // Store in cache immediately (this might evict an old one)
     astCache.set(file.path, tree);
     
@@ -154,7 +161,7 @@ export const processParsing = async (
     let query;
     let matches;
     try {
-      query = parser.getLanguage().query(queryString);
+      query = new Query(parser.language!, queryString);
       matches = query.matches(tree.rootNode);
     } catch (queryError) {
       console.warn(`Query error for ${file.path}:`, queryError);
@@ -162,10 +169,10 @@ export const processParsing = async (
     }
 
     // 6. Process every match found
-    matches.forEach(match => {
+    matches.forEach((match: any) => {
       const captureMap: Record<string, any> = {};
-      
-      match.captures.forEach(c => {
+
+      match.captures.forEach((c: any) => {
         captureMap[c.name] = c.node;
       });
 

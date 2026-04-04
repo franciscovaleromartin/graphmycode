@@ -1,3 +1,4 @@
+import { Query } from 'web-tree-sitter';
 import { KnowledgeGraph } from '../graph/types';
 import { ASTCache } from './ast-cache';
 import { SymbolTable } from './symbol-table';
@@ -208,7 +209,7 @@ export const processCalls = async (
     await loadLanguage(language, file.path);
 
     // 3. Get AST (Try Cache First)
-    let tree = astCache.get(file.path);
+    let tree: import("web-tree-sitter").Tree | null | undefined = astCache.get(file.path);
     let wasReparsed = false;
 
     if (!tree) {
@@ -216,11 +217,12 @@ export const processCalls = async (
       tree = parser.parse(file.content);
       wasReparsed = true;
     }
+    if (!tree) continue;
 
     let query;
     let matches;
     try {
-      query = parser.getLanguage().query(queryStr);
+      query = new Query(parser.language!, queryStr);
       matches = query.matches(tree.rootNode);
     } catch (queryError) {
       console.warn(`Query error for ${file.path}:`, queryError);
@@ -231,9 +233,9 @@ export const processCalls = async (
     const callRouter = callRouters[language];
 
     // 3. Process each call match
-    matches.forEach(match => {
+    matches.forEach((match: any) => {
       const captureMap: Record<string, any> = {};
-      match.captures.forEach(c => captureMap[c.name] = c.node);
+      match.captures.forEach((c: any) => { captureMap[c.name] = c.node; });
 
       // Only process @call captures
       if (!captureMap['call']) return;

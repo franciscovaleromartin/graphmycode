@@ -1,19 +1,21 @@
-import Parser from 'web-tree-sitter';
+import { Parser, Language as ParserLanguage } from 'web-tree-sitter';
 import { SupportedLanguages } from '../../config/supported-languages';
 
-let parser: Parser | null = null;
+type ParserInstance = InstanceType<typeof Parser>;
+
+let parser: ParserInstance | null = null;
 
 // Cache the compiled Language objects to avoid fetching/compiling twice
-const languageCache = new Map<string, Parser.Language>();
+const languageCache = new Map<string, ParserLanguage>();
 
-export const loadParser = async (): Promise<Parser> => {
+export const loadParser = async (): Promise<ParserInstance> => {
     if (parser) return parser;
 
     await Parser.init({
         locateFile: (scriptName: string) => {
             return `/wasm/${scriptName}`;
         }
-    })
+    });
 
     parser = new Parser();
     return parser;
@@ -43,6 +45,7 @@ const getWasmPath = (language: SupportedLanguages, filePath?: string): string =>
         [SupportedLanguages.Ruby]: '/wasm/ruby/tree-sitter-ruby.wasm',
         [SupportedLanguages.Kotlin]: '', // Kotlin WASM parser not yet available for web
         [SupportedLanguages.Swift]: '/wasm/swift/tree-sitter-swift.wasm',
+        [SupportedLanguages.Dart]: '/wasm/dart/tree-sitter-dart.wasm',
     };
     
     return languageFileMap[language];
@@ -63,7 +66,7 @@ export const loadLanguage = async (language: SupportedLanguages, filePath?: stri
     }
     
     try {
-        const loadedLanguage = await Parser.Language.load(wasmPath);    
+        const loadedLanguage = await ParserLanguage.load(wasmPath);
         languageCache.set(wasmPath, loadedLanguage);
         parser!.setLanguage(loadedLanguage);
     } catch (error: unknown) {

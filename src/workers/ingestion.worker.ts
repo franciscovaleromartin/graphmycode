@@ -13,7 +13,7 @@ import type { EmbeddingProgress, SemanticSearchResult } from '../core/embeddings
 import type { ProviderConfig, AgentStreamChunk } from '../core/llm/types';
 import { createGraphRAGAgent, streamAgentResponse, type AgentMessage, createChatModel } from '../core/llm/agent';
 import { createKnowledgeGraph } from '../core/graph/graph';
-import type { GraphNode, GraphRelationship } from '../core/graph/types';
+import type { GraphNode, GraphRelationship } from 'gitnexus-shared';
 import { SystemMessage } from '@langchain/core/messages';
 import { enrichClustersBatch, ClusterMemberInfo, ClusterEnrichment } from '../core/ingestion/cluster-enricher';
 import { CommunityNode } from '../core/ingestion/community-processor';
@@ -28,13 +28,9 @@ import {
   type HybridSearchResult,
 } from '../core/search';
 
-// Lazy import for LadybugDB to avoid breaking worker if SharedArrayBuffer unavailable
-let lbugAdapter: typeof import('../core/lbug/lbug-adapter') | null = null;
-const getLbugAdapter = async () => {
-  if (!lbugAdapter) {
-    lbugAdapter = await import('../core/lbug/lbug-adapter');
-  }
-  return lbugAdapter;
+// LadybugDB disabled — chat/query features removed, no in-browser graph DB needed
+const getLbugAdapter = async (): Promise<typeof import('../core/lbug/lbug-adapter')> => {
+  throw new Error('LadybugDB disabled');
 };
 
 // Embedding state
@@ -61,30 +57,7 @@ const finalizePipeline = async (
     console.log(`🔍 BM25 index built: ${bm25DocCount} documents`);
   }
 
-  // Load graph into LadybugDB for querying (optional - gracefully degrades)
-  try {
-    onProgress({
-      phase: 'complete',
-      percent: 98,
-      message: 'Loading into LadybugDB...',
-      stats: {
-        filesProcessed: result.graph.nodeCount,
-        totalFiles: result.graph.nodeCount,
-        nodesCreated: result.graph.nodeCount,
-      },
-    });
-
-    const lbug = await getLbugAdapter();
-    await lbug.loadGraphToLbug(result.graph, result.fileContents);
-
-    if (import.meta.env.DEV) {
-      const stats = await lbug.getLbugStats();
-      console.log('LadybugDB loaded:', stats);
-      console.log('📁 Stored', storedFileContents.size, 'files for grep/read tools');
-    }
-  } catch {
-    // LadybugDB is optional - silently continue without it
-  }
+  // LadybugDB skipped (chat/query features not present)
 
   // Store clustering config for background enrichment (runs after graph loads)
   if (clusteringConfig) {
@@ -614,17 +587,15 @@ const workerApi = {
         console.warn('Failed to build codebase context, proceeding without:', err);
       }
 
-      currentAgent = createGraphRAGAgent(
-        config,
-        lbug.executeQuery,
-        semanticSearchWrapper,
-        semanticSearchWithContextWrapper,
-        hybridSearchWrapper,
-        () => isEmbeddingComplete,
-        () => isBM25Ready(),
-        storedFileContents,
-        codebaseContext
-      );
+      const localBackend = {
+        executeQuery: lbug.executeQuery,
+        search: async (query: string, opts?: { limit?: number }) => {
+          return hybridSearchWrapper(query, opts?.limit) as any;
+        },
+        grep: async (_pattern: string, _limit?: number) => [] as any[],
+        readFile: async (filePath: string) => storedFileContents.get(filePath) ?? '',
+      };
+      currentAgent = createGraphRAGAgent(config, localBackend, codebaseContext);
       currentProviderConfig = config;
 
       if (import.meta.env.DEV) {
@@ -684,17 +655,15 @@ const workerApi = {
       // hybridSearch calls /api/search which runs full BM25 + semantic + RRF on the server.
       // isEmbeddingReady is false — no local embedding model is loaded in backend mode.
       // isBM25Ready is true — BM25 is available via the server's hybrid search.
-      currentAgent = createGraphRAGAgent(
-        config,
-        executeQuery,          // Cypher via HTTP
-        hybridSearch,          // semanticSearch → server hybrid search
-        hybridSearch,          // semanticSearchWithContext → same
-        hybridSearch,          // hybridSearch → server hybrid search
-        () => false,           // isEmbeddingReady → no local embedder
-        () => true,            // isBM25Ready → available via server
-        contents,              // fileContents Map
-        codebaseContext,
-      );
+      const httpBackend = {
+        executeQuery,
+        search: async (query: string, opts?: { limit?: number }) => {
+          return hybridSearch(query, opts?.limit) as any;
+        },
+        grep: async (_pattern: string, _limit?: number) => [] as any[],
+        readFile: async (filePath: string) => contents.get(filePath) ?? '',
+      };
+      currentAgent = createGraphRAGAgent(config, httpBackend, codebaseContext);
 
       currentProviderConfig = config;
 

@@ -29,7 +29,7 @@ const createProxiedHttp = (): typeof http => {
   const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
   
   return {
-    request: async (config) => {
+    request: async (config: any) => {
       // Use hosted proxy for localhost, local proxy for production
       const proxyBase = isDev ? HOSTED_PROXY_URL : '/api/proxy';
       const proxyUrl = `${proxyBase}?url=${encodeURIComponent(config.url)}`;
@@ -100,7 +100,7 @@ export const cloneRepository = async (
       depth: 1,
       // Auth callback for private repos (PAT stays client-side)
       onAuth: token ? () => ({ username: token, password: 'x-oauth-basic' }) : undefined,
-      onProgress: (event) => {
+      onProgress: (event: any) => {
         if (event.total) {
           const percent = Math.round((event.loaded / event.total) * 100);
           onProgress?.('cloning', percent);

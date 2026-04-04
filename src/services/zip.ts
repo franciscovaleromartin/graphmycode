@@ -37,7 +37,7 @@ export const extractZip = async (file: File): Promise<FileEntry[]> => {
     const allPaths: string[] = [];
     
     // First pass: collect all paths to find common root
-    zip.forEach((relativePath, entry) => {
+    zip.forEach((relativePath: string, entry: any) => {
         if (!entry.dir) {
             allPaths.push(relativePath);
         }
@@ -67,7 +67,7 @@ export const extractZip = async (file: File): Promise<FileEntry[]> => {
         });
     };
 
-    zip.forEach((relativePath, entry) => {
+    zip.forEach((relativePath: string, entry: any) => {
         promises.push(processEntry(relativePath, entry));
     });
     

@@ -10,7 +10,8 @@
 
 import Graph from 'graphology';
 import leiden from '../../vendor/leiden/index.js';
-import { KnowledgeGraph, NodeLabel } from '../graph/types';
+import type { NodeLabel } from 'gitnexus-shared';
+import { KnowledgeGraph } from '../graph/types';
 
 // ============================================================================
 // TYPES

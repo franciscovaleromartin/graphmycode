@@ -109,7 +109,7 @@ export const searchBM25 = (query: string, limit: number = 20): BM25SearchResult[
   });
   
   // Limit results and add rank
-  return results.slice(0, limit).map((r, index) => ({
+  return results.slice(0, limit).map((r: any, index: number) => ({
     filePath: r.id,
     score: r.score,
     rank: index + 1,

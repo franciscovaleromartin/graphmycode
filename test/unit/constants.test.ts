@@ -22,7 +22,7 @@ describe('NODE_COLORS', () => {
 
 describe('NODE_SIZES', () => {
   it('gives Project the largest size', () => {
-    const maxLabel = Object.entries(NODE_SIZES).reduce((a, b) => a[1] > b[1] ? a : b);
+    const maxLabel = Object.entries(NODE_SIZES).reduce((a, b) => (a[1] > b[1] ? a : b));
     expect(maxLabel[0]).toBe('Project');
   });
 
@@ -56,6 +56,41 @@ describe('DEFAULT_VISIBLE_LABELS', () => {
   it('excludes noisy labels by default', () => {
     expect(DEFAULT_VISIBLE_LABELS).not.toContain('Variable');
     expect(DEFAULT_VISIBLE_LABELS).not.toContain('Import');
+  });
+});
+
+describe('FILTERABLE_LABELS', () => {
+  it('includes all newly added node types', () => {
+    expect(FILTERABLE_LABELS).toContain('Enum');
+    expect(FILTERABLE_LABELS).toContain('Type');
+    expect(FILTERABLE_LABELS).toContain('Decorator');
+    expect(FILTERABLE_LABELS).toContain('Variable');
+  });
+
+  it('every filterable label has a defined color in NODE_COLORS', () => {
+    for (const label of FILTERABLE_LABELS) {
+      expect(NODE_COLORS).toHaveProperty(label);
+      expect(NODE_COLORS[label as keyof typeof NODE_COLORS]).toMatch(/^#[0-9a-f]{6}$/i);
+    }
+  });
+
+  it('every filterable label has a defined size in NODE_SIZES', () => {
+    for (const label of FILTERABLE_LABELS) {
+      expect(NODE_SIZES).toHaveProperty(label);
+      expect(NODE_SIZES[label as keyof typeof NODE_SIZES]).toBeGreaterThan(0);
+    }
+  });
+
+  it('has no duplicate entries', () => {
+    const unique = new Set(FILTERABLE_LABELS);
+    expect(unique.size).toBe(FILTERABLE_LABELS.length);
+  });
+
+  it('is a subset of DEFAULT_VISIBLE_LABELS plus togglable labels', () => {
+    const allKnown = new Set(Object.keys(NODE_COLORS));
+    for (const label of FILTERABLE_LABELS) {
+      expect(allKnown.has(label)).toBe(true);
+    }
   });
 });
 

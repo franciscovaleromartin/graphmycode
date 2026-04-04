@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* ═══════════════════════════════════════════════════════════════
    TAILWIND V4 THEME CONFIGURATION
@@ -20,9 +20,9 @@
   --color-text-secondary: #8888a0;
   --color-text-muted: #5a5a70;
 
-  /* Accent */
-  --color-accent: #7c3aed;
-  --color-accent-dim: #5b21b6;
+  /* Accent — cyan */
+  --color-accent: #06b6d4;
+  --color-accent-dim: #0891b2;
 
   /* Node colors */
   --color-node-file: #3b82f6;
@@ -34,7 +34,7 @@
   --color-node-method: #14b8a6;
 
   /* Fonts */
-  --font-sans: 'Outfit', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   /* Animations */
@@ -45,36 +45,34 @@
   --animate-fade-in: fade-in 0.3s ease-out;
 
   /* Box shadows */
-  --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.4);
-  --shadow-glow-soft: 0 0 40px rgba(124, 58, 237, 0.15);
+  --shadow-glow: 0 0 20px rgba(6, 182, 212, 0.4);
+  --shadow-glow-soft: 0 0 40px rgba(6, 182, 212, 0.15);
 }
 
 /* Keyframes */
 @keyframes breathe {
-
   0%,
   100% {
     border-color: #2a2a3a;
-    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.3);
+    box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.3);
   }
 
   50% {
-    border-color: #7c3aed;
-    box-shadow: 0 0 40px 10px rgba(124, 58, 237, 0.3);
+    border-color: #06b6d4;
+    box-shadow: 0 0 40px 10px rgba(6, 182, 212, 0.3);
   }
 }
 
 @keyframes pulse-glow {
-
   0%,
   100% {
     transform: scale(1);
-    box-shadow: 0 0 40px rgba(124, 58, 237, 0.4);
+    box-shadow: 0 0 40px rgba(6, 182, 212, 0.4);
   }
 
   50% {
     transform: scale(1.1);
-    box-shadow: 0 0 80px rgba(124, 58, 237, 0.6);
+    box-shadow: 0 0 80px rgba(6, 182, 212, 0.6);
   }
 }
 
@@ -109,6 +107,19 @@
 
   to {
     opacity: 1;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REDUCED MOTION — respect OS-level motion preferences (WCAG 2.3.3)
+═══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -228,10 +239,10 @@ body {
   color: var(--color-text-secondary);
 }
 
-.chat-prose>h1:first-child,
-.chat-prose>h2:first-child,
-.chat-prose>h3:first-child,
-.chat-prose>h4:first-child {
+.chat-prose > h1:first-child,
+.chat-prose > h2:first-child,
+.chat-prose > h3:first-child,
+.chat-prose > h4:first-child {
   margin-top: 0;
 }
 
@@ -259,7 +270,7 @@ body {
 }
 
 /* Inline code - VS Code style */
-.chat-prose code:not([class*="language-"]) {
+.chat-prose code:not([class*='language-']) {
   padding: 0.2em 0.5em;
   background: rgba(110, 118, 129, 0.2);
   border-radius: 6px;
@@ -271,9 +282,9 @@ body {
 }
 
 /* Ensure inline code keeps its color inside links and other elements */
-.chat-prose a code:not([class*="language-"]),
-.chat-prose strong code:not([class*="language-"]),
-.chat-prose em code:not([class*="language-"]) {
+.chat-prose a code:not([class*='language-']),
+.chat-prose strong code:not([class*='language-']),
+.chat-prose em code:not([class*='language-']) {
   color: #e6b450 !important;
 }
 

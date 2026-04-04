@@ -10,7 +10,8 @@
  * - All fields are consistently quoted for safety with code content
  */
 
-import { KnowledgeGraph, GraphNode, NodeLabel } from '../graph/types';
+import type { GraphNode, NodeLabel } from 'gitnexus-shared';
+import { KnowledgeGraph } from '../graph/types';
 import { NODE_TABLES, NodeTableName } from './schema';
 
 // ============================================================================

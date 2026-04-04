@@ -1,10 +1,10 @@
 import { LRUCache } from 'lru-cache';
-import Parser from 'web-tree-sitter';
+import type { Tree } from 'web-tree-sitter';
 
 // Define the interface for the Cache
 export interface ASTCache {
-  get: (filePath: string) => Parser.Tree | undefined;
-  set: (filePath: string, tree: Parser.Tree) => void;
+  get: (filePath: string) => Tree | undefined;
+  set: (filePath: string, tree: Tree) => void;
   clear: () => void;
   stats: () => { size: number; maxSize: number };
 }
@@ -12,7 +12,7 @@ export interface ASTCache {
 export const createASTCache = (maxSize: number = 50): ASTCache => {
   // Initialize the cache with a 'dispose' handler
   // This is the magic: When an item is evicted (dropped), this runs automatically.
-  const cache = new LRUCache<string, Parser.Tree>({
+  const cache = new LRUCache<string, Tree>({
     max: maxSize,
     dispose: (tree) => {
       try {
@@ -30,7 +30,7 @@ export const createASTCache = (maxSize: number = 50): ASTCache => {
       return tree; // Returns undefined if not found
     },
     
-    set: (filePath: string, tree: Parser.Tree) => {
+    set: (filePath: string, tree: Tree) => {
       cache.set(filePath, tree);
     },
     
