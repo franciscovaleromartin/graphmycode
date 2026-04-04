@@ -15,3 +15,6 @@ dist/
 # Editor
 .DS_Store
 
+# Carpeta temporal de referencia
+temp-gitnexus/
+
