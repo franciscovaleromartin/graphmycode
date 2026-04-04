@@ -186,7 +186,7 @@ export const QueryFAB = () => {
     return (
       <button
         onClick={() => setIsExpanded(true)}
-        className="group absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 px-4 py-2.5 text-sm font-medium text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]"
+        className="group absolute bottom-20 left-4 z-20 flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 px-4 py-2.5 text-sm font-medium text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]"
       >
         <Terminal className="h-4 w-4" />
         <span>Query</span>
@@ -202,7 +202,7 @@ export const QueryFAB = () => {
   return (
     <div
       ref={panelRef}
-      className="absolute bottom-4 left-4 z-20 w-[480px] max-w-[calc(100%-2rem)] animate-fade-in rounded-xl border border-cyan-500/30 bg-deep/95 shadow-[0_0_40px_rgba(6,182,212,0.2)] backdrop-blur-md"
+      className="absolute bottom-20 left-4 z-20 w-[480px] max-w-[calc(100%-2rem)] animate-fade-in rounded-xl border border-cyan-500/30 bg-deep/95 shadow-[0_0_40px_rgba(6,182,212,0.2)] backdrop-blur-md"
     >
       <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
         <div className="flex items-center gap-2">

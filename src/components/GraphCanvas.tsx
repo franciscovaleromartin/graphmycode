@@ -350,8 +350,14 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       {/* Query FAB */}
       <QueryFAB />
 
-      {/* AI Highlights toggle - Top Right */}
-      <div className="absolute top-4 right-4 z-20">
+      {/* Top Right: branding + AI Highlights toggle */}
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-3">
+        <div className="text-right leading-tight">
+          <p className="text-xs font-semibold text-text-primary">
+            GraphMy<span className="text-secondary">Code</span>.com
+          </p>
+          <p className="text-[10px] text-text-muted">por Francisco Valero</p>
+        </div>
         <button
           onClick={handleToggleAIHighlights}
           className={

@@ -37,19 +37,26 @@ export const SidePanel = () => {
         collapsed ? 'w-10' : 'w-56'
       }`}
     >
-      {/* Collapse toggle */}
-      <button
-        onClick={() => setCollapsed((c) => !c)}
-        className="flex h-10 w-full items-center justify-center border-b border-border-subtle text-text-muted transition-colors hover:text-text-primary"
-        title={collapsed ? 'Expandir panel' : 'Colapsar panel'}
-      >
-        <svg
-          className={`h-4 w-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+      {/* Header: toggle + title */}
+      <div className="flex h-10 items-center border-b border-border-subtle">
+        <button
+          onClick={() => setCollapsed((c) => !c)}
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center text-text-muted transition-colors hover:text-text-primary"
+          title={collapsed ? 'Expandir panel' : 'Colapsar panel'}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
+          <svg
+            className={`h-4 w-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        {!collapsed && (
+          <span className="ml-1 text-sm font-semibold tracking-tight text-text-primary">
+            GraphMy<span className="text-secondary">Code</span>
+          </span>
+        )}
+      </div>
 
       {!collapsed && (
         <div className="flex flex-1 flex-col overflow-y-auto px-3 py-4">
