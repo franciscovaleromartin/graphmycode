@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd ../gitnexus-shared && npm install && npm run build && cd ../gitnexus-web && npm run build",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite"
 }
