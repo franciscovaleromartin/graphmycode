@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AppStateProvider, useAppState } from './hooks/useAppState';
 import { LandingScreen } from './screens/LandingScreen';
 import { SidePanel } from './screens/SidePanel';
@@ -30,6 +31,7 @@ function App() {
   return (
     <AppStateProvider>
       <AppContent />
+      <Analytics />
     </AppStateProvider>
   );
 }

@@ -79,6 +79,43 @@ function getWorkerApi(): Comlink.Remote<IngestionWorkerApi> {
   return workerApi;
 }
 
+// ── Explicación Accordion ─────────────────────────────────────────────────────
+
+const ExplicacionAccordion = () => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mt-6 rounded-2xl border border-border-subtle bg-surface overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-5 py-4 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
+      >
+        <span>Explicación</span>
+        <svg
+          className={`h-4 w-4 text-text-muted transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="border-t border-border-subtle px-5 pb-5 pt-4 space-y-4 text-sm text-text-secondary">
+          <div>
+            <p className="mb-1 font-medium text-text-primary">¿Qué problema resuelve?</p>
+            <p>Cuando entras a un repositorio nuevo o grande, entender cómo están conectados los módulos es lento leyendo carpeta a carpeta. GraphMyCode te da esa visión global en segundos: archivos, clases, funciones, imports, llamadas entre funciones y clusters de código relacionado, todo como un grafo interactivo.</p>
+          </div>
+
+          <div>
+            <p className="mb-1 font-medium text-text-primary">¿Hay algún servidor o base de datos externa?</p>
+            <p>No. Todo corre en tu navegador, en memoria. No hay cluster de Neo4j, no hay backend, no hay red. El Cypher que usa el agente es un lenguaje de consulta sobre el grafo local. El prompt del agente es <span className="text-accent">código abierto y visible</span> en el repositorio.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 type InputMode = 'zip' | 'github';
@@ -288,8 +325,11 @@ export const LandingScreen = () => {
           </div>
         )}
 
+        {/* Explicación desplegable */}
+        <ExplicacionAccordion />
+
         {/* Privacy badge */}
-        <p className="mt-8 text-center text-xs text-text-muted">
+        <p className="mt-6 text-center text-xs text-text-muted">
           <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-node-function align-middle" />
           Tu código nunca sale de tu navegador
         </p>
