@@ -108,7 +108,7 @@ const ExplicacionAccordion = () => {
 
           <div>
             <p className="mb-1 font-medium text-text-primary">¿Hay algún servidor o base de datos externa?</p>
-            <p>No. Todo corre en tu navegador, en memoria. No hay cluster de Neo4j, no hay backend, no hay red. El Cypher que usa el agente es un lenguaje de consulta sobre el grafo local. El prompt del agente es <span className="text-accent">código abierto y visible</span> en el repositorio.</p>
+            <p>No. Todo corre en tu navegador, en memoria. No hay cluster de Neo4j, no hay backend, no hay red. El Cypher que usa el agente es un lenguaje de consulta sobre el grafo local.</p>
           </div>
         </div>
       )}
