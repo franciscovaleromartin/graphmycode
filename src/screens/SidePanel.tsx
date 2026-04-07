@@ -2,20 +2,22 @@ import { useState } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import { NODE_COLORS } from '../lib/constants';
 import type { NodeLabel } from 'gitnexus-shared';
+import { useT } from '../lib/i18n';
 
 // Labels to show in legend (most useful ones)
 const LEGEND_LABELS: NodeLabel[] = [
   'File', 'Folder', 'Class', 'Function', 'Method', 'Interface', 'Import',
 ];
 
-const LABEL_ES: Partial<Record<NodeLabel, string>> = {
-  File: 'Archivo', Folder: 'Carpeta', Class: 'Clase',
-  Function: 'Función', Method: 'Método', Interface: 'Interfaz', Import: 'Import',
-};
-
 export const SidePanel = () => {
   const { graph, setViewMode, setGraph, projectName } = useAppState();
   const [collapsed, setCollapsed] = useState(false);
+  const t = useT();
+
+  const LABEL_I18N: Partial<Record<NodeLabel, string>> = {
+    File: t.labelFile, Folder: t.labelFolder, Class: t.labelClass,
+    Function: t.labelFunction, Method: t.labelMethod, Interface: t.labelInterface, Import: t.labelImport,
+  };
 
   // Compute stats
   const stats = {
@@ -69,14 +71,14 @@ export const SidePanel = () => {
 
           {/* Stats */}
           <section className="mb-5">
-            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-text-muted">Stats</p>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-text-muted">{t.statsTitle}</p>
             <div className="space-y-1.5">
               {[
-                { label: 'Nodos', value: stats.total },
-                { label: 'Archivos', value: stats.files },
-                { label: 'Funciones', value: stats.functions },
-                { label: 'Clases', value: stats.classes },
-                { label: 'Relaciones', value: stats.edges },
+                { label: t.statNodes, value: stats.total },
+                { label: t.statFiles, value: stats.files },
+                { label: t.statFunctions, value: stats.functions },
+                { label: t.statClasses, value: stats.classes },
+                { label: t.statEdges, value: stats.edges },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between">
                   <span className="text-xs text-text-secondary">{label}</span>
@@ -90,7 +92,7 @@ export const SidePanel = () => {
 
           {/* Legend */}
           <section className="mb-5">
-            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-text-muted">Leyenda</p>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-text-muted">{t.legendTitle}</p>
             <div className="space-y-1.5">
               {LEGEND_LABELS.map((label) => (
                 <div key={label} className="flex items-center gap-2">
@@ -98,7 +100,7 @@ export const SidePanel = () => {
                     className="h-2 w-2 flex-shrink-0 rounded-full"
                     style={{ backgroundColor: NODE_COLORS[label] }}
                   />
-                  <span className="text-xs text-text-secondary">{LABEL_ES[label] ?? label}</span>
+                  <span className="text-xs text-text-secondary">{LABEL_I18N[label] ?? label}</span>
                 </div>
               ))}
             </div>
@@ -110,7 +112,7 @@ export const SidePanel = () => {
               onClick={handleReset}
               className="w-full rounded-lg border border-border-default px-3 py-2 text-xs text-text-secondary transition-colors hover:border-accent/40 hover:text-accent"
             >
-              Nuevo análisis
+              {t.newAnalysis}
             </button>
           </div>
         </div>

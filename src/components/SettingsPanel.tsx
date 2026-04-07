@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useT } from '../lib/i18n';
 import {
   X,
   Key,
@@ -248,6 +249,7 @@ export const SettingsPanel = ({
   isBackendConnected,
   onBackendUrlChange,
 }: SettingsPanelProps) => {
+  const t = useT();
   const [settings, setSettings] = useState<LLMSettings>(loadSettings);
   const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({});
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
@@ -354,8 +356,8 @@ export const SettingsPanel = ({
               <Brain className="h-5 w-5 text-accent" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-text-primary">AI Settings</h2>
-              <p className="text-xs text-text-muted">Configure your LLM provider</p>
+              <h2 className="text-lg font-semibold text-text-primary">{t.settingsTitle}</h2>
+              <p className="text-xs text-text-muted">{t.settingsSubtitle}</p>
             </div>
           </div>
           <button
@@ -400,7 +402,7 @@ export const SettingsPanel = ({
 
           {/* Provider Selection */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-text-secondary">Provider</label>
+            <label className="block text-sm font-medium text-text-secondary">{t.providerLabel}</label>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {providers.map((provider) => (
                 <button
@@ -438,7 +440,7 @@ export const SettingsPanel = ({
           </div>
 
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
-            API keys are stored in session storage and will be cleared when you close this tab.
+            {t.sessionWarning}
           </div>
 
           {/* OpenAI Settings */}

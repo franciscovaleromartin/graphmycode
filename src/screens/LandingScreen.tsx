@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import * as Comlink from 'comlink';
 import { useAppState } from '../hooks/useAppState';
+import { useT } from '../lib/i18n';
 import { extractZip } from '../services/zip';
 import { createKnowledgeGraph } from '../core/graph/graph';
 import type { IngestionWorkerApi } from '../workers/ingestion.worker';
@@ -83,6 +84,7 @@ function getWorkerApi(): Comlink.Remote<IngestionWorkerApi> {
 
 const ExplicacionAccordion = () => {
   const [open, setOpen] = useState(false);
+  const t = useT();
 
   return (
     <div className="mt-6 rounded-2xl border border-border-subtle bg-surface overflow-hidden">
@@ -90,7 +92,7 @@ const ExplicacionAccordion = () => {
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between px-5 py-4 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
       >
-        <span>Explicación</span>
+        <span>{t.accordionTitle}</span>
         <svg
           className={`h-4 w-4 text-text-muted transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -102,18 +104,23 @@ const ExplicacionAccordion = () => {
       {open && (
         <div className="border-t border-border-subtle px-5 pb-5 pt-4 space-y-4 text-sm text-text-secondary">
           <div>
-            <p className="mb-1 font-medium text-text-primary">¿Qué problema resuelve?</p>
-            <p>Cuando entras a un repositorio nuevo o grande, entender cómo están conectados los módulos es lento leyendo carpeta a carpeta. GraphMyCode te da esa visión global en segundos: archivos, clases, funciones, imports, llamadas entre funciones y clusters de código relacionado, todo como un grafo interactivo.</p>
+            <p className="mb-1 font-medium text-text-primary">{t.accordionQ1}</p>
+            <p>{t.accordionA1}</p>
           </div>
 
           <div>
-            <p className="mb-1 font-medium text-text-primary">¿Hay algún servidor o base de datos externa?</p>
-            <p>No. Todo corre en tu navegador, en memoria. No hay cluster de Neo4j, no hay backend, no hay red. El Cypher que usa el agente es un lenguaje de consulta sobre el grafo local.</p>
+            <p className="mb-1 font-medium text-text-primary">{t.accordionQ2}</p>
+            <p>{t.accordionA2}</p>
           </div>
 
           <div>
-            <p className="mb-1 font-medium text-text-primary">¿Puedo hacer preguntas sobre mi código? <span className="ml-1 rounded-md border border-border-subtle bg-elevated px-1.5 py-0.5 text-[10px] font-medium text-text-muted">Opcional</span></p>
-            <p>Sí. Una vez cargado el grafo, el botón <span className="font-medium text-text-primary">AI</span> te permite conectar tu propio proveedor de IA (OpenAI, Gemini, Anthropic, Ollama u otros) y hacerle preguntas en lenguaje natural sobre tu código. Tú pones tu API key, que se guarda solo en tu navegador y va directa al proveedor — nunca pasa por ningún servidor intermedio.</p>
+            <p className="mb-1 font-medium text-text-primary">
+              {t.accordionQ3}{' '}
+              <span className="ml-1 rounded-md border border-border-subtle bg-elevated px-1.5 py-0.5 text-[10px] font-medium text-text-muted">
+                {t.accordionOptional}
+              </span>
+            </p>
+            <p>{t.accordionA3}</p>
           </div>
         </div>
       )}
@@ -127,6 +134,7 @@ type InputMode = 'zip' | 'github';
 
 export const LandingScreen = () => {
   const { setGraph, setViewMode, setProgress, setProjectName } = useAppState();
+  const t = useT();
 
   const [mode, setMode] = useState<InputMode>('zip');
   const [githubUrl, setGithubUrl] = useState('');
@@ -156,7 +164,7 @@ export const LandingScreen = () => {
         setProgress(null);
         setViewMode('exploring');
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Error desconocido';
+        const msg = err instanceof Error ? err.message : t.errDownload;
         setError(msg);
         setProgress(null);
         setViewMode('onboarding');
@@ -171,12 +179,12 @@ export const LandingScreen = () => {
     async (fileList: FileList) => {
       const file = fileList[0];
       if (!file?.name.endsWith('.zip')) {
-        setError('Por favor sube un archivo .zip');
+        setError(t.errNotZip);
         return;
       }
       const entries = await extractZip(file);
       if (entries.length === 0) {
-        setError('El ZIP no contiene archivos de código fuente reconocibles');
+        setError(t.errEmptyZip);
         return;
       }
       await runPipeline(entries, file.name.replace(/\.zip$/i, ''));
@@ -187,7 +195,7 @@ export const LandingScreen = () => {
   const handleGitHub = useCallback(async () => {
     const parsed = parseGitHubUrl(githubUrl);
     if (!parsed) {
-      setError('URL inválida. Usa el formato: https://github.com/usuario/repo');
+      setError(t.errInvalidUrl);
       return;
     }
     try {
@@ -201,7 +209,7 @@ export const LandingScreen = () => {
       void statusMsg;
       await runPipeline(entries, `${parsed.owner}/${parsed.repo}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al descargar el repo');
+      setError(err instanceof Error ? err.message : t.errDownload);
       setIsProcessing(false);
     }
   }, [githubUrl, runPipeline, setProgress]);
@@ -235,10 +243,8 @@ export const LandingScreen = () => {
           <h1 className="mb-1 text-4xl font-semibold tracking-tight text-text-primary">
             <span className="text-fuchsia-400">Graph</span>My<span className="text-cyan-400">Code</span>
           </h1>
-          <p className="mb-2 text-xs text-text-muted">por Francisco Valero</p>
-          <p className="text-sm text-text-secondary">
-            Visualiza la arquitectura de tu código al instante
-          </p>
+          <p className="mb-2 text-xs text-text-muted">{t.by}</p>
+          <p className="text-sm text-text-secondary">{t.tagline}</p>
         </div>
 
         {/* Tab switcher */}
@@ -253,7 +259,7 @@ export const LandingScreen = () => {
                   : 'text-text-muted hover:text-text-secondary'
               }`}
             >
-              {tab === 'zip' ? 'Archivo ZIP' : 'URL de GitHub'}
+              {tab === 'zip' ? t.tabZip : t.tabGithub}
             </button>
           ))}
         </div>
@@ -279,10 +285,8 @@ export const LandingScreen = () => {
                 d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
               />
             </svg>
-            <p className="mb-1 text-sm font-medium text-text-primary">
-              Arrastra tu proyecto aquí
-            </p>
-            <p className="text-xs text-text-muted">o haz clic para seleccionar un archivo .zip</p>
+            <p className="mb-1 text-sm font-medium text-text-primary">{t.dropTitle}</p>
+            <p className="text-xs text-text-muted">{t.dropSubtitle}</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -297,7 +301,7 @@ export const LandingScreen = () => {
         {mode === 'github' && (
           <div className="rounded-2xl border border-border-default bg-surface p-6">
             <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-text-muted">
-              URL del repositorio
+              {t.repoLabel}
             </label>
             <div className="flex gap-2">
               <input
@@ -305,7 +309,7 @@ export const LandingScreen = () => {
                 value={githubUrl}
                 onChange={(e) => setGithubUrl(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="https://github.com/usuario/repositorio"
+                placeholder={t.repoPlaceholder}
                 disabled={isProcessing}
                 className="flex-1 rounded-xl border border-border-default bg-elevated px-4 py-2.5 text-sm text-text-primary placeholder-text-muted outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/30 disabled:opacity-50"
               />
@@ -314,12 +318,10 @@ export const LandingScreen = () => {
                 disabled={isProcessing || !githubUrl.trim()}
                 className="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-void transition-all hover:bg-accent-dim disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Analizar
+                {t.analyzeBtn}
               </button>
             </div>
-            <p className="mt-3 text-xs text-text-muted">
-              Solo repositorios públicos · Máx. 250 archivos fuente
-            </p>
+            <p className="mt-3 text-xs text-text-muted">{t.repoHint}</p>
           </div>
         )}
 
@@ -336,7 +338,7 @@ export const LandingScreen = () => {
         {/* Privacy badge */}
         <p className="mt-6 text-center text-xs text-text-muted">
           <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-node-function align-middle" />
-          Tu código nunca sale de tu navegador
+          {t.privacy}
         </p>
       </div>
     </div>

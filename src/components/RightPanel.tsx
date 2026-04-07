@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useT } from '../lib/i18n';
 import {
   Send,
   Square,
@@ -32,6 +33,7 @@ export const RightPanel = () => {
     clearChat,
   } = useAppState();
 
+  const t = useT();
   const [chatInput, setChatInput] = useState('');
   const [activeTab, setActiveTab] = useState<'chat' | 'processes'>('chat');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -202,12 +204,7 @@ export const RightPanel = () => {
     }
   };
 
-  const chatSuggestions = [
-    'Explain the project architecture',
-    'What does this project do?',
-    'Show me the most important files',
-    'Find all API handlers',
-  ];
+  const chatSuggestions = t.suggestions;
 
   if (!isRightPanelOpen) return null;
 
@@ -226,7 +223,7 @@ export const RightPanel = () => {
             }`}
           >
             <Sparkles className="h-3.5 w-3.5" />
-            <span>Nexus AI</span>
+            <span>{t.aiTab}</span>
           </button>
 
           {/* Processes Tab */}
@@ -239,7 +236,7 @@ export const RightPanel = () => {
             }`}
           >
             <GitBranch className="h-3.5 w-3.5" />
-            <span>Processes</span>
+            <span>{t.processesTab}</span>
             <span className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
               NEW
             </span>
@@ -271,12 +268,12 @@ export const RightPanel = () => {
             <div className="ml-auto flex items-center gap-2">
               {!isAgentReady && (
                 <span className="rounded-full border border-amber-500/30 bg-amber-500/15 px-2 py-1 text-[11px] text-amber-300">
-                  Configure AI
+                  {t.configureAI}
                 </span>
               )}
               {isAgentInitializing && (
                 <span className="flex items-center gap-1 rounded-full border border-border-subtle bg-surface px-2 py-1 text-[11px] text-text-muted">
-                  <Loader2 className="h-3 w-3 animate-spin" /> Connecting
+                  <Loader2 className="h-3 w-3 animate-spin" /> {t.connecting}
                 </span>
               )}
             </div>
@@ -297,11 +294,8 @@ export const RightPanel = () => {
                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-node-interface text-2xl shadow-glow">
                   🧠
                 </div>
-                <h3 className="mb-2 text-base font-medium">Ask me anything</h3>
-                <p className="mb-5 text-sm leading-relaxed text-text-secondary">
-                  I can help you understand the architecture, find functions, or explain
-                  connections.
-                </p>
+                <h3 className="mb-2 text-base font-medium">{t.askAnything}</h3>
+                <p className="mb-5 text-sm leading-relaxed text-text-secondary">{t.askSubtitle}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {chatSuggestions.map((suggestion) => (
                     <button
@@ -324,7 +318,7 @@ export const RightPanel = () => {
                         <div className="mb-2 flex items-center gap-2">
                           <User className="h-4 w-4 text-text-muted" />
                           <span className="text-xs font-medium tracking-wide text-text-muted uppercase">
-                            You
+                            {t.youLabel}
                           </span>
                         </div>
                         <div className="pl-6 text-sm text-text-primary">{message.content}</div>
@@ -337,7 +331,7 @@ export const RightPanel = () => {
                         <div className="mb-3 flex items-center gap-2">
                           <Sparkles className="h-4 w-4 text-accent" />
                           <span className="text-xs font-medium tracking-wide text-text-muted uppercase">
-                            Nexus AI
+                            {t.aiLabel}
                           </span>
                           {isChatLoading && message === chatMessages[chatMessages.length - 1] && (
                             <Loader2 className="h-3 w-3 animate-spin text-accent" />
@@ -403,7 +397,7 @@ export const RightPanel = () => {
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about the codebase..."
+                placeholder={t.chatPlaceholder}
                 rows={1}
                 className="scrollbar-thin min-h-[36px] flex-1 resize-none border-none bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
                 style={{ height: '36px', overflowY: 'hidden' }}
@@ -411,9 +405,9 @@ export const RightPanel = () => {
               <button
                 onClick={clearChat}
                 className="px-2 py-1 text-xs text-text-muted transition-colors hover:text-text-primary"
-                title="Clear chat"
+                title={t.clearChat}
               >
-                Clear
+                {t.clearChat}
               </button>
               {isChatLoading ? (
                 <button
@@ -438,8 +432,8 @@ export const RightPanel = () => {
                 <AlertTriangle className="h-3.5 w-3.5" />
                 <span>
                   {isProviderConfigured()
-                    ? 'Initializing AI agent...'
-                    : 'Configure an LLM provider to enable chat.'}
+                    ? t.initializingAgent
+                    : t.configureProvider}
                 </span>
               </div>
             )}

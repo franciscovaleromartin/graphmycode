@@ -14,6 +14,7 @@ import {
 import { useSigma } from '../hooks/useSigma';
 import { useAppState } from '../hooks/useAppState';
 import { isProviderConfigured } from '../core/llm/settings-service';
+import { useT } from '../lib/i18n';
 import {
   knowledgeGraphToGraphology,
   filterGraphByDepth,
@@ -53,6 +54,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
     setSettingsPanelOpen,
   } = useAppState();
 
+  const t = useT();
   const [hoveredNodeName, setHoveredNodeName] = useState<string | null>(null);
 
   const effectiveHighlightedNodeIds = useMemo(() => {
@@ -282,7 +284,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             onClick={handleClearSelection}
             className="ml-2 rounded px-2 py-0.5 text-xs text-text-secondary transition-colors hover:bg-white/10 hover:text-text-primary"
           >
-            Clear
+            {t.clearSelection}
           </button>
         </div>
       )}
@@ -357,7 +359,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       {isLayoutRunning && (
         <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 animate-fade-in items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-3 py-1.5 backdrop-blur-sm">
           <div className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
-          <span className="text-xs font-medium text-emerald-400">Layout optimizing...</span>
+          <span className="text-xs font-medium text-emerald-400">{t.layoutRunning}</span>
         </div>
       )}
 
@@ -372,7 +374,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             ? 'bg-accent shadow-[0_0_20px_rgba(139,92,246,0.5)]'
             : 'bg-gradient-to-r from-accent to-accent-dim shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)]'
         }`}
-        title="Preguntar a la IA sobre tu código"
+        title={t.aiButtonTitle}
       >
         <Sparkles className="h-4 w-4" />
         <span>AI Question</span>
