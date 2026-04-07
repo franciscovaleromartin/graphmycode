@@ -375,7 +375,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         title="Preguntar a la IA sobre tu código"
       >
         <Sparkles className="h-4 w-4" />
-        <span>AI</span>
+        <span>AI Question</span>
       </button>
 
       {/* Top Right: branding + AI Highlights toggle */}
