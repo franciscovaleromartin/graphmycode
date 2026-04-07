@@ -233,7 +233,7 @@ export const LandingScreen = () => {
         {/* Header */}
         <div className="mb-10 text-center">
           <h1 className="mb-1 text-4xl font-semibold tracking-tight text-text-primary">
-            GraphMy<span className="text-cyan-400">Code</span>
+            <span className="text-fuchsia-400">Graph</span>My<span className="text-cyan-400">Code</span>
           </h1>
           <p className="mb-2 text-xs text-text-muted">por Francisco Valero</p>
           <p className="text-sm text-text-secondary">
