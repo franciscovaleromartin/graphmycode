@@ -5,9 +5,11 @@ import { LandingScreen } from './screens/LandingScreen';
 import { SidePanel } from './screens/SidePanel';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { GraphCanvas, GraphCanvasHandle } from './components/GraphCanvas';
+import { RightPanel } from './components/RightPanel';
+import { SettingsPanel } from './components/SettingsPanel';
 
 const AppContent = () => {
-  const { viewMode, progress } = useAppState();
+  const { viewMode, progress, isSettingsPanelOpen, setSettingsPanelOpen } = useAppState();
   const graphCanvasRef = useRef<GraphCanvasHandle>(null);
 
   if (viewMode === 'onboarding') {
@@ -23,6 +25,11 @@ const AppContent = () => {
     <div className="relative h-screen w-screen overflow-hidden bg-void">
       <SidePanel />
       <GraphCanvas ref={graphCanvasRef} />
+      <RightPanel />
+      <SettingsPanel
+        isOpen={isSettingsPanelOpen}
+        onClose={() => setSettingsPanelOpen(false)}
+      />
     </div>
   );
 };
