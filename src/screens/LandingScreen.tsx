@@ -110,6 +110,11 @@ const ExplicacionAccordion = () => {
             <p className="mb-1 font-medium text-text-primary">¿Hay algún servidor o base de datos externa?</p>
             <p>No. Todo corre en tu navegador, en memoria. No hay cluster de Neo4j, no hay backend, no hay red. El Cypher que usa el agente es un lenguaje de consulta sobre el grafo local.</p>
           </div>
+
+          <div>
+            <p className="mb-1 font-medium text-text-primary">¿Puedo hacer preguntas sobre mi código? <span className="ml-1 rounded-md border border-border-subtle bg-elevated px-1.5 py-0.5 text-[10px] font-medium text-text-muted">Opcional</span></p>
+            <p>Sí. Una vez cargado el grafo, el botón <span className="font-medium text-text-primary">AI</span> te permite conectar tu propio proveedor de IA (OpenAI, Gemini, Anthropic, Ollama u otros) y hacerle preguntas en lenguaje natural sobre tu código. Tú pones tu API key, que se guarda solo en tu navegador y va directa al proveedor — nunca pasa por ningún servidor intermedio.</p>
+          </div>
         </div>
       )}
     </div>
