@@ -33,7 +33,7 @@ const translations = {
     errNoFiles: 'No se encontraron archivos de código fuente',
     privacy: 'Tu código nunca sale de tu navegador',
     // Acordeón
-    accordionTitle: 'Explicación',
+    accordionTitle: 'Sobre la privacidad de tu código',
     accordionQ1: '¿Qué problema resuelve?',
     accordionA1:
       'Cuando entras a un repositorio nuevo o grande, entender cómo están conectados los módulos es lento leyendo carpeta a carpeta. GraphMyCode te da esa visión global en segundos: archivos, clases, funciones, imports, llamadas entre funciones y clusters de código relacionado, todo como un grafo interactivo.',
@@ -43,7 +43,7 @@ const translations = {
     accordionQ3: '¿Puedo hacer preguntas sobre mi código?',
     accordionOptional: 'Opcional',
     accordionA3:
-      'Sí. Una vez cargado el grafo, el botón AI Question te permite conectar tu propio proveedor de IA (OpenAI, Gemini, Anthropic, Ollama u otros) y hacerle preguntas en lenguaje natural sobre tu código. Tú pones tu API key, que se guarda solo en tu navegador y va directa al proveedor — nunca pasa por ningún servidor intermedio.',
+      'Sí. Una vez cargado el grafo, el botón AI Question te permite conectar tu propio proveedor de IA (OpenAI, Gemini, Anthropic, Ollama u otros) y hacerle preguntas en lenguaje natural sobre tu código. Tú pones tu API key, que se guarda solo en tu navegador. Ten en cuenta que al activar esta opción, fragmentos de tu código sí viajarán fuera del navegador hacia el proveedor de IA que hayas elegido. Si usas Ollama (local), el código no sale de tu máquina.',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',
@@ -124,7 +124,7 @@ const translations = {
     errNoFiles: 'No source files found',
     privacy: 'Your code never leaves your browser',
     // Accordion
-    accordionTitle: 'Explanation',
+    accordionTitle: 'About your code privacy',
     accordionQ1: 'What problem does it solve?',
     accordionA1:
       'When you open a new or large repository, understanding how modules connect is slow when reading folder by folder. GraphMyCode gives you that global view in seconds: files, classes, functions, imports, call chains, and clusters of related code — all as an interactive graph.',
@@ -134,7 +134,7 @@ const translations = {
     accordionQ3: 'Can I ask questions about my code?',
     accordionOptional: 'Optional',
     accordionA3:
-      'Yes. Once the graph is loaded, the AI Question button lets you connect your own AI provider (OpenAI, Gemini, Anthropic, Ollama, and others) and ask questions in natural language about your code. You provide your API key, which is stored only in your browser and sent directly to the provider — it never passes through any intermediate server.',
+      'Yes. Once the graph is loaded, the AI Question button lets you connect your own AI provider (OpenAI, Gemini, Anthropic, Ollama, and others) and ask questions in natural language about your code. You provide your API key, stored only in your browser. However, be aware that when this option is enabled, parts of your code will be sent outside your browser to the AI provider you have chosen. If you use Ollama (local), your code never leaves your machine.',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',
