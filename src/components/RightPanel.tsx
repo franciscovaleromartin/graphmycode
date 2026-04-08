@@ -279,6 +279,14 @@ export const RightPanel = () => {
             </div>
           </div>
 
+          {/* Privacy warning when AI is active */}
+          {isAgentReady && (
+            <div className="flex items-center gap-2 border-b border-amber-500/20 bg-amber-500/8 px-4 py-2 text-[11px] text-amber-300/80">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              <span>{t.aiPrivacyWarning}</span>
+            </div>
+          )}
+
           {/* Status / errors */}
           {agentError && (
             <div className="flex items-center gap-2 border-b border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">

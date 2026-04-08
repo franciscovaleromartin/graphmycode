@@ -88,6 +88,8 @@ const translations = {
       'Encuentra todos los API handlers',
     ],
 
+    aiPrivacyWarning: 'Con la IA activada, fragmentos de tu código se envían al proveedor elegido fuera de tu navegador.',
+
     // ── SettingsPanel ────────────────────────────────────────────────────
     settingsTitle: 'Configuración de IA',
     settingsSubtitle: 'Configura tu proveedor LLM',
@@ -177,6 +179,8 @@ const translations = {
       'Show me the most important files',
       'Find all API handlers',
     ],
+
+    aiPrivacyWarning: 'With AI enabled, parts of your code are sent to your chosen provider outside your browser.',
 
     // ── SettingsPanel ────────────────────────────────────────────────────
     settingsTitle: 'AI Settings',
