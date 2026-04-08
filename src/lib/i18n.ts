@@ -40,9 +40,12 @@ const translations = {
     accordionQ2: '¿Hay algún servidor o base de datos externa?',
     accordionA2:
       'No. Todo corre en tu navegador, en memoria. No hay cluster de Neo4j, no hay backend, no hay red. El Cypher que usa el agente es un lenguaje de consulta sobre el grafo local.',
-    accordionQ3: '¿Puedo hacer preguntas sobre mi código?',
-    accordionOptional: 'Opcional',
+    accordionQ3: '¿Se almacena tu código o algún dato tuyo?',
     accordionA3:
+      'No. GraphMyCode no tiene base de datos, no tiene servidor propio y no guarda ningún archivo. Todo el análisis ocurre en memoria dentro de tu navegador y desaparece en cuanto cierras la pestaña. Tampoco se recogen métricas de uso ni se registra ningún dato personal.',
+    accordionQ4: '¿Puedo hacer preguntas sobre mi código?',
+    accordionOptional: 'Opcional',
+    accordionA4:
       'Sí. Una vez cargado el grafo, el botón AI Question te permite conectar tu propio proveedor de IA (OpenAI, Gemini, Anthropic, Ollama u otros) y hacerle preguntas en lenguaje natural sobre tu código. Tú pones tu API key, que se guarda solo en tu navegador. Ten en cuenta que al activar esta opción, fragmentos de tu código sí viajarán fuera del navegador hacia el proveedor de IA que hayas elegido. Si usas Ollama (local), el código no sale de tu máquina.',
 
     // ── SidePanel ────────────────────────────────────────────────────────
@@ -133,9 +136,12 @@ const translations = {
     accordionQ2: 'Is there any external server or database?',
     accordionA2:
       'No. Everything runs in your browser, in memory. There is no Neo4j cluster, no backend, no network. The Cypher used by the agent is a query language over the local in-memory graph.',
-    accordionQ3: 'Can I ask questions about my code?',
-    accordionOptional: 'Optional',
+    accordionQ3: 'Is your code or any of your data stored?',
     accordionA3:
+      'No. GraphMyCode has no database, no backend server, and saves no files. All analysis runs in memory inside your browser and disappears as soon as you close the tab. No usage metrics are collected and no personal data is recorded.',
+    accordionQ4: 'Can I ask questions about my code?',
+    accordionOptional: 'Optional',
+    accordionA4:
       'Yes. Once the graph is loaded, the AI Question button lets you connect your own AI provider (OpenAI, Gemini, Anthropic, Ollama, and others) and ask questions in natural language about your code. You provide your API key, stored only in your browser. However, be aware that when this option is enabled, parts of your code will be sent outside your browser to the AI provider you have chosen. If you use Ollama (local), your code never leaves your machine.',
 
     // ── SidePanel ────────────────────────────────────────────────────────

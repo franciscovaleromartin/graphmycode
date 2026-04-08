@@ -114,13 +114,18 @@ const ExplicacionAccordion = () => {
           </div>
 
           <div>
+            <p className="mb-1 font-medium text-text-primary">{t.accordionQ3}</p>
+            <p>{t.accordionA3}</p>
+          </div>
+
+          <div>
             <p className="mb-1 font-medium text-text-primary">
-              {t.accordionQ3}{' '}
+              {t.accordionQ4}{' '}
               <span className="ml-1 rounded-md border border-border-subtle bg-elevated px-1.5 py-0.5 text-[10px] font-medium text-text-muted">
                 {t.accordionOptional}
               </span>
             </p>
-            <p>{t.accordionA3}</p>
+            <p>{t.accordionA4}</p>
           </div>
         </div>
       )}
