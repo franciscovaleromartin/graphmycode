@@ -10,6 +10,8 @@ import {
   Lightbulb,
   LightbulbOff,
   Sparkles,
+  Layers,
+  Brain,
 } from '@/lib/lucide-icons';
 import { useSigma } from '../hooks/useSigma';
 import { useAppState } from '../hooks/useAppState';
@@ -23,6 +25,7 @@ import {
 } from '../lib/graph-adapter';
 import type { GraphNode } from 'gitnexus-shared';
 import { QueryFAB } from './QueryFAB';
+import { SemanticGraph } from './SemanticGraph';
 import Graph from 'graphology';
 
 export interface GraphCanvasHandle {
@@ -56,6 +59,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
 
   const t = useT();
   const [hoveredNodeName, setHoveredNodeName] = useState<string | null>(null);
+  const [graphViewType, setGraphViewType] = useState<'structural' | 'semantic'>('structural');
 
   const effectiveHighlightedNodeIds = useMemo(() => {
     if (!isAIHighlightsEnabled) return highlightedNodeIds;
@@ -259,11 +263,47 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         />
       </div>
 
-      {/* Sigma container */}
+      {/* Toggle Structural / Semantic — top-left */}
+      {graph && (
+        <div className="absolute top-4 left-4 z-20 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm">
+          <button
+            onClick={() => setGraphViewType('structural')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              graphViewType === 'structural'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Vista estructural (grafo 2D)"
+          >
+            <Layers className="h-3 w-3" />
+            Structural
+          </button>
+          <div className="w-px bg-border-subtle" />
+          <button
+            onClick={() => setGraphViewType('semantic')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              graphViewType === 'semantic'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Vista semántica 3D (similitud de código)"
+          >
+            <Brain className="h-3 w-3" />
+            Semantic
+          </button>
+        </div>
+      )}
+
+      {/* Sigma container — oculto (no destruido) en modo semántico */}
       <div
         ref={containerRef}
-        className="sigma-container h-full w-full cursor-grab active:cursor-grabbing"
+        className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' ? ' hidden' : ''}`}
       />
+
+      {/* Vista semántica 3D */}
+      {graphViewType === 'semantic' && graph && (
+        <SemanticGraph nodes={graph.nodes} />
+      )}
 
       {/* Hovered node tooltip - only show when NOT selected */}
       {hoveredNodeName && !sigmaSelectedNode && (
