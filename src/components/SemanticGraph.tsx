@@ -59,6 +59,27 @@ const pushSegment = (
   bucket.z.push(p1[2], p2[2], null);
 };
 
+const makeEdgeTraces = (buckets: EdgeBuckets) =>
+  (
+    [
+      { bucket: buckets.low, opacity: 0.12 },
+      { bucket: buckets.mid, opacity: 0.22 },
+      { bucket: buckets.high, opacity: 0.42 },
+    ] as const
+  )
+    .filter(({ bucket }) => bucket.x.length > 0)
+    .map(({ bucket, opacity }) => ({
+      type: 'scatter3d',
+      mode: 'lines',
+      x: bucket.x,
+      y: bucket.y,
+      z: bucket.z,
+      line: { color: '#06b6d4', width: 1 },
+      opacity,
+      hoverinfo: 'none',
+      showlegend: false,
+    }));
+
 // ─── Componente principal ─────────────────────────────────────────────────
 
 export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
@@ -66,12 +87,14 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
   const [showFallback, setShowFallback] = useState(false);
   const plotRef = useRef<HTMLDivElement>(null);
 
-  // Datos computados que necesitamos para el resaltado de nodos
-  const semNodesRef = useRef<SemanticNode[]>([]);
+  // Datos computados que necesitamos para la interacción
   const simsRef = useRef<number[][]>([]);
-  const clustersRef = useRef<number[]>([]);
   const points3DRef = useRef<[number, number, number][]>([]);
-  const top3Ref = useRef<string[][]>([]);
+
+  // Trace base de nodos (sin opacidad modificada) para resets rápidos
+  const baseNodeTraceRef = useRef<any>(null);
+  // Layout reutilizable
+  const layoutRef = useRef<any>(null);
 
   // Limpiar Plotly al desmontar para liberar memoria
   useEffect(() => {
@@ -96,28 +119,24 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
     ) => {
       if (!plotRef.current) return;
 
-      // Dynamic import: Plotly solo se descarga al primer uso
       const Plotly = ((await import('plotly.js-dist-min' as any)) as any).default as any;
 
       const n = semNodes.length;
-      const buckets = buildEdgeBuckets();
 
+      // ── Construir aristas iniciales ────────────────────────────────
+      const buckets = buildEdgeBuckets();
       for (let i = 0; i < n; i++) {
         for (let j = i + 1; j < n; j++) {
           const sim = sims[i][j];
           if (sim > SIMILARITY_THRESHOLD) {
-            if (sim > 0.85) {
-              pushSegment(buckets.high, points3D[i], points3D[j]);
-            } else if (sim > 0.75) {
-              pushSegment(buckets.mid, points3D[i], points3D[j]);
-            } else {
-              pushSegment(buckets.low, points3D[i], points3D[j]);
-            }
+            if (sim > 0.85) pushSegment(buckets.high, points3D[i], points3D[j]);
+            else if (sim > 0.75) pushSegment(buckets.mid, points3D[i], points3D[j]);
+            else pushSegment(buckets.low, points3D[i], points3D[j]);
           }
         }
       }
 
-      // Trace de nodos
+      // ── Trace de nodos ─────────────────────────────────────────────
       const nodeTrace = {
         type: 'scatter3d',
         mode: 'markers',
@@ -141,24 +160,8 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
         showlegend: false,
       };
 
-      // Traces de aristas (3 niveles de opacidad)
-      const edgeTraces = [
-        { bucket: buckets.low, opacity: 0.12 },
-        { bucket: buckets.mid, opacity: 0.22 },
-        { bucket: buckets.high, opacity: 0.42 },
-      ]
-        .filter(({ bucket }) => bucket.x.length > 0)
-        .map(({ bucket, opacity }) => ({
-          type: 'scatter3d',
-          mode: 'lines',
-          x: bucket.x,
-          y: bucket.y,
-          z: bucket.z,
-          line: { color: '#06b6d4', width: 1 },
-          opacity,
-          hoverinfo: 'none',
-          showlegend: false,
-        }));
+      // Guardar trace base sin modificar y el layout para resets rápidos
+      baseNodeTraceRef.current = nodeTrace;
 
       const layout = {
         paper_bgcolor: 'transparent',
@@ -181,55 +184,92 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
           },
         },
       };
+      layoutRef.current = layout;
 
-      await Plotly.newPlot(plotRef.current, [nodeTrace, ...edgeTraces], layout, {
-        displayModeBar: false,
-        responsive: true,
-      });
+      const config = { displayModeBar: false, responsive: true };
 
-      // ── Interacción: click en nodo ─────────────────────────────────────
-      // plotly_click se dispara en mouseup (antes del evento DOM click).
-      // Solo marcamos la flag cuando realmente se hizo click en un nodo del
-      // trace 0; para edge-clicks y fondo reseteamos directamente aquí.
+      await Plotly.newPlot(plotRef.current, [nodeTrace, ...makeEdgeTraces(buckets)], layout, config);
+
+      // ── Interacción: click en nodo ─────────────────────────────────
+      //
+      // NOTA DE RENDIMIENTO: Plotly.restyle sobre un scatter3d con decenas
+      // de miles de puntos de aristas congela el hilo principal porque
+      // redibuja toda la escena WebGL. En su lugar usamos Plotly.react():
+      //
+      //  • Click en nodo → react() con solo el trace de nodos (opacidades
+      //    personalizadas) + aristas ÚNICAMENTE del nodo clicado (~50-200 pts).
+      //  • Click en fondo → react() con el trace base (sin aristas).
+      //
+      // Esto mantiene el dataset mínimo en cada actualización y evita el freeze.
+
       let lastClickWasOnNode = false;
 
-      const resetOpacities = () => {
-        const n2 = simsRef.current.length;
-        if (n2 === 0 || !plotRef.current) return;
-        Plotly.restyle(plotRef.current, { 'marker.opacity': [new Array(n2).fill(0.85)] }, [0]);
+      const reactWithSelection = (clickedIdx: number) => {
+        if (!plotRef.current) return;
+
+        const simRow = simsRef.current[clickedIdx] ?? [];
+        const pts = points3DRef.current;
+
+        // Opacidades: nodo clicado + vecinos = normales; resto = casi transparente
+        const perNodeOpacity = simRow.map((sim, j) => {
+          if (j === clickedIdx) return 0.95;
+          return sim > SIMILARITY_THRESHOLD ? 0.85 : 0.04;
+        });
+
+        const selNodeTrace = {
+          ...baseNodeTraceRef.current,
+          marker: {
+            ...baseNodeTraceRef.current.marker,
+            opacity: perNodeOpacity,
+          },
+        };
+
+        // Aristas solo para este nodo (dataset pequeño = react rápido)
+        const filtBuckets = buildEdgeBuckets();
+        for (let j = 0; j < simRow.length; j++) {
+          if (j === clickedIdx) continue;
+          const sim = simRow[j];
+          if (sim <= SIMILARITY_THRESHOLD) continue;
+          if (sim > 0.85) pushSegment(filtBuckets.high, pts[clickedIdx], pts[j]);
+          else if (sim > 0.75) pushSegment(filtBuckets.mid, pts[clickedIdx], pts[j]);
+          else pushSegment(filtBuckets.low, pts[clickedIdx], pts[j]);
+        }
+
+        Plotly.react(
+          plotRef.current,
+          [selNodeTrace, ...makeEdgeTraces(filtBuckets)],
+          layoutRef.current,
+          config,
+        );
+      };
+
+      const reactReset = () => {
+        if (!plotRef.current || !baseNodeTraceRef.current) return;
+        // Solo nodos, sin aristas — react con dataset mínimo, instantáneo
+        Plotly.react(plotRef.current, [baseNodeTraceRef.current], layoutRef.current, config);
       };
 
       (plotRef.current as any).on('plotly_click', (eventData: any) => {
         const point = eventData?.points?.[0];
 
         if (!point || point.curveNumber !== 0) {
-          // Click en fondo o en arista → reset
+          // Click en arista o fondo dentro de Plotly → reset
           lastClickWasOnNode = false;
-          resetOpacities();
+          reactReset();
           return;
         }
 
-        // Click en nodo del trace principal
         lastClickWasOnNode = true;
-        const clickedIdx = point.pointNumber as number;
-        const simRow = simsRef.current[clickedIdx] ?? [];
-
-        const opacities = simRow.map((sim, j) => {
-          if (j === clickedIdx) return 0.95;
-          return sim > SIMILARITY_THRESHOLD ? 0.85 : 0.04;
-        });
-
-        Plotly.restyle(plotRef.current, { 'marker.opacity': [opacities] }, [0]);
+        reactWithSelection(point.pointNumber as number);
       });
 
-      // Fallback DOM click: cubre el caso en que plotly_click no se dispara
-      // (p.ej. fondo 3D sin puntos cercanos). Siempre llega después de plotly_click.
+      // Fallback: DOM click para el fondo 3D cuando Plotly no emite plotly_click
       plotRef.current.addEventListener('click', () => {
         if (lastClickWasOnNode) {
-          lastClickWasOnNode = false; // consumir la flag, no resetear
+          lastClickWasOnNode = false;
           return;
         }
-        resetOpacities();
+        reactReset();
       });
     },
     [],
@@ -254,18 +294,16 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
           return;
         }
 
-        // Limitar a MAX_NODES para evitar O(n²) en similitud coseno
         const capped = semNodes.slice(0, MAX_NODES);
         const n = capped.length;
 
         setState({ status: 'reducing' });
-        // Flush del render antes de la llamada síncrona bloqueante de UMAP
         await new Promise<void>((r) => setTimeout(r, 50));
 
         const points3D = reduceToThreeD(capped.map((nd) => nd.embedding));
         const clusters = kMeans(points3D, K_CLUSTERS);
 
-        // Precalcular matriz de similitudes
+        // Precalcular matriz de similitudes (se guarda en ref para los event handlers)
         const sims: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
         for (let i = 0; i < n; i++) {
           for (let j = i + 1; j < n; j++) {
@@ -275,7 +313,6 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
           }
         }
 
-        // Top 3 similares por nodo
         const top3: string[][] = Array.from({ length: n }, (_, i) =>
           sims[i]
             .map((sim, j) => ({ j, sim }))
@@ -285,15 +322,9 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
             .map(({ j, sim }) => `${capped[j].name} (${(sim * 100).toFixed(0)}%)`),
         );
 
-        // Guardar en refs para acceso desde los event listeners
-        semNodesRef.current = capped;
         simsRef.current = sims;
-        clustersRef.current = clusters;
         points3DRef.current = points3D;
-        top3Ref.current = top3;
 
-        // Cambiar a 'ready' ANTES de renderizar Plotly para que React monte
-        // el div con ref={plotRef}. Sin esto plotRef.current es null.
         setState({ status: 'ready' });
         await new Promise<void>((r) => setTimeout(r, 50));
 
@@ -301,9 +332,6 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
       } catch (error) {
         if (error instanceof WebGPUNotAvailableError) {
           setShowFallback(true);
-          // No reseteamos a 'idle': dejamos el fallback dialog visible
-          // pero el estado queda en loading-model para que no se muestre
-          // contenido incorrecto. Al elegir CPU se relanzará handleLoad.
         } else {
           setState({
             status: 'error',
@@ -318,7 +346,6 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
   // Auto-carga al montar el componente
   useEffect(() => {
     handleLoad();
-    // Solo al montar — sin dependencias para evitar re-cargas
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
