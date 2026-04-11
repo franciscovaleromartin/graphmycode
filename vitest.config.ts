@@ -4,7 +4,12 @@ import path from 'path';
 import { createRequire } from 'module';
 
 const _require = createRequire(import.meta.url);
-const gitnexusPkg = _require('../gitnexus/package.json');
+let gitnexusPkg;
+try {
+  gitnexusPkg = _require('../gitnexus/package.json');
+} catch {
+  gitnexusPkg = { engines: { node: '20.0.0' } };
+}
 
 export default defineConfig({
   plugins: [react()],
