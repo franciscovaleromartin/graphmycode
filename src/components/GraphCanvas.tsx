@@ -302,7 +302,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
 
       {/* Vista semántica 3D */}
       {graphViewType === 'semantic' && graph && (
-        <div className="absolute inset-0 z-10">
+        <div className="absolute inset-0 z-10 overflow-hidden">
           <SemanticGraph nodes={graph.nodes} />
         </div>
       )}

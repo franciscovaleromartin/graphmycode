@@ -251,7 +251,7 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
 
   if (state.status === 'idle') {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-void">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-void">
         <div className="flex flex-col items-center gap-3">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-accent/30 bg-accent/10">
             <Brain className="h-8 w-8 text-accent" />
@@ -286,7 +286,7 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
 
   if (state.status === 'loading-model') {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-void">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
         <Loader2 className="h-6 w-6 animate-spin text-accent" />
         <p className="text-sm text-text-secondary">Descargando modelo...</p>
         <div className="h-1.5 w-48 overflow-hidden rounded-full bg-elevated">
@@ -304,7 +304,7 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
     const percent =
       state.total > 0 ? Math.round((state.processed / state.total) * 100) : 0;
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-void">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
         <Loader2 className="h-6 w-6 animate-spin text-node-function" />
         <p className="text-sm text-text-secondary">Generando embeddings...</p>
         <div className="h-1.5 w-48 overflow-hidden rounded-full bg-elevated">
@@ -322,7 +322,7 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
 
   if (state.status === 'reducing') {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-void">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
         <Loader2 className="h-6 w-6 animate-spin text-node-interface" />
         <p className="text-sm text-text-secondary">Calculando similitudes...</p>
       </div>
@@ -331,7 +331,7 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
 
   if (state.status === 'error') {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-void">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
         <AlertCircle className="h-6 w-6 text-red-400" />
         <p className="text-sm text-red-400">{state.message}</p>
         <button
@@ -346,7 +346,7 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
 
   // Estado 'ready': Plotly renderiza en el div via newPlot
   return (
-    <div className="relative h-full w-full bg-void">
+    <div className="absolute inset-0 bg-void">
       <div ref={plotRef} className="h-full w-full" />
     </div>
   );
