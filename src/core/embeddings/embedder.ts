@@ -106,7 +106,12 @@ export const initEmbedder = async (
       if (!(env.backends.onnx as any).wasm.wasmPaths) {
         (env.backends.onnx as any).wasm.wasmPaths = '/ort/';
       }
-      
+
+      // Suprimir los [W:onnxruntime:] que ORT imprime via console.error durante
+      // la creación de la sesión. Son warnings informativos sobre asignación de
+      // operadores al execution provider y no indican ningún fallo real.
+      (env.backends.onnx as any).logLevel = 'error';
+
       if (import.meta.env.DEV) {
         console.log(`🧠 Loading embedding model: ${finalConfig.modelId}`);
       }
