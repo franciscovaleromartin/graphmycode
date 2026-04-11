@@ -20,6 +20,10 @@ export const kMeans = (
 ): number[] => {
   if (points.length === 0) return [];
 
+  if (k < 1) {
+    throw new Error(`kMeans: k debe ser >= 1, recibido ${k}`);
+  }
+
   const clampedK = Math.min(k, points.length);
 
   // Inicializar centroides: tomar k puntos equiespaciados del array

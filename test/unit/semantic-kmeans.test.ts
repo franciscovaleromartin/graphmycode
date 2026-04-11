@@ -43,4 +43,9 @@ describe('kMeans', () => {
     const result = kMeans(points, 4);
     expect(result.every(c => c >= 0 && c < 4)).toBe(true);
   });
+
+  it('lanza error si k < 1', () => {
+    const points: [number, number, number][] = [[0, 0, 0], [1, 1, 1]];
+    expect(() => kMeans(points, 0)).toThrow('kMeans: k debe ser >= 1');
+  });
 });
