@@ -26,9 +26,18 @@ export default defineConfig({
     },
   },
   server: {
-    // Allow serving files from node_modules
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+    },
     fs: {
       allow: ['..'],
+    },
+  },
+  preview: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
     },
   },
 });
