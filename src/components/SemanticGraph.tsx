@@ -1,6 +1,6 @@
 // src/components/SemanticGraph.tsx
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Loader2, Brain, AlertCircle } from '@/lib/lucide-icons';
+import { Loader2, AlertCircle } from '@/lib/lucide-icons';
 import type { GraphNode } from 'gitnexus-shared';
 import {
   generateSemanticEmbeddings,
@@ -16,7 +16,6 @@ import { WebGPUFallbackDialog } from './WebGPUFallbackDialog';
 // ─── Tipos de estado ───────────────────────────────────────────────────────
 
 type SemanticState =
-  | { status: 'idle' }
   | { status: 'loading-model'; percent: number }
   | { status: 'embedding'; processed: number; total: number }
   | { status: 'reducing' }
@@ -63,9 +62,16 @@ const pushSegment = (
 // ─── Componente principal ─────────────────────────────────────────────────
 
 export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
-  const [state, setState] = useState<SemanticState>({ status: 'idle' });
+  const [state, setState] = useState<SemanticState>({ status: 'loading-model', percent: 0 });
   const [showFallback, setShowFallback] = useState(false);
   const plotRef = useRef<HTMLDivElement>(null);
+
+  // Datos computados que necesitamos para el resaltado de nodos
+  const semNodesRef = useRef<SemanticNode[]>([]);
+  const simsRef = useRef<number[][]>([]);
+  const clustersRef = useRef<number[]>([]);
+  const points3DRef = useRef<[number, number, number][]>([]);
+  const top3Ref = useRef<string[][]>([]);
 
   // Limpiar Plotly al desmontar para liberar memoria
   useEffect(() => {
@@ -85,6 +91,8 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
       semNodes: SemanticNode[],
       points3D: [number, number, number][],
       clusters: number[],
+      sims: number[][],
+      top3: string[][],
     ) => {
       if (!plotRef.current) return;
 
@@ -93,18 +101,10 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
 
       const n = semNodes.length;
       const buckets = buildEdgeBuckets();
-      // top3[i] = nombres de los 3 nodos más similares al nodo i
-      const top3: string[][] = Array.from({ length: n }, () => []);
-
-      // Matriz de similitudes (upper triangle + mirror para top-3)
-      const sims: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
 
       for (let i = 0; i < n; i++) {
         for (let j = i + 1; j < n; j++) {
-          const sim = cosineSimilarity(semNodes[i].embedding, semNodes[j].embedding);
-          sims[i][j] = sim;
-          sims[j][i] = sim;
-
+          const sim = sims[i][j];
           if (sim > SIMILARITY_THRESHOLD) {
             if (sim > 0.85) {
               pushSegment(buckets.high, points3D[i], points3D[j]);
@@ -115,16 +115,6 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
             }
           }
         }
-      }
-
-      // Top 3 similares por nodo
-      for (let i = 0; i < n; i++) {
-        top3[i] = sims[i]
-          .map((sim, j) => ({ j, sim }))
-          .filter(({ j }) => j !== i)
-          .sort((a, b) => b.sim - a.sim)
-          .slice(0, 3)
-          .map(({ j, sim }) => `${semNodes[j].name} (${(sim * 100).toFixed(0)}%)`);
       }
 
       // Trace de nodos
@@ -196,6 +186,38 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
         displayModeBar: false,
         responsive: true,
       });
+
+      // ── Interacción: click en nodo ─────────────────────────────────────
+      // Flag para distinguir click en punto vs. click en fondo
+      let justClickedPoint = false;
+
+      (plotRef.current as any).on('plotly_click', (eventData: any) => {
+        justClickedPoint = true;
+        const point = eventData?.points?.[0];
+        if (point == null || point.curveNumber !== 0) return; // solo trace de nodos (curveNumber 0)
+
+        const clickedIdx = point.pointNumber as number;
+        const simRow = simsRef.current[clickedIdx] ?? [];
+
+        // Opacidades: nodo clickado + vecinos conectados = normal; resto = casi transparente
+        const opacities = simRow.map((sim, j) => {
+          if (j === clickedIdx) return 0.95;
+          return sim > SIMILARITY_THRESHOLD ? 0.85 : 0.04;
+        });
+
+        Plotly.restyle(plotRef.current, { 'marker.opacity': [opacities] }, [0]);
+      });
+
+      // Click en fondo: restablecer opacidades
+      plotRef.current.addEventListener('click', () => {
+        if (justClickedPoint) {
+          justClickedPoint = false;
+          return;
+        }
+        const n2 = simsRef.current.length;
+        if (n2 === 0) return;
+        Plotly.restyle(plotRef.current, { 'marker.opacity': [new Array(n2).fill(0.85)] }, [0]);
+      });
     },
     [],
   );
@@ -221,24 +243,54 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
 
         // Limitar a MAX_NODES para evitar O(n²) en similitud coseno
         const capped = semNodes.slice(0, MAX_NODES);
+        const n = capped.length;
 
         setState({ status: 'reducing' });
         // Flush del render antes de la llamada síncrona bloqueante de UMAP
         await new Promise<void>((r) => setTimeout(r, 50));
 
-        const points3D = reduceToThreeD(capped.map((n) => n.embedding));
+        const points3D = reduceToThreeD(capped.map((nd) => nd.embedding));
         const clusters = kMeans(points3D, K_CLUSTERS);
+
+        // Precalcular matriz de similitudes
+        const sims: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
+        for (let i = 0; i < n; i++) {
+          for (let j = i + 1; j < n; j++) {
+            const sim = cosineSimilarity(capped[i].embedding, capped[j].embedding);
+            sims[i][j] = sim;
+            sims[j][i] = sim;
+          }
+        }
+
+        // Top 3 similares por nodo
+        const top3: string[][] = Array.from({ length: n }, (_, i) =>
+          sims[i]
+            .map((sim, j) => ({ j, sim }))
+            .filter(({ j }) => j !== i)
+            .sort((a, b) => b.sim - a.sim)
+            .slice(0, 3)
+            .map(({ j, sim }) => `${capped[j].name} (${(sim * 100).toFixed(0)}%)`),
+        );
+
+        // Guardar en refs para acceso desde los event listeners
+        semNodesRef.current = capped;
+        simsRef.current = sims;
+        clustersRef.current = clusters;
+        points3DRef.current = points3D;
+        top3Ref.current = top3;
 
         // Cambiar a 'ready' ANTES de renderizar Plotly para que React monte
         // el div con ref={plotRef}. Sin esto plotRef.current es null.
         setState({ status: 'ready' });
         await new Promise<void>((r) => setTimeout(r, 50));
 
-        await renderPlot(capped, points3D, clusters);
+        await renderPlot(capped, points3D, clusters, sims, top3);
       } catch (error) {
         if (error instanceof WebGPUNotAvailableError) {
           setShowFallback(true);
-          setState({ status: 'idle' });
+          // No reseteamos a 'idle': dejamos el fallback dialog visible
+          // pero el estado queda en loading-model para que no se muestre
+          // contenido incorrecto. Al elegir CPU se relanzará handleLoad.
         } else {
           setState({
             status: 'error',
@@ -250,28 +302,28 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
     [nodes, renderPlot],
   );
 
+  // Auto-carga al montar el componente
+  useEffect(() => {
+    handleLoad();
+    // Solo al montar — sin dependencias para evitar re-cargas
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Estados de UI ────────────────────────────────────────────────────
 
-  if (state.status === 'idle') {
+  if (state.status === 'loading-model') {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-void">
-        <div className="flex flex-col items-center gap-3">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-accent/30 bg-accent/10">
-            <Brain className="h-8 w-8 text-accent" />
+      <>
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
+          <Loader2 className="h-6 w-6 animate-spin text-accent" />
+          <p className="text-sm text-text-secondary">Descargando modelo...</p>
+          <div className="h-1.5 w-48 overflow-hidden rounded-full bg-elevated">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-accent to-node-interface transition-all duration-300"
+              style={{ width: `${state.percent}%` }}
+            />
           </div>
-          <div className="text-center">
-            <p className="text-sm font-medium text-text-primary">Vista Semántica 3D</p>
-            <p className="mt-1 text-xs text-text-muted">
-              Agrupa nodos por similitud de código usando embeddings
-            </p>
-          </div>
-          <button
-            onClick={() => handleLoad()}
-            className="flex items-center gap-2 rounded-lg border border-accent/40 bg-accent/15 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/25"
-          >
-            <Brain className="h-4 w-4" />
-            Cargar vista semántica
-          </button>
+          <p className="text-xs text-text-muted">{state.percent.toFixed(0)}%</p>
         </div>
         <WebGPUFallbackDialog
           isOpen={showFallback}
@@ -283,23 +335,7 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
           onSkip={() => setShowFallback(false)}
           nodeCount={nodes.length}
         />
-      </div>
-    );
-  }
-
-  if (state.status === 'loading-model') {
-    return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
-        <Loader2 className="h-6 w-6 animate-spin text-accent" />
-        <p className="text-sm text-text-secondary">Descargando modelo...</p>
-        <div className="h-1.5 w-48 overflow-hidden rounded-full bg-elevated">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-accent to-node-interface transition-all duration-300"
-            style={{ width: `${state.percent}%` }}
-          />
-        </div>
-        <p className="text-xs text-text-muted">{state.percent.toFixed(0)}%</p>
-      </div>
+      </>
     );
   }
 
@@ -338,7 +374,7 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
         <AlertCircle className="h-6 w-6 text-red-400" />
         <p className="text-sm text-red-400">{state.message}</p>
         <button
-          onClick={() => setState({ status: 'idle' })}
+          onClick={() => handleLoad()}
           className="text-xs text-text-secondary underline hover:text-text-primary"
         >
           Reintentar

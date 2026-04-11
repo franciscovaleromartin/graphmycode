@@ -55,6 +55,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
     openChatPanel,
     isRightPanelOpen,
     setSettingsPanelOpen,
+    isSidebarCollapsed,
   } = useAppState();
 
   const t = useT();
@@ -263,9 +264,11 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         />
       </div>
 
-      {/* Toggle Structural / Semantic — top-left */}
+      {/* Toggle Structural / Semantic — top-left, desplazado según el sidebar */}
       {graph && (
-        <div className="absolute top-4 left-4 z-20 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm">
+        <div
+          className={`absolute top-4 z-20 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm transition-all duration-300 ${isSidebarCollapsed ? 'left-14' : 'left-60'}`}
+        >
           <button
             onClick={() => setGraphViewType('structural')}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${

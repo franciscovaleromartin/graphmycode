@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import { NODE_COLORS } from '../lib/constants';
 import type { NodeLabel } from 'gitnexus-shared';
@@ -10,8 +9,7 @@ const LEGEND_LABELS: NodeLabel[] = [
 ];
 
 export const SidePanel = () => {
-  const { graph, setViewMode, setGraph, projectName } = useAppState();
-  const [collapsed, setCollapsed] = useState(false);
+  const { graph, setViewMode, setGraph, projectName, isSidebarCollapsed: collapsed, setSidebarCollapsed: setCollapsed } = useAppState();
   const t = useT();
 
   const LABEL_I18N: Partial<Record<NodeLabel, string>> = {
@@ -42,7 +40,7 @@ export const SidePanel = () => {
       {/* Header: toggle + title */}
       <div className="flex h-10 items-center border-b border-border-subtle">
         <button
-          onClick={() => setCollapsed((c) => !c)}
+          onClick={() => setCollapsed(!collapsed)}
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center text-text-muted transition-colors hover:text-text-primary"
           title={collapsed ? 'Expandir panel' : 'Colapsar panel'}
         >
