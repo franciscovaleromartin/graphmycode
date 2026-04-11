@@ -1,5 +1,5 @@
 // src/components/SemanticGraph.tsx
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Loader2, Brain, AlertCircle } from '@/lib/lucide-icons';
 import type { GraphNode } from 'gitnexus-shared';
 import {
@@ -66,6 +66,17 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
   const [state, setState] = useState<SemanticState>({ status: 'idle' });
   const [showFallback, setShowFallback] = useState(false);
   const plotRef = useRef<HTMLDivElement>(null);
+
+  // Limpiar Plotly al desmontar para liberar memoria
+  useEffect(() => {
+    return () => {
+      if (plotRef.current) {
+        import('plotly.js-dist-min').then(({ default: Plotly }) => {
+          if (plotRef.current) (Plotly as any).purge(plotRef.current);
+        });
+      }
+    };
+  }, []);
 
   // ── Renderizar con Plotly ──────────────────────────────────────────────
 
