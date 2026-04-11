@@ -96,6 +96,16 @@ export const initEmbedder = async (
     try {
       // Configure transformers.js environment
       env.allowLocalModels = false;
+
+      // Apuntar los archivos WASM al servidor local en lugar del CDN de jsDelivr.
+      // onnxruntime-web usa una versión dev que no existe en el CDN, así que
+      // los servimos desde /ort/ (configurado en vite.config.ts).
+      if (!(env.backends.onnx as any)?.wasm) {
+        (env.backends.onnx as any).wasm = {};
+      }
+      if (!(env.backends.onnx as any).wasm.wasmPaths) {
+        (env.backends.onnx as any).wasm.wasmPaths = '/ort/';
+      }
       
       if (import.meta.env.DEV) {
         console.log(`🧠 Loading embedding model: ${finalConfig.modelId}`);
