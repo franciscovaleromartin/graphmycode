@@ -302,7 +302,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
 
       {/* Vista semántica 3D */}
       {graphViewType === 'semantic' && graph && (
-        <SemanticGraph nodes={graph.nodes} />
+        <div className="absolute inset-0 z-10">
+          <SemanticGraph nodes={graph.nodes} />
+        </div>
       )}
 
       {/* Hovered node tooltip - only show when NOT selected */}
