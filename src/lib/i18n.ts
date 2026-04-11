@@ -36,7 +36,7 @@ const translations = {
     accordionTitle: 'Sobre la privacidad de tu código',
     accordionQ1: '¿Qué problema resuelve?',
     accordionA1:
-      'Cuando entras a un repositorio nuevo o grande, entender cómo están conectados los módulos es lento leyendo carpeta a carpeta. GraphMyCode te da esa visión global en segundos: archivos, clases, funciones, imports, llamadas entre funciones y clusters de código relacionado, todo como un grafo interactivo.',
+      'Cuando entras a un repositorio nuevo o grande, entender cómo están conectados los módulos es lento leyendo carpeta a carpeta. GraphMyCode te da esa visión global en segundos: archivos, clases, funciones, imports, llamadas entre funciones y clusters de código relacionado, todo como un grafo interactivo.\n\nLa nueva vista semántica 3D va un paso más allá: agrupa los nodos por similitud de código usando embeddings, lo que permite identificar abstracciones de dominio (componentes que resuelven el mismo problema aunque no se llamen entre sí), detectar acoplamiento lógico entre módulos aparentemente independientes, analizar el impacto real de un cambio más allá de las dependencias directas, y apoyar la gobernanza de metadatos al revelar qué partes del código comparten semántica aunque estén separadas estructuralmente.',
     accordionQ2: '¿Hay algún servidor o base de datos externa?',
     accordionA2:
       'No. Todo corre en tu navegador, en memoria. No hay cluster de Neo4j, no hay backend, no hay red. El Cypher que usa el agente es un lenguaje de consulta sobre el grafo local.',
@@ -132,7 +132,7 @@ const translations = {
     accordionTitle: 'About your code privacy',
     accordionQ1: 'What problem does it solve?',
     accordionA1:
-      'When you open a new or large repository, understanding how modules connect is slow when reading folder by folder. GraphMyCode gives you that global view in seconds: files, classes, functions, imports, call chains, and clusters of related code — all as an interactive graph.',
+      'When you open a new or large repository, understanding how modules connect is slow when reading folder by folder. GraphMyCode gives you that global view in seconds: files, classes, functions, imports, call chains, and clusters of related code — all as an interactive graph.\n\nThe new 3D semantic view goes further: it groups nodes by code similarity using embeddings, helping you identify domain abstractions (components solving the same problem even if they never call each other), detect logical coupling between apparently independent modules, analyse the real impact of a change beyond direct dependencies, and support metadata governance by revealing which parts of the codebase share semantics even when structurally apart.',
     accordionQ2: 'Is there any external server or database?',
     accordionA2:
       'No. Everything runs in your browser, in memory. There is no Neo4j cluster, no backend, no network. The Cypher used by the agent is a query language over the local in-memory graph.',

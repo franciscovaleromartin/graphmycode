@@ -105,7 +105,9 @@ const ExplicacionAccordion = () => {
         <div className="border-t border-border-subtle px-5 pb-5 pt-4 space-y-4 text-sm text-text-secondary">
           <div>
             <p className="mb-1 font-medium text-text-primary">{t.accordionQ1}</p>
-            <p>{t.accordionA1}</p>
+            {t.accordionA1.split('\n\n').map((chunk, i) => (
+              <p key={i} className={i > 0 ? 'mt-2' : ''}>{chunk}</p>
+            ))}
           </div>
 
           <div>
