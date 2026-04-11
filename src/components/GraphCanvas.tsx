@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo, useState, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useCallback, useMemo, useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import {
   ZoomIn,
   ZoomOut,
@@ -25,7 +25,7 @@ import {
 } from '../lib/graph-adapter';
 import type { GraphNode } from 'gitnexus-shared';
 import { QueryFAB } from './QueryFAB';
-import { SemanticGraph } from './SemanticGraph';
+import { SemanticGraph, type SemanticGraphHandle } from './SemanticGraph';
 import Graph from 'graphology';
 
 export interface GraphCanvasHandle {
@@ -56,11 +56,17 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
     isRightPanelOpen,
     setSettingsPanelOpen,
     isSidebarCollapsed,
+    graphViewType,
+    setGraphViewType,
+    setSemanticClusterData,
   } = useAppState();
 
   const t = useT();
   const [hoveredNodeName, setHoveredNodeName] = useState<string | null>(null);
-  const [graphViewType, setGraphViewType] = useState<'structural' | 'semantic'>('structural');
+  // SemanticGraph se monta la primera vez que el usuario activa la vista semántica
+  // y permanece montado (pero oculto) para no tener que recargar el modelo
+  const [hasSemanticBeenActivated, setHasSemanticBeenActivated] = useState(false);
+  const semanticRef = useRef<SemanticGraphHandle>(null);
 
   const effectiveHighlightedNodeIds = useMemo(() => {
     if (!isAIHighlightsEnabled) return highlightedNodeIds;
@@ -283,7 +289,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
           </button>
           <div className="w-px bg-border-subtle" />
           <button
-            onClick={() => setGraphViewType('semantic')}
+            onClick={() => { setGraphViewType('semantic'); setHasSemanticBeenActivated(true); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
               graphViewType === 'semantic'
                 ? 'bg-elevated text-text-primary'
@@ -303,10 +309,14 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' ? ' invisible pointer-events-none' : ''}`}
       />
 
-      {/* Vista semántica 3D */}
-      {graphViewType === 'semantic' && graph && (
-        <div className="absolute inset-0 z-10 overflow-hidden">
-          <SemanticGraph nodes={graph.nodes} />
+      {/* Vista semántica 3D — se monta una vez y permanece (invisible cuando no activa) */}
+      {hasSemanticBeenActivated && graph && (
+        <div className={`absolute inset-0 z-10 overflow-hidden${graphViewType !== 'semantic' ? ' invisible pointer-events-none' : ''}`}>
+          <SemanticGraph
+            ref={semanticRef}
+            nodes={graph.nodes}
+            onClustersReady={setSemanticClusterData}
+          />
         </div>
       )}
 
@@ -337,21 +347,21 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       {/* Graph Controls - Bottom Right */}
       <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-1">
         <button
-          onClick={zoomIn}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomIn() : zoomIn()}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom In"
         >
           <ZoomIn className="h-4 w-4" />
         </button>
         <button
-          onClick={zoomOut}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomOut() : zoomOut()}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom Out"
         >
           <ZoomOut className="h-4 w-4" />
         </button>
         <button
-          onClick={resetZoom}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.resetZoom() : resetZoom()}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Fit to Screen"
         >

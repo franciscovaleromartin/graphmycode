@@ -1,6 +1,6 @@
 // src/components/SemanticGraph.tsx
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Loader2, AlertCircle } from '@/lib/lucide-icons';
+import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { AlertCircle } from '@/lib/lucide-icons';
 import type { GraphNode } from 'gitnexus-shared';
 import {
   generateSemanticEmbeddings,
@@ -13,7 +13,7 @@ import { cosineSimilarity } from '../core/semantic/cosine';
 import { COMMUNITY_COLORS } from '../lib/constants';
 import { WebGPUFallbackDialog } from './WebGPUFallbackDialog';
 
-// ─── Tipos de estado ───────────────────────────────────────────────────────
+// ─── Tipos ────────────────────────────────────────────────────────────────
 
 type SemanticState =
   | { status: 'loading-model'; percent: number }
@@ -22,333 +22,382 @@ type SemanticState =
   | { status: 'ready' }
   | { status: 'error'; message: string };
 
+export interface SemanticGraphHandle {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  resetZoom: () => void;
+}
+
 // ─── Constantes ───────────────────────────────────────────────────────────
 
 const SIMILARITY_THRESHOLD = 0.65;
 const K_CLUSTERS = 6;
-/** Límite de nodos para evitar O(n²) explosivo en similitud coseno */
 const MAX_NODES = 500;
+/** Factor de zoom por pulsación */
+const ZOOM_FACTOR = 0.7;
+/** Posición de cámara por defecto de Plotly 3D */
+const DEFAULT_EYE = { x: 1.25, y: 1.25, z: 1.25 };
 
-// ─── Helpers de renderizado Plotly ────────────────────────────────────────
+// ─── Componente ───────────────────────────────────────────────────────────
 
-// ─── Componente principal ─────────────────────────────────────────────────
+interface Props {
+  nodes: GraphNode[];
+  onClustersReady?: (data: { color: string; count: number }[]) => void;
+}
 
-export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
-  const [state, setState] = useState<SemanticState>({ status: 'loading-model', percent: 0 });
-  const [showFallback, setShowFallback] = useState(false);
-  const plotRef = useRef<HTMLDivElement>(null);
+export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
+  ({ nodes, onClustersReady }, ref) => {
+    const [state, setState] = useState<SemanticState>({ status: 'loading-model', percent: 0 });
+    const [showFallback, setShowFallback] = useState(false);
+    const plotRef = useRef<HTMLDivElement>(null);
 
-  // Datos computados que necesitamos para la interacción
-  const simsRef = useRef<number[][]>([]);
-  const points3DRef = useRef<[number, number, number][]>([]);
+    // Datos para interacción
+    const simsRef = useRef<number[][]>([]);
+    const points3DRef = useRef<[number, number, number][]>([]);
+    const baseNodeTraceRef = useRef<any>(null);
+    const layoutRef = useRef<any>(null);
 
-  // Trace base de nodos (sin opacidad modificada) para resets rápidos
-  const baseNodeTraceRef = useRef<any>(null);
-  // Layout reutilizable
-  const layoutRef = useRef<any>(null);
+    // Instancia Plotly y cámara para zoom programático
+    const plotlyRef = useRef<any>(null);
+    const cameraEyeRef = useRef({ ...DEFAULT_EYE });
 
-  // Limpiar Plotly al desmontar para liberar memoria
-  useEffect(() => {
-    return () => {
-      if (plotRef.current) {
-        import('plotly.js-dist-min').then(({ default: Plotly }) => {
-          if (plotRef.current) (Plotly as any).purge(plotRef.current);
+    // ── Zoom imperativo ─────────────────────────────────────────────────
+    useImperativeHandle(ref, () => ({
+      zoomIn: () => {
+        if (!plotRef.current || !plotlyRef.current) return;
+        cameraEyeRef.current = {
+          x: cameraEyeRef.current.x * ZOOM_FACTOR,
+          y: cameraEyeRef.current.y * ZOOM_FACTOR,
+          z: cameraEyeRef.current.z * ZOOM_FACTOR,
+        };
+        plotlyRef.current.relayout(plotRef.current, {
+          'scene.camera.eye': { ...cameraEyeRef.current },
         });
-      }
-    };
-  }, []);
+      },
+      zoomOut: () => {
+        if (!plotRef.current || !plotlyRef.current) return;
+        cameraEyeRef.current = {
+          x: cameraEyeRef.current.x / ZOOM_FACTOR,
+          y: cameraEyeRef.current.y / ZOOM_FACTOR,
+          z: cameraEyeRef.current.z / ZOOM_FACTOR,
+        };
+        plotlyRef.current.relayout(plotRef.current, {
+          'scene.camera.eye': { ...cameraEyeRef.current },
+        });
+      },
+      resetZoom: () => {
+        if (!plotRef.current || !plotlyRef.current) return;
+        cameraEyeRef.current = { ...DEFAULT_EYE };
+        plotlyRef.current.relayout(plotRef.current, {
+          'scene.camera.eye': { ...DEFAULT_EYE },
+        });
+      },
+    }));
 
-  // ── Renderizar con Plotly ──────────────────────────────────────────────
-
-  const renderPlot = useCallback(
-    async (
-      semNodes: SemanticNode[],
-      points3D: [number, number, number][],
-      clusters: number[],
-      sims: number[][],
-      top3: string[][],
-    ) => {
-      if (!plotRef.current) return;
-
-      const Plotly = ((await import('plotly.js-dist-min' as any)) as any).default as any;
-
-      const n = semNodes.length;
-
-      // ── Trace de nodos ─────────────────────────────────────────────
-      const nodeTrace = {
-        type: 'scatter3d',
-        mode: 'markers',
-        x: points3D.map((p) => p[0]),
-        y: points3D.map((p) => p[1]),
-        z: points3D.map((p) => p[2]),
-        marker: {
-          size: 5,
-          color: clusters.map((c) => COMMUNITY_COLORS[c % COMMUNITY_COLORS.length]),
-          opacity: 0.85,
-          line: { width: 0 },
-        },
-        text: semNodes.map(
-          (node, i) =>
-            `<b>${node.name}</b><br><span style="color:#8888a0">${node.label}</span><br><br><b>Más similares:</b><br>${
-              top3[i].length > 0 ? top3[i].join('<br>') : '—'
-            }`,
-        ),
-        hovertemplate: '%{text}<extra></extra>',
-        name: 'Nodos',
-        showlegend: false,
+    // Limpiar Plotly al desmontar
+    useEffect(() => {
+      return () => {
+        if (plotRef.current && plotlyRef.current) {
+          plotlyRef.current.purge(plotRef.current);
+        }
       };
+    }, []);
 
-      // Guardar trace base sin modificar y el layout para resets rápidos
-      baseNodeTraceRef.current = nodeTrace;
+    // ── Renderizar con Plotly ──────────────────────────────────────────
 
-      const layout = {
-        paper_bgcolor: 'transparent',
-        plot_bgcolor: 'transparent',
-        scene: {
-          bgcolor: 'rgba(6,6,10,0)',
-          xaxis: { showgrid: false, zeroline: false, showticklabels: false, showspikes: false },
-          yaxis: { showgrid: false, zeroline: false, showticklabels: false, showspikes: false },
-          zaxis: { showgrid: false, zeroline: false, showticklabels: false, showspikes: false },
-        },
-        margin: { l: 0, r: 0, t: 0, b: 0 },
-        showlegend: false,
-        hoverlabel: {
-          bgcolor: '#16161f',
-          bordercolor: '#2a2a3a',
-          font: {
-            color: '#e4e4ed',
-            family: "'JetBrains Mono', 'Fira Code', monospace",
-            size: 12,
-          },
-        },
-      };
-      layoutRef.current = layout;
-
-      const config = { displayModeBar: false, responsive: true };
-
-      await Plotly.newPlot(plotRef.current, [nodeTrace], layout, config);
-
-      // ── Interacción: click en nodo ─────────────────────────────────
-      //
-      // NOTA DE RENDIMIENTO: Plotly.restyle sobre un scatter3d con decenas
-      // de miles de puntos de aristas congela el hilo principal porque
-      // redibuja toda la escena WebGL. En su lugar usamos Plotly.react():
-      //
-      //  • Click en nodo → react() con solo el trace de nodos (opacidades
-      //    personalizadas) + aristas ÚNICAMENTE del nodo clicado (~50-200 pts).
-      //  • Click en fondo → react() con el trace base (sin aristas).
-      //
-      // Esto mantiene el dataset mínimo en cada actualización y evita el freeze.
-
-      let lastClickWasOnNode = false;
-
-      const reactWithSelection = (clickedIdx: number) => {
+    const renderPlot = useCallback(
+      async (
+        semNodes: SemanticNode[],
+        points3D: [number, number, number][],
+        clusters: number[],
+        sims: number[][],
+        top3: string[][],
+      ) => {
         if (!plotRef.current) return;
 
-        const simRow = simsRef.current[clickedIdx] ?? [];
-        const pts = points3DRef.current;
+        const Plotly = ((await import('plotly.js-dist-min' as any)) as any).default as any;
+        plotlyRef.current = Plotly;
 
-        // Opacidades: nodo clicado + vecinos = normales; resto = casi transparente
-        const perNodeOpacity = simRow.map((sim, j) => {
-          if (j === clickedIdx) return 0.95;
-          return sim > SIMILARITY_THRESHOLD ? 0.85 : 0.04;
-        });
-
-        const selNodeTrace = {
-          ...baseNodeTraceRef.current,
+        const nodeTrace = {
+          type: 'scatter3d',
+          mode: 'markers',
+          x: points3D.map((p) => p[0]),
+          y: points3D.map((p) => p[1]),
+          z: points3D.map((p) => p[2]),
           marker: {
-            ...baseNodeTraceRef.current.marker,
-            opacity: perNodeOpacity,
+            size: 5,
+            color: clusters.map((c) => COMMUNITY_COLORS[c % COMMUNITY_COLORS.length]),
+            opacity: 0.85,
+            line: { width: 0 },
           },
+          text: semNodes.map(
+            (node, i) =>
+              `<b>${node.name}</b><br><span style="color:#8888a0">${node.label}</span><br><br><b>Más similares:</b><br>${
+                top3[i].length > 0 ? top3[i].join('<br>') : '—'
+              }`,
+          ),
+          hovertemplate: '%{text}<extra></extra>',
+          name: 'Nodos',
+          showlegend: false,
         };
 
-        Plotly.react(plotRef.current, [selNodeTrace], layoutRef.current, config);
-      };
+        baseNodeTraceRef.current = nodeTrace;
 
-      const reactReset = () => {
-        if (!plotRef.current || !baseNodeTraceRef.current) return;
-        // Solo nodos, sin aristas — react con dataset mínimo, instantáneo
-        Plotly.react(plotRef.current, [baseNodeTraceRef.current], layoutRef.current, config);
-      };
+        const layout = {
+          paper_bgcolor: 'transparent',
+          plot_bgcolor: 'transparent',
+          scene: {
+            bgcolor: 'rgba(6,6,10,0)',
+            xaxis: { showgrid: false, zeroline: false, showticklabels: false, showspikes: false },
+            yaxis: { showgrid: false, zeroline: false, showticklabels: false, showspikes: false },
+            zaxis: { showgrid: false, zeroline: false, showticklabels: false, showspikes: false },
+            camera: { eye: { ...DEFAULT_EYE } },
+          },
+          margin: { l: 0, r: 0, t: 0, b: 0 },
+          showlegend: false,
+          hoverlabel: {
+            bgcolor: '#16161f',
+            bordercolor: '#2a2a3a',
+            font: {
+              color: '#e4e4ed',
+              family: "'JetBrains Mono', 'Fira Code', monospace",
+              size: 12,
+            },
+          },
+        };
+        layoutRef.current = layout;
 
-      (plotRef.current as any).on('plotly_click', (eventData: any) => {
-        const point = eventData?.points?.[0];
+        const config = { displayModeBar: false, responsive: true };
 
-        if (!point || point.curveNumber !== 0) {
-          // Click en arista o fondo dentro de Plotly → reset
-          lastClickWasOnNode = false;
+        await Plotly.newPlot(plotRef.current, [nodeTrace], layout, config);
+
+        // Sincronizar cámara cuando el usuario rota/hace zoom manualmente
+        (plotRef.current as any).on('plotly_relayout', (update: any) => {
+          const eye = update?.['scene.camera.eye'];
+          if (eye) cameraEyeRef.current = { x: eye.x, y: eye.y, z: eye.z };
+        });
+
+        // ── Interacción click ───────────────────────────────────────
+        let lastClickWasOnNode = false;
+
+        const reactWithSelection = (clickedIdx: number) => {
+          if (!plotRef.current) return;
+          const simRow = simsRef.current[clickedIdx] ?? [];
+          const perNodeOpacity = simRow.map((sim, j) => {
+            if (j === clickedIdx) return 0.95;
+            return sim > SIMILARITY_THRESHOLD ? 0.85 : 0.04;
+          });
+          Plotly.react(
+            plotRef.current,
+            [{ ...baseNodeTraceRef.current, marker: { ...baseNodeTraceRef.current.marker, opacity: perNodeOpacity } }],
+            layoutRef.current,
+            config,
+          );
+        };
+
+        const reactReset = () => {
+          if (!plotRef.current || !baseNodeTraceRef.current) return;
+          Plotly.react(plotRef.current, [baseNodeTraceRef.current], layoutRef.current, config);
+        };
+
+        (plotRef.current as any).on('plotly_click', (eventData: any) => {
+          const point = eventData?.points?.[0];
+          if (!point || point.curveNumber !== 0) {
+            lastClickWasOnNode = false;
+            reactReset();
+            return;
+          }
+          lastClickWasOnNode = true;
+          reactWithSelection(point.pointNumber as number);
+        });
+
+        plotRef.current.addEventListener('click', () => {
+          if (lastClickWasOnNode) { lastClickWasOnNode = false; return; }
           reactReset();
-          return;
-        }
+        });
+      },
+      [],
+    );
 
-        lastClickWasOnNode = true;
-        reactWithSelection(point.pointNumber as number);
-      });
+    // ── Lógica de carga ─────────────────────────────────────────────
 
-      // Fallback: DOM click para el fondo 3D cuando Plotly no emite plotly_click
-      plotRef.current.addEventListener('click', () => {
-        if (lastClickWasOnNode) {
-          lastClickWasOnNode = false;
-          return;
-        }
-        reactReset();
-      });
-    },
-    [],
-  );
+    const handleLoad = useCallback(
+      async (forceDevice?: 'webgpu' | 'wasm') => {
+        try {
+          setState({ status: 'loading-model', percent: 0 });
 
-  // ── Lógica de carga ───────────────────────────────────────────────────
+          const semNodes = await generateSemanticEmbeddings(
+            nodes,
+            (percent) => setState({ status: 'loading-model', percent }),
+            (processed, total) => setState({ status: 'embedding', processed, total }),
+            forceDevice,
+          );
 
-  const handleLoad = useCallback(
-    async (forceDevice?: 'webgpu' | 'wasm') => {
-      try {
-        setState({ status: 'loading-model', percent: 0 });
+          if (semNodes.length === 0) {
+            setState({ status: 'error', message: 'No hay nodos embeddables en este grafo' });
+            return;
+          }
 
-        const semNodes = await generateSemanticEmbeddings(
-          nodes,
-          (percent) => setState({ status: 'loading-model', percent }),
-          (processed, total) => setState({ status: 'embedding', processed, total }),
-          forceDevice,
-        );
+          const capped = semNodes.slice(0, MAX_NODES);
+          const n = capped.length;
 
-        if (semNodes.length === 0) {
-          setState({ status: 'error', message: 'No hay nodos embeddables en este grafo' });
-          return;
-        }
+          setState({ status: 'reducing' });
+          await new Promise<void>((r) => setTimeout(r, 50));
 
-        const capped = semNodes.slice(0, MAX_NODES);
-        const n = capped.length;
+          const points3D = reduceToThreeD(capped.map((nd) => nd.embedding));
+          const clusters = kMeans(points3D, K_CLUSTERS);
 
-        setState({ status: 'reducing' });
-        await new Promise<void>((r) => setTimeout(r, 50));
+          const sims: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
+          for (let i = 0; i < n; i++) {
+            for (let j = i + 1; j < n; j++) {
+              const sim = cosineSimilarity(capped[i].embedding, capped[j].embedding);
+              sims[i][j] = sim;
+              sims[j][i] = sim;
+            }
+          }
 
-        const points3D = reduceToThreeD(capped.map((nd) => nd.embedding));
-        const clusters = kMeans(points3D, K_CLUSTERS);
+          const top3: string[][] = Array.from({ length: n }, (_, i) =>
+            sims[i]
+              .map((sim, j) => ({ j, sim }))
+              .filter(({ j }) => j !== i)
+              .sort((a, b) => b.sim - a.sim)
+              .slice(0, 3)
+              .map(({ j, sim }) => `${capped[j].name} (${(sim * 100).toFixed(0)}%)`),
+          );
 
-        // Precalcular matriz de similitudes (se guarda en ref para los event handlers)
-        const sims: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
-        for (let i = 0; i < n; i++) {
-          for (let j = i + 1; j < n; j++) {
-            const sim = cosineSimilarity(capped[i].embedding, capped[j].embedding);
-            sims[i][j] = sim;
-            sims[j][i] = sim;
+          simsRef.current = sims;
+          points3DRef.current = points3D;
+
+          // Computar datos de clusters para la leyenda del sidebar
+          if (onClustersReady) {
+            const counts = new Array(K_CLUSTERS).fill(0);
+            clusters.forEach((c) => counts[c]++);
+            onClustersReady(
+              counts.map((count, i) => ({
+                color: COMMUNITY_COLORS[i % COMMUNITY_COLORS.length],
+                count,
+              })),
+            );
+          }
+
+          setState({ status: 'ready' });
+          await new Promise<void>((r) => setTimeout(r, 50));
+
+          await renderPlot(capped, points3D, clusters, sims, top3);
+        } catch (error) {
+          if (error instanceof WebGPUNotAvailableError) {
+            setShowFallback(true);
+          } else {
+            setState({
+              status: 'error',
+              message: error instanceof Error ? error.message : 'Error desconocido',
+            });
           }
         }
+      },
+      [nodes, renderPlot, onClustersReady],
+    );
 
-        const top3: string[][] = Array.from({ length: n }, (_, i) =>
-          sims[i]
-            .map((sim, j) => ({ j, sim }))
-            .filter(({ j }) => j !== i)
-            .sort((a, b) => b.sim - a.sim)
-            .slice(0, 3)
-            .map(({ j, sim }) => `${capped[j].name} (${(sim * 100).toFixed(0)}%)`),
-        );
+    useEffect(() => {
+      handleLoad();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-        simsRef.current = sims;
-        points3DRef.current = points3D;
+    // ── Estados de carga — diseño igual a LoadingOverlay ─────────────
 
-        setState({ status: 'ready' });
-        await new Promise<void>((r) => setTimeout(r, 50));
-
-        await renderPlot(capped, points3D, clusters, sims, top3);
-      } catch (error) {
-        if (error instanceof WebGPUNotAvailableError) {
-          setShowFallback(true);
-        } else {
-          setState({
-            status: 'error',
-            message: error instanceof Error ? error.message : 'Error desconocido',
-          });
-        }
+    const loadingContent = (() => {
+      if (state.status === 'loading-model') {
+        return { message: 'Cargando modelo semántico...', detail: null, percent: state.percent };
       }
-    },
-    [nodes, renderPlot],
-  );
+      if (state.status === 'embedding') {
+        const pct = state.total > 0 ? Math.round((state.processed / state.total) * 100) : 0;
+        return {
+          message: 'Generando embeddings...',
+          detail: `${state.processed} / ${state.total} nodos`,
+          percent: pct,
+        };
+      }
+      if (state.status === 'reducing') {
+        return { message: 'Calculando similitudes...', detail: null, percent: 99 };
+      }
+      return null;
+    })();
 
-  // Auto-carga al montar el componente
-  useEffect(() => {
-    handleLoad();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (loadingContent) {
+      return (
+        <>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-void">
+            {/* Gradientes de fondo */}
+            <div className="pointer-events-none absolute inset-0">
+              <div className="absolute top-1/3 left-1/3 h-96 w-96 animate-pulse rounded-full bg-accent/10 blur-3xl" />
+              <div className="absolute right-1/3 bottom-1/3 h-96 w-96 animate-pulse rounded-full bg-node-interface/10 blur-3xl" />
+            </div>
 
-  // ── Estados de UI ────────────────────────────────────────────────────
+            {/* Orb pulsante */}
+            <div className="relative mb-10">
+              <div className="h-28 w-28 animate-pulse-glow rounded-full bg-gradient-to-br from-accent to-node-interface" />
+              <div className="absolute inset-0 h-28 w-28 rounded-full bg-gradient-to-br from-accent to-node-interface opacity-50 blur-xl" />
+            </div>
 
-  if (state.status === 'loading-model') {
-    return (
-      <>
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
-          <Loader2 className="h-6 w-6 animate-spin text-accent" />
-          <p className="text-sm text-text-secondary">Descargando modelo...</p>
-          <div className="h-1.5 w-48 overflow-hidden rounded-full bg-elevated">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-accent to-node-interface transition-all duration-300"
-              style={{ width: `${state.percent}%` }}
-            />
+            {/* Barra de progreso */}
+            <div className="mb-4 w-80">
+              <div className="h-1.5 overflow-hidden rounded-full bg-elevated">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-accent to-node-interface transition-all duration-300 ease-out"
+                  style={{ width: `${loadingContent.percent}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Texto de estado */}
+            <div className="text-center">
+              <p className="mb-1 font-mono text-sm text-text-secondary">
+                {loadingContent.message}
+                <span className="animate-pulse">|</span>
+              </p>
+              {loadingContent.detail && (
+                <p className="font-mono text-xs text-text-muted">{loadingContent.detail}</p>
+              )}
+            </div>
+
+            {/* Porcentaje */}
+            <p className="mt-4 font-mono text-3xl font-semibold text-text-primary">
+              {loadingContent.percent}%
+            </p>
           </div>
-          <p className="text-xs text-text-muted">{state.percent.toFixed(0)}%</p>
-        </div>
-        <WebGPUFallbackDialog
-          isOpen={showFallback}
-          onClose={() => setShowFallback(false)}
-          onUseCPU={() => {
-            setShowFallback(false);
-            handleLoad('wasm');
-          }}
-          onSkip={() => setShowFallback(false)}
-          nodeCount={nodes.length}
-        />
-      </>
-    );
-  }
 
-  if (state.status === 'embedding') {
-    const percent =
-      state.total > 0 ? Math.round((state.processed / state.total) * 100) : 0;
-    return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
-        <Loader2 className="h-6 w-6 animate-spin text-node-function" />
-        <p className="text-sm text-text-secondary">Generando embeddings...</p>
-        <div className="h-1.5 w-48 overflow-hidden rounded-full bg-elevated">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-node-function to-accent transition-all duration-300"
-            style={{ width: `${percent}%` }}
+          <WebGPUFallbackDialog
+            isOpen={showFallback}
+            onClose={() => setShowFallback(false)}
+            onUseCPU={() => { setShowFallback(false); handleLoad('wasm'); }}
+            onSkip={() => setShowFallback(false)}
+            nodeCount={nodes.length}
           />
+        </>
+      );
+    }
+
+    if (state.status === 'error') {
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
+          <AlertCircle className="h-6 w-6 text-red-400" />
+          <p className="text-sm text-red-400">{state.message}</p>
+          <button
+            onClick={() => handleLoad()}
+            className="text-xs text-text-secondary underline hover:text-text-primary"
+          >
+            Reintentar
+          </button>
         </div>
-        <p className="text-xs text-text-muted">
-          {state.processed} / {state.total} nodos
-        </p>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (state.status === 'reducing') {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
-        <Loader2 className="h-6 w-6 animate-spin text-node-interface" />
-        <p className="text-sm text-text-secondary">Calculando similitudes...</p>
+      <div className="absolute inset-0 bg-void">
+        <div ref={plotRef} className="h-full w-full" />
       </div>
     );
-  }
+  },
+);
 
-  if (state.status === 'error') {
-    return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
-        <AlertCircle className="h-6 w-6 text-red-400" />
-        <p className="text-sm text-red-400">{state.message}</p>
-        <button
-          onClick={() => handleLoad()}
-          className="text-xs text-text-secondary underline hover:text-text-primary"
-        >
-          Reintentar
-        </button>
-      </div>
-    );
-  }
-
-  // Estado 'ready': Plotly renderiza en el div via newPlot
-  return (
-    <div className="absolute inset-0 bg-void">
-      <div ref={plotRef} className="h-full w-full" />
-    </div>
-  );
-};
+SemanticGraph.displayName = 'SemanticGraph';

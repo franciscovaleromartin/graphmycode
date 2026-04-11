@@ -9,7 +9,11 @@ const LEGEND_LABELS: NodeLabel[] = [
 ];
 
 export const SidePanel = () => {
-  const { graph, setViewMode, setGraph, projectName, isSidebarCollapsed: collapsed, setSidebarCollapsed: setCollapsed } = useAppState();
+  const {
+    graph, setViewMode, setGraph, projectName,
+    isSidebarCollapsed: collapsed, setSidebarCollapsed: setCollapsed,
+    graphViewType, semanticClusterData,
+  } = useAppState();
   const t = useT();
 
   const LABEL_I18N: Partial<Record<NodeLabel, string>> = {
@@ -88,20 +92,45 @@ export const SidePanel = () => {
             </div>
           </section>
 
-          {/* Legend */}
+          {/* Legend — cambia según la vista activa */}
           <section className="mb-5">
-            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-text-muted">{t.legendTitle}</p>
-            <div className="space-y-1.5">
-              {LEGEND_LABELS.map((label) => (
-                <div key={label} className="flex items-center gap-2">
-                  <span
-                    className="h-2 w-2 flex-shrink-0 rounded-full"
-                    style={{ backgroundColor: NODE_COLORS[label] }}
-                  />
-                  <span className="text-xs text-text-secondary">{LABEL_I18N[label] ?? label}</span>
-                </div>
-              ))}
-            </div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-text-muted">
+              {graphViewType === 'semantic' ? 'Clusters' : t.legendTitle}
+            </p>
+            {graphViewType === 'semantic' ? (
+              <div className="space-y-1.5">
+                {semanticClusterData ? (
+                  semanticClusterData.map((cluster, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="h-2 w-2 flex-shrink-0 rounded-full"
+                          style={{ backgroundColor: cluster.color }}
+                        />
+                        <span className="text-xs text-text-secondary">Cluster {i + 1}</span>
+                      </div>
+                      <span className="font-mono text-xs font-medium text-text-primary">
+                        {cluster.count}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-text-muted">Cargando clusters...</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {LEGEND_LABELS.map((label) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <span
+                      className="h-2 w-2 flex-shrink-0 rounded-full"
+                      style={{ backgroundColor: NODE_COLORS[label] }}
+                    />
+                    <span className="text-xs text-text-secondary">{LABEL_I18N[label] ?? label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Reset button */}
