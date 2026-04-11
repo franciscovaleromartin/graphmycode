@@ -984,7 +984,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
         const uiContextBlock = buildUIContext(
           graphViewType,
           semanticClusterData,
-          appSelectedNode?.properties?.name ?? null,
+          selectedNode?.properties?.name ?? null,
         );
         const historyWithContext: AgentMessage[] = history.map((msg, idx) =>
           idx === history.length - 1 && msg.role === 'user'
