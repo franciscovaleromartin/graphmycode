@@ -229,9 +229,12 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
         const points3D = reduceToThreeD(capped.map((n) => n.embedding));
         const clusters = kMeans(points3D, K_CLUSTERS);
 
-        await renderPlot(capped, points3D, clusters);
-
+        // Cambiar a 'ready' ANTES de renderizar Plotly para que React monte
+        // el div con ref={plotRef}. Sin esto plotRef.current es null.
         setState({ status: 'ready' });
+        await new Promise<void>((r) => setTimeout(r, 50));
+
+        await renderPlot(capped, points3D, clusters);
       } catch (error) {
         if (error instanceof WebGPUNotAvailableError) {
           setShowFallback(true);
