@@ -20,3 +20,6 @@ gitnexus-shared/node_modules/
 
 # Carpeta temporal de referencia
 temp-gitnexus/
+
+# Unlighthouse (auditorías locales)
+.unlighthouse/
