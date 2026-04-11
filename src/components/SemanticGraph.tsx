@@ -31,55 +31,6 @@ const MAX_NODES = 500;
 
 // ─── Helpers de renderizado Plotly ────────────────────────────────────────
 
-interface EdgeBucket {
-  x: (number | null)[];
-  y: (number | null)[];
-  z: (number | null)[];
-}
-
-interface EdgeBuckets {
-  low: EdgeBucket;
-  mid: EdgeBucket;
-  high: EdgeBucket;
-}
-
-const buildEdgeBuckets = (): EdgeBuckets => ({
-  low: { x: [], y: [], z: [] },
-  mid: { x: [], y: [], z: [] },
-  high: { x: [], y: [], z: [] },
-});
-
-const pushSegment = (
-  bucket: EdgeBucket,
-  p1: [number, number, number],
-  p2: [number, number, number],
-) => {
-  bucket.x.push(p1[0], p2[0], null);
-  bucket.y.push(p1[1], p2[1], null);
-  bucket.z.push(p1[2], p2[2], null);
-};
-
-const makeEdgeTraces = (buckets: EdgeBuckets) =>
-  (
-    [
-      { bucket: buckets.low, opacity: 0.12 },
-      { bucket: buckets.mid, opacity: 0.22 },
-      { bucket: buckets.high, opacity: 0.42 },
-    ] as const
-  )
-    .filter(({ bucket }) => bucket.x.length > 0)
-    .map(({ bucket, opacity }) => ({
-      type: 'scatter3d',
-      mode: 'lines',
-      x: bucket.x,
-      y: bucket.y,
-      z: bucket.z,
-      line: { color: '#06b6d4', width: 1 },
-      opacity,
-      hoverinfo: 'none',
-      showlegend: false,
-    }));
-
 // ─── Componente principal ─────────────────────────────────────────────────
 
 export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
@@ -122,19 +73,6 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
       const Plotly = ((await import('plotly.js-dist-min' as any)) as any).default as any;
 
       const n = semNodes.length;
-
-      // ── Construir aristas iniciales ────────────────────────────────
-      const buckets = buildEdgeBuckets();
-      for (let i = 0; i < n; i++) {
-        for (let j = i + 1; j < n; j++) {
-          const sim = sims[i][j];
-          if (sim > SIMILARITY_THRESHOLD) {
-            if (sim > 0.85) pushSegment(buckets.high, points3D[i], points3D[j]);
-            else if (sim > 0.75) pushSegment(buckets.mid, points3D[i], points3D[j]);
-            else pushSegment(buckets.low, points3D[i], points3D[j]);
-          }
-        }
-      }
 
       // ── Trace de nodos ─────────────────────────────────────────────
       const nodeTrace = {
@@ -188,7 +126,7 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
 
       const config = { displayModeBar: false, responsive: true };
 
-      await Plotly.newPlot(plotRef.current, [nodeTrace, ...makeEdgeTraces(buckets)], layout, config);
+      await Plotly.newPlot(plotRef.current, [nodeTrace], layout, config);
 
       // ── Interacción: click en nodo ─────────────────────────────────
       //
@@ -224,23 +162,7 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
           },
         };
 
-        // Aristas solo para este nodo (dataset pequeño = react rápido)
-        const filtBuckets = buildEdgeBuckets();
-        for (let j = 0; j < simRow.length; j++) {
-          if (j === clickedIdx) continue;
-          const sim = simRow[j];
-          if (sim <= SIMILARITY_THRESHOLD) continue;
-          if (sim > 0.85) pushSegment(filtBuckets.high, pts[clickedIdx], pts[j]);
-          else if (sim > 0.75) pushSegment(filtBuckets.mid, pts[clickedIdx], pts[j]);
-          else pushSegment(filtBuckets.low, pts[clickedIdx], pts[j]);
-        }
-
-        Plotly.react(
-          plotRef.current,
-          [selNodeTrace, ...makeEdgeTraces(filtBuckets)],
-          layoutRef.current,
-          config,
-        );
+        Plotly.react(plotRef.current, [selNodeTrace], layoutRef.current, config);
       };
 
       const reactReset = () => {
