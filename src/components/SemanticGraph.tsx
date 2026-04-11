@@ -188,18 +188,32 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
       });
 
       // ── Interacción: click en nodo ─────────────────────────────────────
-      // Flag para distinguir click en punto vs. click en fondo
-      let justClickedPoint = false;
+      // plotly_click se dispara en mouseup (antes del evento DOM click).
+      // Solo marcamos la flag cuando realmente se hizo click en un nodo del
+      // trace 0; para edge-clicks y fondo reseteamos directamente aquí.
+      let lastClickWasOnNode = false;
+
+      const resetOpacities = () => {
+        const n2 = simsRef.current.length;
+        if (n2 === 0 || !plotRef.current) return;
+        Plotly.restyle(plotRef.current, { 'marker.opacity': [new Array(n2).fill(0.85)] }, [0]);
+      };
 
       (plotRef.current as any).on('plotly_click', (eventData: any) => {
-        justClickedPoint = true;
         const point = eventData?.points?.[0];
-        if (point == null || point.curveNumber !== 0) return; // solo trace de nodos (curveNumber 0)
 
+        if (!point || point.curveNumber !== 0) {
+          // Click en fondo o en arista → reset
+          lastClickWasOnNode = false;
+          resetOpacities();
+          return;
+        }
+
+        // Click en nodo del trace principal
+        lastClickWasOnNode = true;
         const clickedIdx = point.pointNumber as number;
         const simRow = simsRef.current[clickedIdx] ?? [];
 
-        // Opacidades: nodo clickado + vecinos conectados = normal; resto = casi transparente
         const opacities = simRow.map((sim, j) => {
           if (j === clickedIdx) return 0.95;
           return sim > SIMILARITY_THRESHOLD ? 0.85 : 0.04;
@@ -208,15 +222,14 @@ export const SemanticGraph = ({ nodes }: { nodes: GraphNode[] }) => {
         Plotly.restyle(plotRef.current, { 'marker.opacity': [opacities] }, [0]);
       });
 
-      // Click en fondo: restablecer opacidades
+      // Fallback DOM click: cubre el caso en que plotly_click no se dispara
+      // (p.ej. fondo 3D sin puntos cercanos). Siempre llega después de plotly_click.
       plotRef.current.addEventListener('click', () => {
-        if (justClickedPoint) {
-          justClickedPoint = false;
+        if (lastClickWasOnNode) {
+          lastClickWasOnNode = false; // consumir la flag, no resetear
           return;
         }
-        const n2 = simsRef.current.length;
-        if (n2 === 0) return;
-        Plotly.restyle(plotRef.current, { 'marker.opacity': [new Array(n2).fill(0.85)] }, [0]);
+        resetOpacities();
       });
     },
     [],
