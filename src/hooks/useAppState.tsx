@@ -20,6 +20,7 @@ import type {
 } from '../core/llm/types';
 import { loadSettings, getActiveProviderConfig, saveSettings } from '../core/llm/settings-service';
 import type { AgentMessage } from '../core/llm/agent';
+import { type SemanticClusterEntry, buildUIContext } from '../core/llm/context-builder';
 import { type EdgeType } from '../lib/constants';
 import {
   connectToServer,
@@ -171,9 +172,9 @@ interface AppState {
   // Vista activa del grafo
   graphViewType: 'structural' | 'semantic';
   setGraphViewType: (v: 'structural' | 'semantic') => void;
-  // Datos de clusters semánticos para la leyenda del sidebar
-  semanticClusterData: { color: string; count: number }[] | null;
-  setSemanticClusterData: (data: { color: string; count: number }[] | null) => void;
+  // Datos de clusters semánticos para la leyenda del sidebar y el contexto del LLM
+  semanticClusterData: SemanticClusterEntry[] | null;
+  setSemanticClusterData: (data: SemanticClusterEntry[] | null) => void;
   isAgentReady: boolean;
   isAgentInitializing: boolean;
   agentError: string | null;
@@ -338,7 +339,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
   const [isSettingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [graphViewType, setGraphViewType] = useState<'structural' | 'semantic'>('structural');
-  const [semanticClusterData, setSemanticClusterData] = useState<{ color: string; count: number }[] | null>(null);
+  const [semanticClusterData, setSemanticClusterData] = useState<SemanticClusterEntry[] | null>(null);
   const [isAgentReady, setIsAgentReady] = useState(false);
   const [isAgentInitializing, setIsAgentInitializing] = useState(false);
   const [agentError, setAgentError] = useState<string | null>(null);
@@ -977,12 +978,26 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
           }
         };
 
+        // Inyectar contexto de la UI (vista activa + datos semánticos) en el
+        // último mensaje del usuario. El agente siempre sabe qué vista está
+        // mirando el usuario sin necesidad de reinicializar el agente.
+        const uiContextBlock = buildUIContext(
+          graphViewType,
+          semanticClusterData,
+          appSelectedNode?.properties?.name ?? null,
+        );
+        const historyWithContext: AgentMessage[] = history.map((msg, idx) =>
+          idx === history.length - 1 && msg.role === 'user'
+            ? { ...msg, content: `${uiContextBlock}${msg.content}` }
+            : msg,
+        );
+
         // Stream agent response using the full streaming generator
         // (handles reasoning, tool_call, tool_result, content, and done events)
         const agent = agentRef.current;
         if (!agent) throw new Error('Agent not initialized');
         const { streamAgentResponse } = await import('../core/llm/agent');
-        for await (const chunk of streamAgentResponse(agent, history)) {
+        for await (const chunk of streamAgentResponse(agent, historyWithContext)) {
           onChunk(chunk);
         }
         onChunk({ type: 'done' });

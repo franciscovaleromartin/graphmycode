@@ -11,6 +11,7 @@ import { reduceToThreeD } from '../core/semantic/umap-reducer';
 import { kMeans } from '../core/semantic/kmeans';
 import { cosineSimilarity } from '../core/semantic/cosine';
 import { COMMUNITY_COLORS } from '../lib/constants';
+import type { SemanticClusterEntry } from '../core/llm/context-builder';
 import { WebGPUFallbackDialog } from './WebGPUFallbackDialog';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────
@@ -42,7 +43,7 @@ const DEFAULT_EYE = { x: 1.25, y: 1.25, z: 1.25 };
 
 interface Props {
   nodes: GraphNode[];
-  onClustersReady?: (data: { color: string; count: number }[]) => void;
+  onClustersReady?: (data: SemanticClusterEntry[]) => void;
 }
 
 export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
@@ -268,14 +269,22 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
           simsRef.current = sims;
           points3DRef.current = points3D;
 
-          // Computar datos de clusters para la leyenda del sidebar
+          // Computar datos de clusters para la leyenda del sidebar y el contexto del LLM
           if (onClustersReady) {
             const counts = new Array(K_CLUSTERS).fill(0);
-            clusters.forEach((c) => counts[c]++);
+            // Recoger hasta 5 nombres de nodo por cluster (los primeros que aparecen)
+            const sampleMap: string[][] = Array.from({ length: K_CLUSTERS }, () => []);
+            clusters.forEach((clusterIdx, nodeIdx) => {
+              counts[clusterIdx]++;
+              if (sampleMap[clusterIdx].length < 5) {
+                sampleMap[clusterIdx].push(capped[nodeIdx].name);
+              }
+            });
             onClustersReady(
               counts.map((count, i) => ({
                 color: COMMUNITY_COLORS[i % COMMUNITY_COLORS.length],
                 count,
+                sampleNodes: sampleMap[i],
               })),
             );
           }

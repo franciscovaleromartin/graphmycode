@@ -413,6 +413,52 @@ export function formatContextForPrompt(context: CodebaseContext): string {
  * Build the complete dynamic system prompt
  * Context is appended at the END so core instructions remain at the top
  */
+// ─── UI Context Injection ─────────────────────────────────────────────────
+
+export interface SemanticClusterEntry {
+  color: string;
+  count: number;
+  sampleNodes: string[];
+}
+
+/**
+ * Builds a compact <ui_context> block that se inyecta al principio de cada
+ * mensaje del usuario antes de enviarlo al agente. Así el LLM siempre sabe
+ * en qué vista está el usuario sin necesidad de reinicializar el agente.
+ */
+export function buildUIContext(
+  graphViewType: 'structural' | 'semantic',
+  semanticClusterData: SemanticClusterEntry[] | null,
+  selectedNodeName?: string | null,
+): string {
+  const lines: string[] = ['<ui_context>'];
+
+  if (graphViewType === 'structural') {
+    lines.push('Active view: STRUCTURAL (dependency graph — nodes, edges, imports, calls)');
+    if (selectedNodeName) {
+      lines.push(`Selected node: ${selectedNodeName}`);
+    }
+  } else {
+    lines.push('Active view: SEMANTIC 3D (nodes grouped by code similarity via embeddings + UMAP)');
+    lines.push(
+      'In this view nodes are clustered by semantic similarity, NOT by structural dependency.',
+    );
+    if (semanticClusterData && semanticClusterData.length > 0) {
+      lines.push('');
+      lines.push('Semantic clusters:');
+      semanticClusterData.forEach((cluster, i) => {
+        const sample =
+          cluster.sampleNodes.length > 0 ? ` — e.g. ${cluster.sampleNodes.join(', ')}` : '';
+        lines.push(`  Cluster ${i + 1} (${cluster.count} nodes)${sample}`);
+      });
+    }
+  }
+
+  lines.push('</ui_context>');
+  lines.push('');
+  return lines.join('\n');
+}
+
 export function buildDynamicSystemPrompt(basePrompt: string, context: CodebaseContext): string {
   const contextSection = formatContextForPrompt(context);
 
