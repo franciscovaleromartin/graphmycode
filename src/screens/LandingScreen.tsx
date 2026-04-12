@@ -209,32 +209,37 @@ export const LandingScreen = () => {
       }
       setError(null);
       setIsProcessing(true);
-      setProjectName(file.name.replace(/\.json$/i, ''));
-      setViewMode('loading');
-      setProgress({ phase: 'extracting', percent: 50, message: 'Cargando grafo...' });
 
       try {
         const text = await file.text();
-        const parsed = JSON.parse(text) as SerializablePipelineResult;
-        if (!Array.isArray(parsed.nodes) || !Array.isArray(parsed.relationships)) {
-          throw new Error(t.errInvalidJson);
+        let parsed: SerializablePipelineResult;
+        try {
+          parsed = JSON.parse(text) as SerializablePipelineResult;
+        } catch {
+          setError(t.errInvalidJson);
+          setIsProcessing(false);
+          return;
         }
+        if (!Array.isArray(parsed.nodes) || !Array.isArray(parsed.relationships)) {
+          setError(t.errInvalidJson);
+          setIsProcessing(false);
+          return;
+        }
+        // Validación OK — ahora sí cambiamos de pantalla
+        setProjectName(file.name.replace(/\.json$/i, ''));
         const graph = createKnowledgeGraph();
         parsed.nodes.forEach((n) => graph.addNode(n));
         parsed.relationships.forEach((r) => graph.addRelationship(r));
         setGraph(graph);
-        setProgress(null);
         setViewMode('exploring');
       } catch (err) {
         const msg = err instanceof Error ? err.message : t.errInvalidJson;
         setError(msg);
-        setProgress(null);
-        setViewMode('onboarding');
       } finally {
         setIsProcessing(false);
       }
     },
-    [setGraph, setViewMode, setProgress, setProjectName, t.errNotJson, t.errInvalidJson],
+    [setGraph, setViewMode, setProjectName, t.errNotJson, t.errInvalidJson],
   );
 
   const handleGitHub = useCallback(async () => {
