@@ -5,84 +5,9 @@ import { useT } from '../lib/i18n';
 import { extractZip } from '../services/zip';
 import { createKnowledgeGraph } from '../core/graph/graph';
 import type { IngestionWorkerApi } from '../workers/ingestion.worker';
-import type { PipelineProgress, SerializablePipelineResult } from '../types/pipeline';
-import type { GraphNode, GraphRelationship, NodeLabel, RelationshipType } from 'gitnexus-shared';
+import type { PipelineProgress } from '../types/pipeline';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Elimina comentarios de línea (//) que no estén dentro de strings */
-function stripJsonComments(text: string): string {
-  return text.replace(/("(?:[^"\\]|\\.)*")|\/\/[^\n]*/g, (match, str) => str ?? '');
-}
-
-/** Convierte cualquier JSON de grafo razonable al formato interno de la app */
-function normalizeGraphJson(raw: unknown): SerializablePipelineResult {
-  if (typeof raw !== 'object' || raw === null) throw new Error('not-an-object');
-
-  const obj = raw as Record<string, unknown>;
-
-  // Nodos
-  const rawNodes = Array.isArray(obj.nodes) ? obj.nodes : [];
-  const nodes: GraphNode[] = rawNodes.map((n: unknown, i: number) => {
-    const node = (typeof n === 'object' && n !== null ? n : {}) as Record<string, unknown>;
-    const id = String(node.id ?? node.key ?? i);
-    const rawLabel = String(node.label ?? node.type ?? node.kind ?? 'CodeElement');
-    const VALID_LABELS: NodeLabel[] = [
-      'Project','Package','Module','Folder','File','Class','Function','Method',
-      'Variable','Interface','Enum','Decorator','Import','Type','CodeElement',
-      'Community','Process','Struct','Macro','Typedef','Union','Namespace',
-      'Trait','Impl','TypeAlias','Const','Static','Property','Record',
-      'Delegate','Annotation','Constructor','Template','Section','Route','Tool',
-    ];
-    const label: NodeLabel = VALID_LABELS.includes(rawLabel as NodeLabel)
-      ? (rawLabel as NodeLabel)
-      : 'CodeElement';
-    const name = String(node.name ?? node.label ?? node.title ?? id);
-    return {
-      id,
-      label,
-      properties: {
-        name,
-        filePath: String(node.filePath ?? node.file ?? node.path ?? ''),
-        description: node.infRef ? String(node.infRef) : undefined,
-        ...(typeof node.properties === 'object' && node.properties !== null
-          ? (node.properties as Record<string, unknown>)
-          : {}),
-      },
-    };
-  });
-
-  // Relaciones — acepta 'relationships', 'edges', 'links', 'connections'
-  const rawEdges: unknown[] =
-    Array.isArray(obj.relationships) ? obj.relationships :
-    Array.isArray(obj.edges)         ? obj.edges :
-    Array.isArray(obj.links)         ? obj.links :
-    Array.isArray(obj.connections)   ? obj.connections :
-    [];
-
-  const VALID_TYPES: RelationshipType[] = [
-    'CONTAINS','CALLS','INHERITS','OVERRIDES','IMPORTS','USES','DEFINES',
-    'DECORATES','IMPLEMENTS','EXTENDS','HAS_METHOD','HAS_PROPERTY','ACCESSES',
-    'MEMBER_OF','STEP_IN_PROCESS','HANDLES_ROUTE','FETCHES','HANDLES_TOOL',
-    'ENTRY_POINT_OF','WRAPS','QUERIES',
-  ];
-
-  const relationships: GraphRelationship[] = rawEdges.map((e: unknown, i: number) => {
-    const edge = (typeof e === 'object' && e !== null ? e : {}) as Record<string, unknown>;
-    const id = String(edge.id ?? edge.key ?? i);
-    const sourceId = String(edge.sourceId ?? edge.source ?? edge.from ?? edge.start ?? '');
-    const targetId = String(edge.targetId ?? edge.target ?? edge.to   ?? edge.end   ?? '');
-    const rawType = String(edge.type ?? edge.label ?? edge.kind ?? 'CALLS').toUpperCase();
-    const type: RelationshipType = VALID_TYPES.includes(rawType as RelationshipType)
-      ? (rawType as RelationshipType)
-      : 'CALLS';
-    const confidence = typeof edge.confidence === 'number' ? edge.confidence : 1;
-    const reason = String(edge.reason ?? edge.infRef ?? edge.label ?? '');
-    return { id, sourceId, targetId, type, confidence, reason };
-  });
-
-  return { nodes, relationships, fileContents: {} };
-}
 
 function parseGitHubUrl(input: string): { owner: string; repo: string } | null {
   const clean = input.trim().replace(/\.git$/, '');
@@ -212,7 +137,7 @@ const ExplicacionAccordion = () => {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-type InputMode = 'zip' | 'github' | 'json';
+type InputMode = 'zip' | 'github';
 
 export const LandingScreen = () => {
   const { setGraph, setViewMode, setProgress, setProjectName } = useAppState();
@@ -224,7 +149,6 @@ export const LandingScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const jsonInputRef = useRef<HTMLInputElement>(null);
 
   const runPipeline = useCallback(
     async (files: { path: string; content: string }[], projectName: string) => {
@@ -275,48 +199,6 @@ export const LandingScreen = () => {
     [runPipeline],
   );
 
-  const handleJsonFile = useCallback(
-    async (fileList: FileList) => {
-      const file = fileList[0];
-      if (!file?.name.endsWith('.json')) {
-        setError(t.errNotJson);
-        return;
-      }
-      setError(null);
-      setIsProcessing(true);
-
-      try {
-        const text = await file.text();
-        let raw: unknown;
-        try {
-          raw = JSON.parse(stripJsonComments(text));
-        } catch {
-          setError(t.errInvalidJson);
-          setIsProcessing(false);
-          return;
-        }
-        const normalized = normalizeGraphJson(raw);
-        if (normalized.nodes.length === 0 && normalized.relationships.length === 0) {
-          setError(t.errInvalidJson);
-          setIsProcessing(false);
-          return;
-        }
-        setProjectName(file.name.replace(/\.json$/i, ''));
-        const graph = createKnowledgeGraph();
-        normalized.nodes.forEach((n) => graph.addNode(n));
-        normalized.relationships.forEach((r) => graph.addRelationship(r));
-        setGraph(graph);
-        setViewMode('exploring');
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : t.errInvalidJson;
-        setError(msg);
-      } finally {
-        setIsProcessing(false);
-      }
-    },
-    [setGraph, setViewMode, setProjectName, t.errNotJson, t.errInvalidJson],
-  );
-
   const handleGitHub = useCallback(async () => {
     const parsed = parseGitHubUrl(githubUrl);
     if (!parsed) {
@@ -345,12 +227,7 @@ export const LandingScreen = () => {
   const onDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    if (!e.dataTransfer.files.length) return;
-    if (mode === 'json') {
-      await handleJsonFile(e.dataTransfer.files);
-    } else {
-      await handleFiles(e.dataTransfer.files);
-    }
+    if (e.dataTransfer.files.length) await handleFiles(e.dataTransfer.files);
   };
 
   // Keyboard shortcut: Enter in GitHub input
@@ -379,7 +256,7 @@ export const LandingScreen = () => {
 
         {/* Tab switcher */}
         <div className="mb-4 flex rounded-xl border border-border-subtle bg-surface p-1">
-          {(['zip', 'github', 'json'] as InputMode[]).map((tab) => (
+          {(['zip', 'github'] as InputMode[]).map((tab) => (
             <button
               key={tab}
               onClick={() => { setMode(tab); setError(null); }}
@@ -389,7 +266,7 @@ export const LandingScreen = () => {
                   : 'text-text-muted hover:text-text-secondary'
               }`}
             >
-              {tab === 'zip' ? t.tabZip : tab === 'github' ? t.tabGithub : t.tabJson}
+              {tab === 'zip' ? t.tabZip : t.tabGithub}
             </button>
           ))}
         </div>
@@ -423,39 +300,6 @@ export const LandingScreen = () => {
               accept=".zip"
               className="hidden"
               onChange={(e) => e.target.files && handleFiles(e.target.files)}
-            />
-          </div>
-        )}
-
-        {/* JSON drop zone */}
-        {mode === 'json' && (
-          <div
-            className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed py-14 transition-all ${
-              isDragging
-                ? 'border-accent bg-accent/8 scale-[1.01]'
-                : 'border-border-default bg-surface hover:border-accent/50 hover:bg-elevated'
-            }`}
-            onDragOver={onDragOver}
-            onDragLeave={onDragLeave}
-            onDrop={onDrop}
-            onClick={() => jsonInputRef.current?.click()}
-          >
-            <svg
-              className={`mb-4 h-10 w-10 transition-colors ${isDragging ? 'text-accent' : 'text-text-muted'}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-              />
-            </svg>
-            <p className="mb-1 text-sm font-medium text-text-primary">{t.dropTitleJson}</p>
-            <p className="text-xs text-text-muted">{t.dropSubtitleJson}</p>
-            <input
-              ref={jsonInputRef}
-              type="file"
-              accept=".json"
-              className="hidden"
-              onChange={(e) => e.target.files && handleJsonFile(e.target.files)}
             />
           </div>
         )}
