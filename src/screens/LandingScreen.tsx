@@ -5,7 +5,7 @@ import { useT } from '../lib/i18n';
 import { extractZip } from '../services/zip';
 import { createKnowledgeGraph } from '../core/graph/graph';
 import type { IngestionWorkerApi } from '../workers/ingestion.worker';
-import type { PipelineProgress } from '../types/pipeline';
+import type { PipelineProgress, SerializablePipelineResult } from '../types/pipeline';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -137,7 +137,7 @@ const ExplicacionAccordion = () => {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-type InputMode = 'zip' | 'github';
+type InputMode = 'zip' | 'github' | 'json';
 
 export const LandingScreen = () => {
   const { setGraph, setViewMode, setProgress, setProjectName } = useAppState();
@@ -149,6 +149,7 @@ export const LandingScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const jsonInputRef = useRef<HTMLInputElement>(null);
 
   const runPipeline = useCallback(
     async (files: { path: string; content: string }[], projectName: string) => {
@@ -199,6 +200,43 @@ export const LandingScreen = () => {
     [runPipeline],
   );
 
+  const handleJsonFile = useCallback(
+    async (fileList: FileList) => {
+      const file = fileList[0];
+      if (!file?.name.endsWith('.json')) {
+        setError(t.errNotJson);
+        return;
+      }
+      setError(null);
+      setIsProcessing(true);
+      setProjectName(file.name.replace(/\.json$/i, ''));
+      setViewMode('loading');
+      setProgress({ phase: 'extracting', percent: 50, message: 'Cargando grafo...' });
+
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text) as SerializablePipelineResult;
+        if (!Array.isArray(parsed.nodes) || !Array.isArray(parsed.relationships)) {
+          throw new Error(t.errInvalidJson);
+        }
+        const graph = createKnowledgeGraph();
+        parsed.nodes.forEach((n) => graph.addNode(n));
+        parsed.relationships.forEach((r) => graph.addRelationship(r));
+        setGraph(graph);
+        setProgress(null);
+        setViewMode('exploring');
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : t.errInvalidJson;
+        setError(msg);
+        setProgress(null);
+        setViewMode('onboarding');
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [setGraph, setViewMode, setProgress, setProjectName, t.errNotJson, t.errInvalidJson],
+  );
+
   const handleGitHub = useCallback(async () => {
     const parsed = parseGitHubUrl(githubUrl);
     if (!parsed) {
@@ -227,7 +265,12 @@ export const LandingScreen = () => {
   const onDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    if (e.dataTransfer.files.length) await handleFiles(e.dataTransfer.files);
+    if (!e.dataTransfer.files.length) return;
+    if (mode === 'json') {
+      await handleJsonFile(e.dataTransfer.files);
+    } else {
+      await handleFiles(e.dataTransfer.files);
+    }
   };
 
   // Keyboard shortcut: Enter in GitHub input
@@ -256,7 +299,7 @@ export const LandingScreen = () => {
 
         {/* Tab switcher */}
         <div className="mb-4 flex rounded-xl border border-border-subtle bg-surface p-1">
-          {(['zip', 'github'] as InputMode[]).map((tab) => (
+          {(['zip', 'github', 'json'] as InputMode[]).map((tab) => (
             <button
               key={tab}
               onClick={() => { setMode(tab); setError(null); }}
@@ -266,7 +309,7 @@ export const LandingScreen = () => {
                   : 'text-text-muted hover:text-text-secondary'
               }`}
             >
-              {tab === 'zip' ? t.tabZip : t.tabGithub}
+              {tab === 'zip' ? t.tabZip : tab === 'github' ? t.tabGithub : t.tabJson}
             </button>
           ))}
         </div>
@@ -300,6 +343,39 @@ export const LandingScreen = () => {
               accept=".zip"
               className="hidden"
               onChange={(e) => e.target.files && handleFiles(e.target.files)}
+            />
+          </div>
+        )}
+
+        {/* JSON drop zone */}
+        {mode === 'json' && (
+          <div
+            className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed py-14 transition-all ${
+              isDragging
+                ? 'border-accent bg-accent/8 scale-[1.01]'
+                : 'border-border-default bg-surface hover:border-accent/50 hover:bg-elevated'
+            }`}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            onClick={() => jsonInputRef.current?.click()}
+          >
+            <svg
+              className={`mb-4 h-10 w-10 transition-colors ${isDragging ? 'text-accent' : 'text-text-muted'}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+              />
+            </svg>
+            <p className="mb-1 text-sm font-medium text-text-primary">{t.dropTitleJson}</p>
+            <p className="text-xs text-text-muted">{t.dropSubtitleJson}</p>
+            <input
+              ref={jsonInputRef}
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={(e) => e.target.files && handleJsonFile(e.target.files)}
             />
           </div>
         )}
