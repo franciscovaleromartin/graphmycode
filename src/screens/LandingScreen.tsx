@@ -6,8 +6,83 @@ import { extractZip } from '../services/zip';
 import { createKnowledgeGraph } from '../core/graph/graph';
 import type { IngestionWorkerApi } from '../workers/ingestion.worker';
 import type { PipelineProgress, SerializablePipelineResult } from '../types/pipeline';
+import type { GraphNode, GraphRelationship, NodeLabel, RelationshipType } from 'gitnexus-shared';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Elimina comentarios de línea (//) que no estén dentro de strings */
+function stripJsonComments(text: string): string {
+  return text.replace(/("(?:[^"\\]|\\.)*")|\/\/[^\n]*/g, (match, str) => str ?? '');
+}
+
+/** Convierte cualquier JSON de grafo razonable al formato interno de la app */
+function normalizeGraphJson(raw: unknown): SerializablePipelineResult {
+  if (typeof raw !== 'object' || raw === null) throw new Error('not-an-object');
+
+  const obj = raw as Record<string, unknown>;
+
+  // Nodos
+  const rawNodes = Array.isArray(obj.nodes) ? obj.nodes : [];
+  const nodes: GraphNode[] = rawNodes.map((n: unknown, i: number) => {
+    const node = (typeof n === 'object' && n !== null ? n : {}) as Record<string, unknown>;
+    const id = String(node.id ?? node.key ?? i);
+    const rawLabel = String(node.label ?? node.type ?? node.kind ?? 'CodeElement');
+    const VALID_LABELS: NodeLabel[] = [
+      'Project','Package','Module','Folder','File','Class','Function','Method',
+      'Variable','Interface','Enum','Decorator','Import','Type','CodeElement',
+      'Community','Process','Struct','Macro','Typedef','Union','Namespace',
+      'Trait','Impl','TypeAlias','Const','Static','Property','Record',
+      'Delegate','Annotation','Constructor','Template','Section','Route','Tool',
+    ];
+    const label: NodeLabel = VALID_LABELS.includes(rawLabel as NodeLabel)
+      ? (rawLabel as NodeLabel)
+      : 'CodeElement';
+    const name = String(node.name ?? node.label ?? node.title ?? id);
+    return {
+      id,
+      label,
+      properties: {
+        name,
+        filePath: String(node.filePath ?? node.file ?? node.path ?? ''),
+        description: node.infRef ? String(node.infRef) : undefined,
+        ...(typeof node.properties === 'object' && node.properties !== null
+          ? (node.properties as Record<string, unknown>)
+          : {}),
+      },
+    };
+  });
+
+  // Relaciones — acepta 'relationships', 'edges', 'links', 'connections'
+  const rawEdges: unknown[] =
+    Array.isArray(obj.relationships) ? obj.relationships :
+    Array.isArray(obj.edges)         ? obj.edges :
+    Array.isArray(obj.links)         ? obj.links :
+    Array.isArray(obj.connections)   ? obj.connections :
+    [];
+
+  const VALID_TYPES: RelationshipType[] = [
+    'CONTAINS','CALLS','INHERITS','OVERRIDES','IMPORTS','USES','DEFINES',
+    'DECORATES','IMPLEMENTS','EXTENDS','HAS_METHOD','HAS_PROPERTY','ACCESSES',
+    'MEMBER_OF','STEP_IN_PROCESS','HANDLES_ROUTE','FETCHES','HANDLES_TOOL',
+    'ENTRY_POINT_OF','WRAPS','QUERIES',
+  ];
+
+  const relationships: GraphRelationship[] = rawEdges.map((e: unknown, i: number) => {
+    const edge = (typeof e === 'object' && e !== null ? e : {}) as Record<string, unknown>;
+    const id = String(edge.id ?? edge.key ?? i);
+    const sourceId = String(edge.sourceId ?? edge.source ?? edge.from ?? edge.start ?? '');
+    const targetId = String(edge.targetId ?? edge.target ?? edge.to   ?? edge.end   ?? '');
+    const rawType = String(edge.type ?? edge.label ?? edge.kind ?? 'CALLS').toUpperCase();
+    const type: RelationshipType = VALID_TYPES.includes(rawType as RelationshipType)
+      ? (rawType as RelationshipType)
+      : 'CALLS';
+    const confidence = typeof edge.confidence === 'number' ? edge.confidence : 1;
+    const reason = String(edge.reason ?? edge.infRef ?? edge.label ?? '');
+    return { id, sourceId, targetId, type, confidence, reason };
+  });
+
+  return { nodes, relationships, fileContents: {} };
+}
 
 function parseGitHubUrl(input: string): { owner: string; repo: string } | null {
   const clean = input.trim().replace(/\.git$/, '');
@@ -212,24 +287,24 @@ export const LandingScreen = () => {
 
       try {
         const text = await file.text();
-        let parsed: SerializablePipelineResult;
+        let raw: unknown;
         try {
-          parsed = JSON.parse(text) as SerializablePipelineResult;
+          raw = JSON.parse(stripJsonComments(text));
         } catch {
           setError(t.errInvalidJson);
           setIsProcessing(false);
           return;
         }
-        if (!Array.isArray(parsed.nodes) || !Array.isArray(parsed.relationships)) {
+        const normalized = normalizeGraphJson(raw);
+        if (normalized.nodes.length === 0 && normalized.relationships.length === 0) {
           setError(t.errInvalidJson);
           setIsProcessing(false);
           return;
         }
-        // Validación OK — ahora sí cambiamos de pantalla
         setProjectName(file.name.replace(/\.json$/i, ''));
         const graph = createKnowledgeGraph();
-        parsed.nodes.forEach((n) => graph.addNode(n));
-        parsed.relationships.forEach((r) => graph.addRelationship(r));
+        normalized.nodes.forEach((n) => graph.addNode(n));
+        normalized.relationships.forEach((r) => graph.addRelationship(r));
         setGraph(graph);
         setViewMode('exploring');
       } catch (err) {
