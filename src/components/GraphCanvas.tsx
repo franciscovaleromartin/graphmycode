@@ -13,6 +13,7 @@ import {
   Layers,
   Brain,
   Building2,
+  GitBranch,
 } from '@/lib/lucide-icons';
 import { CityView } from './CityView';
 import { useSigma } from '../hooks/useSigma';
@@ -69,6 +70,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   // y permanece montado (pero oculto) para no tener que recargar el modelo
   const [hasSemanticBeenActivated, setHasSemanticBeenActivated] = useState(false);
   const [hasCityBeenActivated, setHasCityBeenActivated] = useState(false);
+  const [cityMetric, setCityMetric] = useState<'degree' | 'depth'>('degree');
   const semanticRef = useRef<SemanticGraphHandle>(null);
 
   const effectiveHighlightedNodeIds = useMemo(() => {
@@ -314,7 +316,40 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             title="Vista ciudad 3D (deuda técnica)"
           >
             <Building2 className="h-3 w-3" />
-            City
+            Technical Debt
+          </button>
+        </div>
+      )}
+
+      {/* Selector de métrica — visible solo en modo Technical Debt */}
+      {graph && graphViewType === 'city' && (
+        <div
+          className={`absolute top-12 z-20 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm transition-all duration-300 ${isSidebarCollapsed ? 'left-14' : 'left-60'}`}
+        >
+          <button
+            onClick={() => setCityMetric('degree')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              cityMetric === 'degree'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Altura = número de conexiones del nodo"
+          >
+            <GitBranch className="h-3 w-3" />
+            Conexiones
+          </button>
+          <div className="w-px bg-border-subtle" />
+          <button
+            onClick={() => setCityMetric('depth')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              cityMetric === 'depth'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Altura = profundidad en el árbol de directorios"
+          >
+            <Layers className="h-3 w-3" />
+            Profundidad
           </button>
         </div>
       )}
@@ -342,6 +377,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
           <CityView
             nodes={graph.nodes}
             relationships={graph.relationships}
+            metric={cityMetric}
             onNodeClick={(nodeId) => {
               const node = graph.nodes.find(n => n.id === nodeId);
               if (node) {
