@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useLayoutEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import { type ThreeEvent } from '@react-three/fiber';
 import type { CityBuilding } from '../../lib/city-layout';
@@ -10,14 +10,12 @@ interface Props {
   hoveredNodeId: string | null;
 }
 
-const BOX_GEO = new THREE.BoxGeometry(1, 1, 1);
-const MAT = new THREE.MeshStandardMaterial({ vertexColors: true });
-const dummy = new THREE.Object3D();
-
 export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId }: Props) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const dummy = useRef(new THREE.Object3D());
 
-  useEffect(() => {
+  // useLayoutEffect garantiza que las matrices se setean ANTES del primer frame
+  useLayoutEffect(() => {
     const mesh = meshRef.current;
     if (!mesh || buildings.length === 0) return;
 
@@ -25,10 +23,10 @@ export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId }: Pr
     const white = new THREE.Color(0xffffff);
 
     buildings.forEach((b, i) => {
-      dummy.position.set(b.x, b.height / 2, b.z);
-      dummy.scale.set(b.width, b.height, b.depth);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
+      dummy.current.position.set(b.x, b.height / 2, b.z);
+      dummy.current.scale.set(b.width, b.height, b.depth);
+      dummy.current.updateMatrix();
+      mesh.setMatrixAt(i, dummy.current.matrix);
 
       if (b.nodeId === hoveredNodeId) {
         color.setHex(b.colorHex);
@@ -73,11 +71,15 @@ export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId }: Pr
   return (
     <instancedMesh
       ref={meshRef}
-      args={[BOX_GEO, MAT, buildings.length]}
+      args={[undefined, undefined, buildings.length]}
+      frustumCulled={false}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       onClick={handleClick}
       castShadow={false}
-    />
+    >
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial vertexColors />
+    </instancedMesh>
   );
 }
