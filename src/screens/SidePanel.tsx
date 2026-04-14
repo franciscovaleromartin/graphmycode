@@ -95,7 +95,7 @@ export const SidePanel = () => {
           {/* Legend — cambia según la vista activa */}
           <section className="mb-5">
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-text-muted">
-              {graphViewType === 'semantic' ? 'Clusters' : t.legendTitle}
+              {graphViewType === 'semantic' ? 'Clusters' : graphViewType === 'city' ? 'Technical Debt' : t.legendTitle}
             </p>
             {graphViewType === 'semantic' ? (
               <div className="space-y-1.5">
@@ -117,6 +117,58 @@ export const SidePanel = () => {
                 ) : (
                   <p className="text-xs text-text-muted">Cargando clusters...</p>
                 )}
+              </div>
+            ) : graphViewType === 'city' ? (
+              <div className="space-y-3">
+                {/* Altura */}
+                <div>
+                  <p className="mb-1.5 text-xs text-text-muted">Altura del edificio</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-col items-center gap-0.5">
+                      <div className="w-3 rounded-sm bg-text-muted/30" style={{ height: '6px' }} />
+                      <div className="w-3 rounded-sm bg-text-muted/30" style={{ height: '10px' }} />
+                      <div className="w-3 rounded-sm bg-text-muted/30" style={{ height: '16px' }} />
+                    </div>
+                    <span className="text-xs text-text-secondary">Más alto = más conexiones<br />o mayor profundidad</span>
+                  </div>
+                </div>
+                {/* Gradiente de calor */}
+                <div>
+                  <p className="mb-1.5 text-xs text-text-muted">Color (intensidad)</p>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-2.5 w-16 flex-shrink-0 rounded-full"
+                      style={{ background: 'linear-gradient(to right, #3b82f6, #ff4444)' }}
+                    />
+                    <div className="flex flex-1 justify-between">
+                      <span className="text-xs text-text-muted">Bajo</span>
+                      <span className="text-xs text-red-400">Alto</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Distritos */}
+                <div>
+                  <p className="mb-1.5 text-xs text-text-muted">Distritos</p>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 flex-shrink-0 rounded-sm" style={{ backgroundColor: '#1a1a2e', border: '1px solid #2d2d4a' }} />
+                    <span className="text-xs text-text-secondary">Cada plano = carpeta raíz</span>
+                  </div>
+                </div>
+                {/* Tipos de nodo */}
+                <div>
+                  <p className="mb-1.5 text-xs text-text-muted">Tipos de nodo</p>
+                  <div className="space-y-1">
+                    {LEGEND_LABELS.slice(0, 4).map((label) => (
+                      <div key={label} className="flex items-center gap-2">
+                        <span
+                          className="h-2 w-2 flex-shrink-0 rounded-sm"
+                          style={{ backgroundColor: NODE_COLORS[label] }}
+                        />
+                        <span className="text-xs text-text-secondary">{LABEL_I18N[label] ?? label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="space-y-1.5">
