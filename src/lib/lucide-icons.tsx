@@ -13,6 +13,7 @@ export {
   AtSign,
   Brain,
   Box,
+  Building2,
   Braces,
   Check,
   ChevronDown,
