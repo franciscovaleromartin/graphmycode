@@ -170,8 +170,8 @@ interface AppState {
   isSidebarCollapsed: boolean;
   setSidebarCollapsed: (v: boolean) => void;
   // Vista activa del grafo
-  graphViewType: 'structural' | 'semantic';
-  setGraphViewType: (v: 'structural' | 'semantic') => void;
+  graphViewType: 'structural' | 'semantic' | 'city';
+  setGraphViewType: (v: 'structural' | 'semantic' | 'city') => void;
   // Datos de clusters semánticos para la leyenda del sidebar y el contexto del LLM
   semanticClusterData: SemanticClusterEntry[] | null;
   setSemanticClusterData: (data: SemanticClusterEntry[] | null) => void;
@@ -338,7 +338,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
   const [llmSettings, setLLMSettings] = useState<LLMSettings>(loadSettings);
   const [isSettingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [graphViewType, setGraphViewType] = useState<'structural' | 'semantic'>('structural');
+  const [graphViewType, setGraphViewType] = useState<'structural' | 'semantic' | 'city'>('structural');
   const [semanticClusterData, setSemanticClusterData] = useState<SemanticClusterEntry[] | null>(null);
   const [isAgentReady, setIsAgentReady] = useState(false);
   const [isAgentInitializing, setIsAgentInitializing] = useState(false);
