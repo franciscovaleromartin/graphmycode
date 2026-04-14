@@ -1,5 +1,5 @@
-import { useRef, useLayoutEffect, useCallback } from 'react';
-import * as THREE from 'three';
+import { useCallback } from 'react';
+import { Instances, Instance } from '@react-three/drei';
 import { type ThreeEvent } from '@react-three/fiber';
 import type { CityBuilding } from '../../lib/city-layout';
 
@@ -10,76 +10,59 @@ interface Props {
   hoveredNodeId: string | null;
 }
 
+function toHexString(hexInt: number): string {
+  return `#${hexInt.toString(16).padStart(6, '0')}`;
+}
+
+function brighten(hexInt: number): string {
+  const r = Math.min(255, ((hexInt >> 16) & 0xff) + 80);
+  const g = Math.min(255, ((hexInt >> 8) & 0xff) + 80);
+  const b = Math.min(255, (hexInt & 0xff) + 80);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
 export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId }: Props) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const dummy = useRef(new THREE.Object3D());
-
-  // useLayoutEffect garantiza que las matrices se setean ANTES del primer frame
-  useLayoutEffect(() => {
-    const mesh = meshRef.current;
-    if (!mesh || buildings.length === 0) return;
-
-    const color = new THREE.Color();
-    const white = new THREE.Color(0xffffff);
-
-    buildings.forEach((b, i) => {
-      dummy.current.position.set(b.x, b.height / 2, b.z);
-      dummy.current.scale.set(b.width, b.height, b.depth);
-      dummy.current.updateMatrix();
-      mesh.setMatrixAt(i, dummy.current.matrix);
-
-      if (b.nodeId === hoveredNodeId) {
-        color.setHex(b.colorHex);
-        color.lerp(white, 0.5);
-      } else {
-        color.setHex(b.colorHex);
-      }
-      mesh.setColorAt(i, color);
-    });
-
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [buildings, hoveredNodeId]);
-
   const handlePointerMove = useCallback(
-    (e: ThreeEvent<PointerEvent>) => {
+    (e: ThreeEvent<PointerEvent>, nodeId: string) => {
       e.stopPropagation();
-      if (e.instanceId !== undefined) {
-        onHover(buildings[e.instanceId]?.nodeId ?? null);
-      }
+      onHover(nodeId);
     },
-    [buildings, onHover],
+    [onHover],
   );
 
-  const handlePointerLeave = useCallback(() => {
-    onHover(null);
-  }, [onHover]);
+  const handlePointerLeave = useCallback(
+    (e: ThreeEvent<PointerEvent>) => {
+      e.stopPropagation();
+      onHover(null);
+    },
+    [onHover],
+  );
 
   const handleClick = useCallback(
-    (e: ThreeEvent<MouseEvent>) => {
+    (e: ThreeEvent<MouseEvent>, nodeId: string) => {
       e.stopPropagation();
-      if (e.instanceId !== undefined) {
-        const nodeId = buildings[e.instanceId]?.nodeId;
-        if (nodeId) onClick(nodeId);
-      }
+      onClick(nodeId);
     },
-    [buildings, onClick],
+    [onClick],
   );
 
   if (buildings.length === 0) return null;
 
   return (
-    <instancedMesh
-      ref={meshRef}
-      args={[undefined, undefined, buildings.length]}
-      frustumCulled={false}
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      onClick={handleClick}
-      castShadow={false}
-    >
+    <Instances limit={buildings.length} frustumCulled={false}>
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial vertexColors />
-    </instancedMesh>
+      <meshStandardMaterial />
+      {buildings.map(b => (
+        <Instance
+          key={b.nodeId}
+          position={[b.x, b.height / 2, b.z]}
+          scale={[b.width, b.height, b.depth]}
+          color={b.nodeId === hoveredNodeId ? brighten(b.colorHex) : toHexString(b.colorHex)}
+          onPointerMove={(e: ThreeEvent<PointerEvent>) => handlePointerMove(e, b.nodeId)}
+          onPointerLeave={handlePointerLeave}
+          onClick={(e: ThreeEvent<MouseEvent>) => handleClick(e, b.nodeId)}
+        />
+      ))}
+    </Instances>
   );
 }
