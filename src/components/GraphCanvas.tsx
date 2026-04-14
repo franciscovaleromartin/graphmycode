@@ -12,7 +12,9 @@ import {
   Sparkles,
   Layers,
   Brain,
+  Building2,
 } from '@/lib/lucide-icons';
+import { CityView } from './CityView';
 import { useSigma } from '../hooks/useSigma';
 import { useAppState } from '../hooks/useAppState';
 import { isProviderConfigured } from '../core/llm/settings-service';
@@ -66,6 +68,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   // SemanticGraph se monta la primera vez que el usuario activa la vista semántica
   // y permanece montado (pero oculto) para no tener que recargar el modelo
   const [hasSemanticBeenActivated, setHasSemanticBeenActivated] = useState(false);
+  const [hasCityBeenActivated, setHasCityBeenActivated] = useState(false);
   const semanticRef = useRef<SemanticGraphHandle>(null);
 
   const effectiveHighlightedNodeIds = useMemo(() => {
@@ -300,13 +303,26 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             <Brain className="h-3 w-3" />
             Semantic
           </button>
+          <div className="w-px bg-border-subtle" />
+          <button
+            onClick={() => { setGraphViewType('city'); setHasCityBeenActivated(true); }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              graphViewType === 'city'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Vista ciudad 3D (deuda técnica)"
+          >
+            <Building2 className="h-3 w-3" />
+            City
+          </button>
         </div>
       )}
 
       {/* Sigma container — oculto (no destruido) en modo semántico */}
       <div
         ref={containerRef}
-        className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' ? ' invisible pointer-events-none' : ''}`}
+        className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' || graphViewType === 'city' ? ' invisible pointer-events-none' : ''}`}
       />
 
       {/* Vista semántica 3D — se monta una vez y permanece (invisible cuando no activa) */}
@@ -316,6 +332,23 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             ref={semanticRef}
             nodes={graph.nodes}
             onClustersReady={setSemanticClusterData}
+          />
+        </div>
+      )}
+
+      {/* Vista ciudad 3D — se monta al activarse y permanece (invisible cuando no activa) */}
+      {hasCityBeenActivated && graph && (
+        <div className={`absolute inset-0 z-10 overflow-hidden${graphViewType !== 'city' ? ' invisible pointer-events-none' : ''}`}>
+          <CityView
+            nodes={graph.nodes}
+            relationships={graph.relationships}
+            onNodeClick={(nodeId) => {
+              const node = graph.nodes.find(n => n.id === nodeId);
+              if (node) {
+                setSelectedNode(node);
+                openCodePanel();
+              }
+            }}
           />
         </div>
       )}
@@ -347,21 +380,21 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       {/* Graph Controls - Bottom Right */}
       <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-1">
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomIn() : zoomIn()}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomIn() : graphViewType === 'structural' ? zoomIn() : undefined}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom In"
         >
           <ZoomIn className="h-4 w-4" />
         </button>
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomOut() : zoomOut()}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomOut() : graphViewType === 'structural' ? zoomOut() : undefined}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom Out"
         >
           <ZoomOut className="h-4 w-4" />
         </button>
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.resetZoom() : resetZoom()}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.resetZoom() : graphViewType === 'structural' ? resetZoom() : undefined}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Fit to Screen"
         >

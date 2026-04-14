@@ -427,7 +427,7 @@ export interface SemanticClusterEntry {
  * en qué vista está el usuario sin necesidad de reinicializar el agente.
  */
 export function buildUIContext(
-  graphViewType: 'structural' | 'semantic',
+  graphViewType: 'structural' | 'semantic' | 'city',
   semanticClusterData: SemanticClusterEntry[] | null,
   selectedNodeName?: string | null,
 ): string {
@@ -435,6 +435,11 @@ export function buildUIContext(
 
   if (graphViewType === 'structural') {
     lines.push('Active view: STRUCTURAL (dependency graph — nodes, edges, imports, calls)');
+    if (selectedNodeName) {
+      lines.push(`Selected node: ${selectedNodeName}`);
+    }
+  } else if (graphViewType === 'city') {
+    lines.push('Active view: CITY 3D (nodes rendered as buildings grouped by folder — height = connections or depth)');
     if (selectedNodeName) {
       lines.push(`Selected node: ${selectedNodeName}`);
     }
