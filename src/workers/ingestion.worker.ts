@@ -1,5 +1,6 @@
 import * as Comlink from 'comlink';
 import { runIngestionPipeline, runPipelineFromFiles } from '../core/ingestion/pipeline';
+import { loadParser } from '../core/tree-sitter/parser-loader';
 import { PipelineProgress, SerializablePipelineResult, serializePipelineResult } from '../types/pipeline';
 import { FileEntry } from '../services/zip';
 import {
@@ -176,6 +177,18 @@ const createHttpHybridSearch = (backendUrl: string, repo: string) => {
  * allowing it to be called from the worker and have it execute on the main thread.
  */
 const workerApi = {
+  /**
+   * Pre-calienta el worker: inicializa el parser base de tree-sitter para que
+   * el WASM quede en caché antes de que el usuario pueda desconectarse.
+   */
+  async preWarm(): Promise<void> {
+    try {
+      await loadParser();
+    } catch {
+      // No fatal: si falla el pre-calentamiento el pipeline puede intentarlo de nuevo
+    }
+  },
+
   /**
    * Run the ingestion pipeline in the worker thread
    * @param file - The ZIP file to process

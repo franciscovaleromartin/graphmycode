@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Comlink from 'comlink';
 import { useAppState } from '../hooks/useAppState';
 import { useT } from '../lib/i18n';
@@ -149,6 +149,14 @@ export const LandingScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Pre-calentar el worker al montar el componente: descarga el chunk JS del worker
+  // y el WASM base de tree-sitter para que queden en caché antes de que el usuario
+  // pueda desconectarse de internet.
+  useEffect(() => {
+    const api = getWorkerApi();
+    api.preWarm().catch(() => {/* silencioso, no es fatal */});
+  }, []);
 
   const runPipeline = useCallback(
     async (files: { path: string; content: string }[], projectName: string) => {
