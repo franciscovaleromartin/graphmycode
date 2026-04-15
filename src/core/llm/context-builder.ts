@@ -430,6 +430,8 @@ export function buildUIContext(
   graphViewType: 'structural' | 'semantic' | 'city',
   semanticClusterData: SemanticClusterEntry[] | null,
   selectedNodeName?: string | null,
+  cityMetric?: 'degree' | 'depth',
+  cityTopDebtNodes?: Array<{ name: string; label: string; filePath: string; value: number }>,
 ): string {
   const lines: string[] = ['<ui_context>'];
 
@@ -439,9 +441,24 @@ export function buildUIContext(
       lines.push(`Selected node: ${selectedNodeName}`);
     }
   } else if (graphViewType === 'city') {
-    lines.push('Active view: CITY 3D (nodes rendered as buildings grouped by folder — height = connections or depth)');
+    const metricLabel = cityMetric === 'depth' ? 'directory depth (nesting)' : 'number of connections (degree)';
+    const metricShort = cityMetric === 'depth' ? 'depth' : 'degree';
+    lines.push('Active view: TECHNICAL DEBT 3D (repository visualised as a 3D city)');
+    lines.push(`Debt metric: ${metricLabel} — taller building = higher ${metricShort} = more technical debt`);
+    lines.push('Each district = a top-level folder. Building color shifts from blue (low) to red (high debt).');
     if (selectedNodeName) {
       lines.push(`Selected node: ${selectedNodeName}`);
+    }
+    if (cityTopDebtNodes && cityTopDebtNodes.length > 0) {
+      lines.push('');
+      lines.push(`Top ${cityTopDebtNodes.length} nodes by ${metricShort} (highest technical debt first):`);
+      cityTopDebtNodes.forEach((n, i) => {
+        const path = n.filePath ? ` [${n.filePath}]` : '';
+        lines.push(`  ${i + 1}. ${n.name} (${n.label})${path} — ${metricShort}: ${n.value}`);
+      });
+      lines.push('');
+      lines.push('Use this data to answer questions about which files/functions have the most technical debt,');
+      lines.push('which areas of the codebase are hardest to maintain, and where refactoring would have the most impact.');
     }
   } else {
     lines.push('Active view: SEMANTIC 3D (nodes grouped by code similarity via embeddings + UMAP)');

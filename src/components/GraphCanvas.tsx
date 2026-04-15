@@ -63,6 +63,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
     isSidebarCollapsed,
     graphViewType,
     setGraphViewType,
+    cityMetric,
+    setCityMetric,
     externalDeps,
     setSemanticClusterData,
   } = useAppState();
@@ -73,7 +75,6 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   // y permanece montado (pero oculto) para no tener que recargar el modelo
   const [hasSemanticBeenActivated, setHasSemanticBeenActivated] = useState(false);
   const [hasCityBeenActivated, setHasCityBeenActivated] = useState(false);
-  const [cityMetric, setCityMetric] = useState<'degree' | 'depth'>('degree');
   const [showExternalLayer, setShowExternalLayer] = useState(false);
   const [semanticTopN, setSemanticTopN] = useState(10);
   const semanticRef = useRef<SemanticGraphHandle>(null);

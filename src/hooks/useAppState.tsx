@@ -172,6 +172,9 @@ interface AppState {
   // Vista activa del grafo
   graphViewType: 'structural' | 'semantic' | 'city';
   setGraphViewType: (v: 'structural' | 'semantic' | 'city') => void;
+  // Métrica activa en la vista Technical Debt
+  cityMetric: 'degree' | 'depth';
+  setCityMetric: (v: 'degree' | 'depth') => void;
   // Dependencias externas (npm/PyPI) para la capa External
   externalDeps: Record<string, string[]>;
   setExternalDeps: (deps: Record<string, string[]>) => void;
@@ -342,6 +345,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
   const [isSettingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [graphViewType, setGraphViewType] = useState<'structural' | 'semantic' | 'city'>('structural');
+  const [cityMetric, setCityMetric] = useState<'degree' | 'depth'>('degree');
   const [externalDeps, setExternalDeps] = useState<Record<string, string[]>>({});
   const [semanticClusterData, setSemanticClusterData] = useState<SemanticClusterEntry[] | null>(null);
   const [isAgentReady, setIsAgentReady] = useState(false);
@@ -985,10 +989,34 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
         // Inyectar contexto de la UI (vista activa + datos semánticos) en el
         // último mensaje del usuario. El agente siempre sabe qué vista está
         // mirando el usuario sin necesidad de reinicializar el agente.
+
+        // Para la vista Technical Debt: calcular top nodos por deuda técnica
+        let cityTopDebtNodes: Array<{ name: string; label: string; filePath: string; value: number }> | undefined;
+        if (graphViewType === 'city' && graph) {
+          const rels = graph.relationships;
+          cityTopDebtNodes = graph.nodes
+            .filter(n => n.label !== 'Community' && n.label !== 'Process')
+            .map(node => {
+              const value = cityMetric === 'degree'
+                ? rels.filter(r => r.sourceId === node.id || r.targetId === node.id).length
+                : (node.properties.filePath ?? '').split('/').length - 1;
+              return {
+                name: node.properties.name ?? node.id,
+                label: node.label as string,
+                filePath: node.properties.filePath ?? '',
+                value,
+              };
+            })
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 20);
+        }
+
         const uiContextBlock = buildUIContext(
           graphViewType,
           semanticClusterData,
           selectedNode?.properties?.name ?? null,
+          cityMetric,
+          cityTopDebtNodes,
         );
         const historyWithContext: AgentMessage[] = history.map((msg, idx) =>
           idx === history.length - 1 && msg.role === 'user'
@@ -1268,6 +1296,8 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
     setSidebarCollapsed,
     graphViewType,
     setGraphViewType,
+    cityMetric,
+    setCityMetric,
     externalDeps,
     setExternalDeps,
     semanticClusterData,
