@@ -95,7 +95,7 @@ export const SidePanel = () => {
           {/* Legend — cambia según la vista activa */}
           <section className="mb-5">
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-text-muted">
-              {graphViewType === 'semantic' ? 'Clusters' : graphViewType === 'city' ? 'Technical Debt' : t.legendTitle}
+              {graphViewType === 'semantic' ? 'Clusters' : graphViewType === 'city' ? 'Technical Debt' : graphViewType === 'heatmap' ? 'Acoplamiento' : t.legendTitle}
             </p>
             {graphViewType === 'semantic' ? (
               <div className="space-y-1.5">
@@ -167,6 +167,46 @@ export const SidePanel = () => {
                         <span className="text-xs text-text-secondary">{LABEL_I18N[label] ?? label}</span>
                       </div>
                     ))}
+                  </div>
+                </div>
+              </div>
+            ) : graphViewType === 'heatmap' ? (
+              <div className="space-y-3">
+                {/* Gradiente de calor */}
+                <div>
+                  <p className="mb-1.5 text-xs text-text-muted">Nodos (color = grado)</p>
+                  <div className="flex flex-col gap-1">
+                    <div
+                      className="h-2.5 w-full rounded-full"
+                      style={{ background: 'linear-gradient(to right, #3b82f6, #22c55e, #f59e0b, #ef4444)' }}
+                    />
+                    <div className="flex justify-between">
+                      <span className="text-xs text-text-muted">Bajo</span>
+                      <span className="text-xs text-red-400">Alto</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Aristas */}
+                <div>
+                  <p className="mb-1.5 text-xs text-text-muted">Aristas</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="h-0.5 w-5 flex-shrink-0 rounded" style={{ backgroundColor: '#334155' }} />
+                      <span className="text-xs text-text-secondary">Unidireccional</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-1 w-5 flex-shrink-0 rounded" style={{ backgroundColor: '#f97316' }} />
+                      <span className="text-xs text-text-secondary">Bidireccional ⇄</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Stats */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text-secondary">Ficheros</span>
+                    <span className="font-mono text-xs font-medium text-text-primary">
+                      {stats.files}
+                    </span>
                   </div>
                 </div>
               </div>
