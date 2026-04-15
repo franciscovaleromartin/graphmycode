@@ -427,7 +427,7 @@ export interface SemanticClusterEntry {
  * en qué vista está el usuario sin necesidad de reinicializar el agente.
  */
 export function buildUIContext(
-  graphViewType: 'structural' | 'semantic' | 'city',
+  graphViewType: 'structural' | 'semantic' | 'city' | 'heatmap',
   semanticClusterData: SemanticClusterEntry[] | null,
   selectedNodeName?: string | null,
   cityMetric?: 'degree' | 'depth',
@@ -459,6 +459,14 @@ export function buildUIContext(
       lines.push('');
       lines.push('Use this data to answer questions about which files/functions have the most technical debt,');
       lines.push('which areas of the codebase are hardest to maintain, and where refactoring would have the most impact.');
+    }
+  } else if (graphViewType === 'heatmap') {
+    lines.push('Active view: DEPENDENCY HEATMAP (file coupling — nodes are files, colour and size encode total import degree)');
+    lines.push('Hot nodes (red/amber) are highly coupled files — hubs with many imports/importers.');
+    lines.push('Orange thick edges = bidirectional coupling (A imports B AND B imports A) — circular dependencies.');
+    lines.push('Cold nodes (blue/green) are isolated, well-decoupled files.');
+    if (selectedNodeName) {
+      lines.push(`Selected node: ${selectedNodeName}`);
     }
   } else {
     lines.push('Active view: SEMANTIC 3D (nodes grouped by code similarity via embeddings + UMAP)');

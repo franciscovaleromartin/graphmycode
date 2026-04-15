@@ -170,8 +170,8 @@ interface AppState {
   isSidebarCollapsed: boolean;
   setSidebarCollapsed: (v: boolean) => void;
   // Vista activa del grafo
-  graphViewType: 'structural' | 'semantic' | 'city';
-  setGraphViewType: (v: 'structural' | 'semantic' | 'city') => void;
+  graphViewType: 'structural' | 'semantic' | 'city' | 'heatmap';
+  setGraphViewType: (v: 'structural' | 'semantic' | 'city' | 'heatmap') => void;
   // Métrica activa en la vista Technical Debt
   cityMetric: 'degree' | 'depth';
   setCityMetric: (v: 'degree' | 'depth') => void;
@@ -344,7 +344,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
   const [llmSettings, setLLMSettings] = useState<LLMSettings>(loadSettings);
   const [isSettingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [graphViewType, setGraphViewType] = useState<'structural' | 'semantic' | 'city'>('structural');
+  const [graphViewType, setGraphViewType] = useState<'structural' | 'semantic' | 'city' | 'heatmap'>('structural');
   const [cityMetric, setCityMetric] = useState<'degree' | 'depth'>('degree');
   const [externalDeps, setExternalDeps] = useState<Record<string, string[]>>({});
   const [semanticClusterData, setSemanticClusterData] = useState<SemanticClusterEntry[] | null>(null);
