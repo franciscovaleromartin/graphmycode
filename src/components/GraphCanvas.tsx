@@ -17,6 +17,7 @@ import {
   Globe,
 } from '@/lib/lucide-icons';
 import { CityView, type CityViewHandle } from './CityView';
+import { HeatmapView, type HeatmapViewHandle } from './HeatmapView';
 import { useSigma } from '../hooks/useSigma';
 import { useAppState } from '../hooks/useAppState';
 import { isProviderConfigured } from '../core/llm/settings-service';
@@ -79,6 +80,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   const [semanticTopN, setSemanticTopN] = useState(10);
   const semanticRef = useRef<SemanticGraphHandle>(null);
   const cityRef = useRef<CityViewHandle>(null);
+  const heatmapRef = useRef<HeatmapViewHandle>(null);
+  const [isHeatmapLayoutRunning, setIsHeatmapLayoutRunning] = useState(false);
+  const [hasHeatmapBeenActivated, setHasHeatmapBeenActivated] = useState(false);
   const prevGraphViewTypeRef = useRef(graphViewType);
 
   const effectiveHighlightedNodeIds = useMemo(() => {
@@ -339,6 +343,19 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             <Building2 className="h-3 w-3" />
             Technical Debt
           </button>
+          <div className="w-px bg-border-subtle" />
+          <button
+            onClick={() => { setGraphViewType('heatmap'); setHasHeatmapBeenActivated(true); }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              graphViewType === 'heatmap'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Mapa de calor de acoplamiento entre ficheros"
+          >
+            <GitBranch className="h-3 w-3" />
+            Heatmap
+          </button>
         </div>
       )}
 
@@ -432,7 +449,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       {/* Sigma container — oculto (no destruido) en modo semántico */}
       <div
         ref={containerRef}
-        className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' || graphViewType === 'city' ? ' invisible pointer-events-none' : ''}`}
+        className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' || graphViewType === 'city' || graphViewType === 'heatmap' ? ' invisible pointer-events-none' : ''}`}
       />
 
       {/* Vista semántica 3D — se monta una vez y permanece (invisible cuando no activa) */}
@@ -467,6 +484,21 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         </div>
       )}
 
+      {/* Vista Heatmap — Canvas 2D de acoplamiento entre ficheros */}
+      {hasHeatmapBeenActivated && graph && (
+        <div className={`absolute inset-0 z-10 overflow-hidden${graphViewType !== 'heatmap' ? ' invisible pointer-events-none' : ''}`}>
+          <HeatmapView
+            ref={heatmapRef}
+            graph={graph}
+            onNodeClick={(node) => {
+              setSelectedNode(node);
+              openCodePanel();
+            }}
+            onLayoutStateChange={setIsHeatmapLayoutRunning}
+          />
+        </div>
+      )}
+
       {/* Hovered node tooltip - only show when NOT selected */}
       {hoveredNodeName && !sigmaSelectedNode && (
         <div className="pointer-events-none absolute top-4 left-1/2 z-20 -translate-x-1/2 animate-fade-in rounded-lg border border-border-subtle bg-elevated/95 px-3 py-1.5 backdrop-blur-sm">
@@ -494,21 +526,21 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       {/* Graph Controls - Bottom Right */}
       <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-1">
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomIn() : graphViewType === 'city' ? cityRef.current?.zoomIn() : graphViewType === 'structural' ? zoomIn() : undefined}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomIn() : graphViewType === 'city' ? cityRef.current?.zoomIn() : graphViewType === 'heatmap' ? heatmapRef.current?.zoomIn() : zoomIn()}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom In"
         >
           <ZoomIn className="h-4 w-4" />
         </button>
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomOut() : graphViewType === 'city' ? cityRef.current?.zoomOut() : graphViewType === 'structural' ? zoomOut() : undefined}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomOut() : graphViewType === 'city' ? cityRef.current?.zoomOut() : graphViewType === 'heatmap' ? heatmapRef.current?.zoomOut() : zoomOut()}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom Out"
         >
           <ZoomOut className="h-4 w-4" />
         </button>
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.resetZoom() : graphViewType === 'city' ? cityRef.current?.resetZoom() : graphViewType === 'structural' ? resetZoom() : undefined}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.resetZoom() : graphViewType === 'city' ? cityRef.current?.resetZoom() : graphViewType === 'heatmap' ? heatmapRef.current?.resetZoom() : resetZoom()}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Fit to Screen"
         >
@@ -548,23 +580,29 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
           onClick={() => {
             if (graphViewType === 'city') {
               cityRef.current?.restartAnimation();
+            } else if (graphViewType === 'heatmap') {
+              if (isHeatmapLayoutRunning) {
+                heatmapRef.current?.stopLayout();
+              } else {
+                heatmapRef.current?.startLayout();
+              }
             } else {
               isLayoutRunning ? stopLayout() : startLayout();
             }
           }}
           className={`flex h-9 w-9 items-center justify-center rounded-md border transition-all ${
-            isLayoutRunning
+            isLayoutRunning || isHeatmapLayoutRunning
               ? 'animate-pulse border-accent bg-accent text-white shadow-glow'
               : 'border-border-subtle bg-elevated text-text-secondary hover:bg-hover hover:text-text-primary'
           } `}
-          title={isLayoutRunning ? 'Stop Layout' : 'Run Layout Again'}
+          title={isLayoutRunning || isHeatmapLayoutRunning ? 'Stop Layout' : 'Run Layout Again'}
         >
-          {isLayoutRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          {isLayoutRunning || isHeatmapLayoutRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
         </button>
       </div>
 
       {/* Layout running indicator */}
-      {isLayoutRunning && (
+      {(isLayoutRunning || isHeatmapLayoutRunning) && (
         <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 animate-fade-in items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-3 py-1.5 backdrop-blur-sm">
           <div className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
           <span className="text-xs font-medium text-emerald-400">{t.layoutRunning}</span>
