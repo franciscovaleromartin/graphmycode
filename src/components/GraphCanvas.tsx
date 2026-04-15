@@ -16,7 +16,7 @@ import {
   GitBranch,
   Globe,
 } from '@/lib/lucide-icons';
-import { CityView } from './CityView';
+import { CityView, type CityViewHandle } from './CityView';
 import { useSigma } from '../hooks/useSigma';
 import { useAppState } from '../hooks/useAppState';
 import { isProviderConfigured } from '../core/llm/settings-service';
@@ -78,6 +78,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   const [showExternalLayer, setShowExternalLayer] = useState(false);
   const [semanticTopN, setSemanticTopN] = useState(10);
   const semanticRef = useRef<SemanticGraphHandle>(null);
+  const cityRef = useRef<CityViewHandle>(null);
 
   const effectiveHighlightedNodeIds = useMemo(() => {
     if (!isAIHighlightsEnabled) return highlightedNodeIds;
@@ -441,9 +442,11 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       {hasCityBeenActivated && graph && (
         <div className={`absolute inset-0 z-10 overflow-hidden${graphViewType !== 'city' ? ' invisible pointer-events-none' : ''}`}>
           <CityView
+            ref={cityRef}
             nodes={graph.nodes}
             relationships={graph.relationships}
             metric={cityMetric}
+            isActive={graphViewType === 'city'}
             onNodeClick={(nodeId) => {
               const node = graph.nodes.find(n => n.id === nodeId);
               if (node) {
@@ -482,21 +485,21 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       {/* Graph Controls - Bottom Right */}
       <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-1">
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomIn() : graphViewType === 'structural' ? zoomIn() : undefined}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomIn() : graphViewType === 'city' ? cityRef.current?.zoomIn() : graphViewType === 'structural' ? zoomIn() : undefined}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom In"
         >
           <ZoomIn className="h-4 w-4" />
         </button>
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomOut() : graphViewType === 'structural' ? zoomOut() : undefined}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomOut() : graphViewType === 'city' ? cityRef.current?.zoomOut() : graphViewType === 'structural' ? zoomOut() : undefined}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom Out"
         >
           <ZoomOut className="h-4 w-4" />
         </button>
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.resetZoom() : graphViewType === 'structural' ? resetZoom() : undefined}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.resetZoom() : graphViewType === 'city' ? cityRef.current?.resetZoom() : graphViewType === 'structural' ? resetZoom() : undefined}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Fit to Screen"
         >

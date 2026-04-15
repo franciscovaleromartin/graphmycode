@@ -1,13 +1,17 @@
-import { useCallback } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { Instances, Instance } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
 import { type ThreeEvent } from '@react-three/fiber';
 import type { CityBuilding } from '../../lib/city-layout';
+
+const ANIM_DURATION = 2; // segundos
 
 interface Props {
   buildings: CityBuilding[];
   onHover: (nodeId: string | null) => void;
   onClick: (nodeId: string) => void;
   hoveredNodeId: string | null;
+  isActive: boolean;
 }
 
 function toHexString(hexInt: number): string {
@@ -21,7 +25,36 @@ function brighten(hexInt: number): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
-export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId }: Props) {
+// Ease-out cúbico: arranca rápido y desacelera al llegar a la altura final
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId, isActive }: Props) {
+  const [animProgress, setAnimProgress] = useState(0);
+  const animRef = useRef({ startTime: null as number | null, running: false });
+
+  useEffect(() => {
+    if (isActive) {
+      animRef.current.running = true;
+      animRef.current.startTime = null;
+      setAnimProgress(0);
+    }
+  }, [isActive]);
+
+  useFrame(({ clock }) => {
+    if (!animRef.current.running) return;
+    if (animRef.current.startTime === null) {
+      animRef.current.startTime = clock.getElapsedTime();
+    }
+    const elapsed = clock.getElapsedTime() - animRef.current.startTime;
+    const p = Math.min(elapsed / ANIM_DURATION, 1);
+    setAnimProgress(p);
+    if (p >= 1) {
+      animRef.current.running = false;
+    }
+  });
+
   const handlePointerMove = useCallback(
     (e: ThreeEvent<PointerEvent>, nodeId: string) => {
       e.stopPropagation();
@@ -48,21 +81,26 @@ export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId }: Pr
 
   if (buildings.length === 0) return null;
 
+  const easedProgress = easeOutCubic(animProgress);
+
   return (
     <Instances limit={buildings.length} frustumCulled={false}>
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial />
-      {buildings.map(b => (
-        <Instance
-          key={b.nodeId}
-          position={[b.x, b.height / 2, b.z]}
-          scale={[b.width, b.height, b.depth]}
-          color={b.nodeId === hoveredNodeId ? brighten(b.colorHex) : toHexString(b.colorHex)}
-          onPointerMove={(e: ThreeEvent<PointerEvent>) => handlePointerMove(e, b.nodeId)}
-          onPointerLeave={handlePointerLeave}
-          onClick={(e: ThreeEvent<MouseEvent>) => handleClick(e, b.nodeId)}
-        />
-      ))}
+      {buildings.map(b => {
+        const currentHeight = Math.max(0.01, b.height * easedProgress);
+        return (
+          <Instance
+            key={b.nodeId}
+            position={[b.x, currentHeight / 2, b.z]}
+            scale={[b.width, currentHeight, b.depth]}
+            color={b.nodeId === hoveredNodeId ? brighten(b.colorHex) : toHexString(b.colorHex)}
+            onPointerMove={(e: ThreeEvent<PointerEvent>) => handlePointerMove(e, b.nodeId)}
+            onPointerLeave={handlePointerLeave}
+            onClick={(e: ThreeEvent<MouseEvent>) => handleClick(e, b.nodeId)}
+          />
+        );
+      })}
     </Instances>
   );
 }
