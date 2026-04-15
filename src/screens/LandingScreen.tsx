@@ -150,12 +150,38 @@ export const LandingScreen = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Pre-calentar el worker al montar el componente: descarga el chunk JS del worker
-  // y el WASM base de tree-sitter para que queden en caché antes de que el usuario
-  // pueda desconectarse de internet.
+  // Pre-calentar el worker y los WASM de lenguaje al montar el componente.
+  // Objetivo: que el chunk JS del worker y todos los archivos WASM queden en
+  // caché del navegador antes de que el usuario pueda desconectarse de internet.
+  // Los WASM de lenguaje se descargan en segundo plano durante el tiempo de
+  // inactividad del navegador para no interferir con la carga inicial.
   useEffect(() => {
     const api = getWorkerApi();
-    api.preWarm().catch(() => {/* silencioso, no es fatal */});
+    api.preWarm().catch(() => {/* no fatal */});
+
+    const languageWasms = [
+      '/wasm/typescript/tree-sitter-typescript.wasm',
+      '/wasm/typescript/tree-sitter-tsx.wasm',
+      '/wasm/javascript/tree-sitter-javascript.wasm',
+      '/wasm/python/tree-sitter-python.wasm',
+      '/wasm/java/tree-sitter-java.wasm',
+      '/wasm/go/tree-sitter-go.wasm',
+      '/wasm/rust/tree-sitter-rust.wasm',
+      '/wasm/c/tree-sitter-c.wasm',
+      '/wasm/cpp/tree-sitter-cpp.wasm',
+      '/wasm/csharp/tree-sitter-csharp.wasm',
+      '/wasm/ruby/tree-sitter-ruby.wasm',
+      '/wasm/php/tree-sitter-php.wasm',
+    ];
+
+    const prefetch = () =>
+      languageWasms.forEach(url => fetch(url).catch(() => {}));
+
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(prefetch, { timeout: 10_000 });
+    } else {
+      setTimeout(prefetch, 3_000);
+    }
   }, []);
 
   const runPipeline = useCallback(
