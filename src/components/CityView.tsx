@@ -7,7 +7,7 @@ import { CityDistricts } from './city/CityDistricts';
 import { CityTooltip } from './city/CityTooltip';
 import type { GraphNode, GraphRelationship } from 'gitnexus-shared';
 
-const DEFAULT_CAMERA_POS = [65, 55, 65] as const;
+const DEFAULT_CAMERA_POS = [100, 80, 100] as const;
 
 export interface CityViewHandle {
   zoomIn: () => void;
