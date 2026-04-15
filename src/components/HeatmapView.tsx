@@ -346,9 +346,23 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       buildGraph();
     }, [buildGraph]);
 
+    // ── Aleatorizar posiciones para forzar animación visible ────────────────
+    const randomizePositions = () => {
+      const g = gRef.current;
+      if (!g) return;
+      const canvas = canvasRef.current;
+      const W = canvas?.width ?? 800;
+      const H = canvas?.height ?? 600;
+      g.forEachNode((node) => {
+        g.setNodeAttribute(node, 'x', (Math.random() - 0.5) * W * 0.8);
+        g.setNodeAttribute(node, 'y', (Math.random() - 0.5) * H * 0.8);
+      });
+    };
+
     // ── Auto-play: arrancar layout cada vez que la vista se activa ───────────
     useEffect(() => {
       if (isActive) {
+        randomizePositions();
         isRunningRef.current = true;
         onLayoutStateChange?.(true);
       } else {
@@ -375,6 +389,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
         cameraRef.current = { x: 0, y: 0, scale: 1 };
       },
       startLayout: () => {
+        randomizePositions();
         isRunningRef.current = true;
         onLayoutStateChange?.(true);
       },
