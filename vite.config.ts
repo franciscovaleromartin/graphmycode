@@ -2,7 +2,7 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
-import { createReadStream, mkdirSync, readdirSync, copyFileSync } from 'fs';
+import { createReadStream, mkdirSync, readdirSync, copyFileSync, existsSync } from 'fs';
 
 // ─── Plugin: sirve los archivos WASM de onnxruntime-web localmente ─────────
 // onnxruntime-web usa una versión dev que no existe en jsDelivr CDN,
@@ -43,10 +43,14 @@ function ortWasmPlugin(): Plugin {
       });
     },
 
-    // Build: copia los archivos necesarios a dist/ort/
+    // Build: copia los archivos necesarios a dist/ort/ y dist/assets/
+    // Los .mjs van también a dist/assets/ porque los bundles de Rollup resuelven
+    // import.meta.url relativo a /assets/ y necesitan encontrar el worker allí.
     closeBundle() {
-      const outDir = path.join(__dirname, 'dist/ort');
-      mkdirSync(outDir, { recursive: true });
+      const ortDir = path.join(__dirname, 'dist/ort');
+      const assetsDir = path.join(__dirname, 'dist/assets');
+      mkdirSync(ortDir, { recursive: true });
+      mkdirSync(assetsDir, { recursive: true });
       for (const file of readdirSync(onnxDistDir)) {
         // Solo archivos WASM/MJS del runtime SIMD threaded (excluye jspi experimental y bundles ort.*)
         if (
@@ -54,7 +58,11 @@ function ortWasmPlugin(): Plugin {
           !file.includes('jspi') &&
           (file.endsWith('.wasm') || file.endsWith('.mjs'))
         ) {
-          copyFileSync(path.join(onnxDistDir, file), path.join(outDir, file));
+          copyFileSync(path.join(onnxDistDir, file), path.join(ortDir, file));
+          // Los workers .mjs también en /assets/ para que import.meta.url los encuentre
+          if (file.endsWith('.mjs')) {
+            copyFileSync(path.join(onnxDistDir, file), path.join(assetsDir, file));
+          }
         }
       }
     },
@@ -66,6 +74,15 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), ortWasmPlugin()],
   worker: {
     format: 'es',
+  },
+  // esnext permite import.meta.url en workers y dynamic imports que necesita transformers.js
+  build: {
+    target: 'esnext',
+  },
+  optimizeDeps: {
+    // Excluir transformers.js del pre-bundling de Vite para que sus
+    // imports dinámicos (workers ORT, WASM) se resuelvan correctamente en prod
+    exclude: ['@huggingface/transformers'],
   },
   define: {
     __REQUIRED_NODE_VERSION__: JSON.stringify('20'),
