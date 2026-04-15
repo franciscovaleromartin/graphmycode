@@ -12,6 +12,7 @@ interface Props {
   onClick: (nodeId: string) => void;
   hoveredNodeId: string | null;
   isActive: boolean;
+  metric: string;
 }
 
 function toHexString(hexInt: number): string {
@@ -30,7 +31,7 @@ function easeOutCubic(t: number): number {
   return 1 - Math.pow(1 - t, 3);
 }
 
-export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId, isActive }: Props) {
+export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId, isActive, metric }: Props) {
   const [animProgress, setAnimProgress] = useState(0);
   const animRef = useRef({ startTime: null as number | null, running: false });
 
@@ -40,7 +41,7 @@ export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId, isAc
       animRef.current.startTime = null;
       setAnimProgress(0);
     }
-  }, [isActive]);
+  }, [isActive, metric]);
 
   useFrame(({ clock }) => {
     if (!animRef.current.running) return;

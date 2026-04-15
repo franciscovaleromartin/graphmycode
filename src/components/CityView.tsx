@@ -88,6 +88,7 @@ export const CityView = forwardRef<CityViewHandle, Props>(
           onClick={onNodeClick}
           hoveredNodeId={hoveredNodeId}
           isActive={isActive}
+          metric={metric}
         />
 
         {hoveredBuilding && hoveredNode && (
