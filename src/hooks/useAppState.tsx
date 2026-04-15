@@ -172,6 +172,9 @@ interface AppState {
   // Vista activa del grafo
   graphViewType: 'structural' | 'semantic' | 'city';
   setGraphViewType: (v: 'structural' | 'semantic' | 'city') => void;
+  // Dependencias externas (npm/PyPI) para la capa External
+  externalDeps: Record<string, string[]>;
+  setExternalDeps: (deps: Record<string, string[]>) => void;
   // Datos de clusters semánticos para la leyenda del sidebar y el contexto del LLM
   semanticClusterData: SemanticClusterEntry[] | null;
   setSemanticClusterData: (data: SemanticClusterEntry[] | null) => void;
@@ -339,6 +342,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
   const [isSettingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [graphViewType, setGraphViewType] = useState<'structural' | 'semantic' | 'city'>('structural');
+  const [externalDeps, setExternalDeps] = useState<Record<string, string[]>>({});
   const [semanticClusterData, setSemanticClusterData] = useState<SemanticClusterEntry[] | null>(null);
   const [isAgentReady, setIsAgentReady] = useState(false);
   const [isAgentInitializing, setIsAgentInitializing] = useState(false);
@@ -1264,6 +1268,8 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
     setSidebarCollapsed,
     graphViewType,
     setGraphViewType,
+    externalDeps,
+    setExternalDeps,
     semanticClusterData,
     setSemanticClusterData,
     isAgentReady,

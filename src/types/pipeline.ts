@@ -23,6 +23,7 @@ export interface PipelineResult {
   fileContents: Map<string, string>;
   communityResult?: CommunityDetectionResult;
   processResult?: ProcessDetectionResult;
+  externalDeps?: Map<string, Set<string>>; // fileNodeId → Set<packageName>
 }
 
 // Serializable version for Web Worker communication
@@ -31,6 +32,7 @@ export interface SerializablePipelineResult {
   nodes: GraphNode[];
   relationships: GraphRelationship[];
   fileContents: Record<string, string>; // Object instead of Map
+  externalDeps: Record<string, string[]>; // fileNodeId → packageNames[]
 }
 
 // Helper to convert PipelineResult to serializable format
@@ -38,6 +40,9 @@ export const serializePipelineResult = (result: PipelineResult): SerializablePip
   nodes: result.graph.nodes,
   relationships: result.graph.relationships,
   fileContents: Object.fromEntries(result.fileContents),
+  externalDeps: result.externalDeps
+    ? Object.fromEntries(Array.from(result.externalDeps.entries()).map(([k, v]) => [k, Array.from(v)]))
+    : {},
 });
 
 // Helper to reconstruct from serializable format (used in main thread)

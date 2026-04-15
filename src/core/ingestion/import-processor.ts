@@ -11,6 +11,21 @@ import { callRouters } from './call-routing';
 // Stores all files that a given file imports from
 export type ImportMap = Map<string, Set<string>>;
 
+// Type: Map<FileNodeId, Set<ExternalPackageName>>
+// Stores external package dependencies per file node
+export type ExternalDepsMap = Map<string, Set<string>>;
+
+/** Extract the top-level package name from an import path */
+const extractPackageName = (importPath: string): string => {
+  if (importPath.startsWith('@')) {
+    // Scoped package: @scope/pkg or @scope/pkg/subpath → @scope/pkg
+    const parts = importPath.split('/');
+    return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : importPath;
+  }
+  // Regular: pkg or pkg/subpath → pkg
+  return importPath.split('/')[0];
+};
+
 export const createImportMap = (): ImportMap => new Map();
 
 // Helper: Resolve import paths (relative and absolute/package-style)
@@ -114,7 +129,8 @@ export const processImports = async (
   astCache: ASTCache,
   importMap: ImportMap,
   onProgress?: (current: number, total: number) => void
-) => {
+): Promise<ExternalDepsMap> => {
+  const externalDeps: ExternalDepsMap = new Map();
   // Create a Set of all file paths for fast lookup during resolution
   const allFilePaths = new Set(files.map(f => f.path));
   const parser = await loadParser();
@@ -223,6 +239,14 @@ export const processImports = async (
             importMap.set(file.path, new Set());
           }
           importMap.get(file.path)!.add(resolvedPath);
+        } else if (!rawImportPath.startsWith('.')) {
+          // C. Track external package dependency
+          const pkgName = extractPackageName(rawImportPath);
+          if (pkgName) {
+            const fileNodeId = generateId('File', file.path);
+            if (!externalDeps.has(fileNodeId)) externalDeps.set(fileNodeId, new Set());
+            externalDeps.get(fileNodeId)!.add(pkgName);
+          }
         }
       }
 
@@ -264,7 +288,10 @@ export const processImports = async (
   
   if (import.meta.env.DEV) {
     console.log(`📊 Import processing complete: ${totalImportsResolved}/${totalImportsFound} imports resolved to graph edges`);
+    console.log(`📦 External deps collected: ${externalDeps.size} files with external packages`);
   }
+
+  return externalDeps;
 };
 
 

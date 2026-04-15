@@ -140,7 +140,7 @@ const ExplicacionAccordion = () => {
 type InputMode = 'zip' | 'github';
 
 export const LandingScreen = () => {
-  const { setGraph, setViewMode, setProgress, setProjectName } = useAppState();
+  const { setGraph, setViewMode, setProgress, setProjectName, setExternalDeps } = useAppState();
   const t = useT();
 
   const [mode, setMode] = useState<InputMode>('zip');
@@ -168,6 +168,7 @@ export const LandingScreen = () => {
         result.relationships.forEach((r) => graph.addRelationship(r));
 
         setGraph(graph);
+        setExternalDeps(result.externalDeps ?? {});
         setProgress(null);
         setViewMode('exploring');
       } catch (err) {
@@ -179,7 +180,7 @@ export const LandingScreen = () => {
         setIsProcessing(false);
       }
     },
-    [setGraph, setViewMode, setProgress, setProjectName],
+    [setGraph, setViewMode, setProgress, setProjectName, setExternalDeps],
   );
 
   const handleFiles = useCallback(

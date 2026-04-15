@@ -14,6 +14,7 @@ import {
   Brain,
   Building2,
   GitBranch,
+  Globe,
 } from '@/lib/lucide-icons';
 import { CityView } from './CityView';
 import { useSigma } from '../hooks/useSigma';
@@ -26,6 +27,7 @@ import {
   SigmaNodeAttributes,
   SigmaEdgeAttributes,
 } from '../lib/graph-adapter';
+import { NODE_COLORS, NODE_SIZES } from '../lib/constants';
 import type { GraphNode } from 'gitnexus-shared';
 import { QueryFAB } from './QueryFAB';
 import { SemanticGraph, type SemanticGraphHandle } from './SemanticGraph';
@@ -61,6 +63,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
     isSidebarCollapsed,
     graphViewType,
     setGraphViewType,
+    externalDeps,
     setSemanticClusterData,
   } = useAppState();
 
@@ -71,6 +74,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   const [hasSemanticBeenActivated, setHasSemanticBeenActivated] = useState(false);
   const [hasCityBeenActivated, setHasCityBeenActivated] = useState(false);
   const [cityMetric, setCityMetric] = useState<'degree' | 'depth'>('degree');
+  const [showExternalLayer, setShowExternalLayer] = useState(false);
   const semanticRef = useRef<SemanticGraphHandle>(null);
 
   const effectiveHighlightedNodeIds = useMemo(() => {
@@ -192,7 +196,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
     [focusNode, graph, nodeById, setSelectedNode, openCodePanel],
   );
 
-  // Update Sigma graph when KnowledgeGraph changes
+  // Update Sigma graph when KnowledgeGraph changes or external layer toggle changes
   useEffect(() => {
     if (!graph) return;
 
@@ -213,8 +217,13 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
     });
 
     const sigmaGraph = knowledgeGraphToGraphology(graph, communityMemberships);
+
+    if (showExternalLayer && Object.keys(externalDeps).length > 0) {
+      injectExternalNodes(sigmaGraph, externalDeps);
+    }
+
     setSigmaGraph(sigmaGraph);
-  }, [graph, nodeById, setSigmaGraph]);
+  }, [graph, nodeById, setSigmaGraph, showExternalLayer, externalDeps]);
 
   // Update node visibility when filters change
   useEffect(() => {
@@ -317,6 +326,26 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
           >
             <Building2 className="h-3 w-3" />
             Technical Debt
+          </button>
+        </div>
+      )}
+
+      {/* Toggle External Layer — solo visible en vista estructural */}
+      {graph && graphViewType === 'structural' && (
+        <div
+          className={`absolute top-12 z-20 transition-all duration-300 ${isSidebarCollapsed ? 'left-14' : 'left-60'}`}
+        >
+          <button
+            onClick={() => setShowExternalLayer((v) => !v)}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium shadow-sm transition-colors ${
+              showExternalLayer
+                ? 'border-violet-500/50 bg-violet-500/20 text-violet-300 hover:bg-violet-500/30'
+                : 'border-border-subtle bg-surface text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Mostrar dependencias externas (npm/PyPI) como capa exterior"
+          >
+            <Globe className="h-3 w-3" />
+            External
           </button>
         </div>
       )}
@@ -534,3 +563,69 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
 });
 
 GraphCanvas.displayName = 'GraphCanvas';
+
+// ── Helper: inyectar nodos de paquetes externos en el grafo Sigma ──────────────
+
+function injectExternalNodes(
+  sigmaGraph: Graph<SigmaNodeAttributes, SigmaEdgeAttributes>,
+  externalDeps: Record<string, string[]>,
+): void {
+  // Construir mapa: packageName → [fileNodeIds que lo importan]
+  const packageToFiles = new Map<string, string[]>();
+  for (const [fileNodeId, pkgs] of Object.entries(externalDeps)) {
+    for (const pkg of pkgs) {
+      if (!packageToFiles.has(pkg)) packageToFiles.set(pkg, []);
+      packageToFiles.get(pkg)!.push(fileNodeId);
+    }
+  }
+  if (packageToFiles.size === 0) return;
+
+  // Calcular centro y radio máximo del grafo actual
+  let sumX = 0, sumY = 0, count = 0, maxRadius = 1;
+  sigmaGraph.forEachNode((_, attr) => {
+    sumX += attr.x; sumY += attr.y; count++;
+  });
+  const cx = count > 0 ? sumX / count : 0;
+  const cy = count > 0 ? sumY / count : 0;
+  sigmaGraph.forEachNode((_, attr) => {
+    const d = Math.hypot(attr.x - cx, attr.y - cy);
+    if (d > maxRadius) maxRadius = d;
+  });
+
+  // Colocar paquetes en un anillo exterior
+  const ringRadius = maxRadius * 1.6 + 250;
+  const pkgs = Array.from(packageToFiles.keys()).sort(); // orden alfabético estable
+
+  pkgs.forEach((pkg, i) => {
+    const angle = (i / pkgs.length) * Math.PI * 2 - Math.PI / 2;
+    const pkgNodeId = `__ext__:${pkg}`;
+    const importCount = packageToFiles.get(pkg)!.length;
+
+    if (!sigmaGraph.hasNode(pkgNodeId)) {
+      sigmaGraph.addNode(pkgNodeId, {
+        x: cx + ringRadius * Math.cos(angle),
+        y: cy + ringRadius * Math.sin(angle),
+        size: Math.min(18, Math.max(6, importCount * 1.5 + 4)),
+        color: NODE_COLORS['Package'],
+        label: pkg,
+        nodeType: 'Package',
+        filePath: '',
+        mass: 20,
+      });
+    }
+
+    // Añadir aristas desde los archivos internos a este paquete
+    for (const fileNodeId of packageToFiles.get(pkg)!) {
+      if (!sigmaGraph.hasNode(fileNodeId)) continue;
+      const edgeId = `__ext_edge__:${fileNodeId}->${pkgNodeId}`;
+      if (!sigmaGraph.hasEdge(edgeId)) {
+        sigmaGraph.addEdgeWithKey(edgeId, fileNodeId, pkgNodeId, {
+          size: 0.6,
+          color: '#3b52a0',
+          relationType: 'IMPORTS',
+          type: 'line',
+        });
+      }
+    }
+  });
+}

@@ -114,7 +114,7 @@ export const runPipelineFromFiles = async (
     stats: { filesProcessed: 0, totalFiles: files.length, nodesCreated: graph.nodeCount },
   });
 
-  await processImports(graph, files, astCache, importMap, (current, total) => {
+  const externalDeps = await processImports(graph, files, astCache, importMap, (current, total) => {
     const importProgress = 70 + ((current / total) * 12);
     onProgress({
       phase: 'imports',
@@ -295,7 +295,7 @@ export const runPipelineFromFiles = async (
   // Cleanup WASM memory before returning
   astCache.clear();
   
-  return { graph, fileContents, communityResult, processResult };
+  return { graph, fileContents, communityResult, processResult, externalDeps };
 
   } catch (error) {
     cleanup();
