@@ -354,7 +354,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             title="Mapa de calor de acoplamiento entre ficheros"
           >
             <GitBranch className="h-3 w-3" />
-            Heatmap
+            Dependency Heatmap
           </button>
         </div>
       )}
@@ -490,6 +490,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
           <HeatmapView
             ref={heatmapRef}
             graph={graph}
+            isActive={graphViewType === 'heatmap'}
             onNodeClick={(node) => {
               setSelectedNode(node);
               openCodePanel();

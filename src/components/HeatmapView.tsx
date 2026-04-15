@@ -17,6 +17,7 @@ interface Props {
   graph: KnowledgeGraph;
   onNodeClick: (node: GraphNode) => void;
   onLayoutStateChange?: (running: boolean) => void;
+  isActive?: boolean;
 }
 
 // ── Color helpers ───────────────────────────────────────────────────────────
@@ -49,7 +50,7 @@ function nodeRadius(normalizedDegree: number): number {
 // ── Component ───────────────────────────────────────────────────────────────
 
 export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
-  ({ graph, onNodeClick, onLayoutStateChange }, ref) => {
+  ({ graph, onNodeClick, onLayoutStateChange, isActive }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gRef = useRef<Graph | null>(null);
     const nodesRef = useRef<HeatmapNode[]>([]);
@@ -344,6 +345,17 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
     useEffect(() => {
       buildGraph();
     }, [buildGraph]);
+
+    // ── Auto-play: arrancar layout cada vez que la vista se activa ───────────
+    useEffect(() => {
+      if (isActive) {
+        isRunningRef.current = true;
+        onLayoutStateChange?.(true);
+      } else {
+        isRunningRef.current = false;
+        onLayoutStateChange?.(false);
+      }
+    }, [isActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── Start RAF loop ───────────────────────────────────────────────────────
     useEffect(() => {

@@ -432,6 +432,7 @@ export function buildUIContext(
   selectedNodeName?: string | null,
   cityMetric?: 'degree' | 'depth',
   cityTopDebtNodes?: Array<{ name: string; label: string; filePath: string; value: number }>,
+  heatmapTopNodes?: Array<{ name: string; filePath: string; degree: number; bidirectionalCount: number }>,
 ): string {
   const lines: string[] = ['<ui_context>'];
 
@@ -467,6 +468,17 @@ export function buildUIContext(
     lines.push('Cold nodes (blue/green) are isolated, well-decoupled files.');
     if (selectedNodeName) {
       lines.push(`Selected node: ${selectedNodeName}`);
+    }
+    if (heatmapTopNodes && heatmapTopNodes.length > 0) {
+      lines.push('');
+      lines.push(`Top ${heatmapTopNodes.length} most coupled files (highest degree first):`);
+      heatmapTopNodes.forEach((n, i) => {
+        const path = n.filePath ? ` [${n.filePath}]` : '';
+        const bi = n.bidirectionalCount > 0 ? ` — ⇄ ${n.bidirectionalCount} circular` : '';
+        lines.push(`  ${i + 1}. ${n.name}${path} — degree: ${n.degree}${bi}`);
+      });
+      lines.push('');
+      lines.push('Use this data to answer questions about which files are most coupled, which have circular dependencies, and where architectural improvements would have the most impact.');
     }
   } else {
     lines.push('Active view: SEMANTIC 3D (nodes grouped by code similarity via embeddings + UMAP)');

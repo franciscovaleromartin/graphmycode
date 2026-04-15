@@ -21,6 +21,7 @@ import type {
 import { loadSettings, getActiveProviderConfig, saveSettings } from '../core/llm/settings-service';
 import type { AgentMessage } from '../core/llm/agent';
 import { type SemanticClusterEntry, buildUIContext } from '../core/llm/context-builder';
+import { computeHeatmapData } from '../lib/heatmap-metrics';
 import { type EdgeType } from '../lib/constants';
 import {
   connectToServer,
@@ -1011,12 +1012,30 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
             .slice(0, 20);
         }
 
+        // Para la vista Dependency Heatmap: calcular top ficheros acoplados
+        let heatmapTopNodes: Array<{ name: string; filePath: string; degree: number; bidirectionalCount: number }> | undefined;
+        if (graphViewType === 'heatmap' && graph) {
+          const heatmapData = computeHeatmapData(graph);
+          heatmapTopNodes = heatmapData.nodes
+            .sort((a, b) => b.degree - a.degree)
+            .slice(0, 20)
+            .map(n => ({
+              name: n.name,
+              filePath: n.filePath,
+              degree: n.degree,
+              bidirectionalCount: heatmapData.edges.filter(
+                e => e.isBidirectional && (e.source === n.id || e.target === n.id),
+              ).length,
+            }));
+        }
+
         const uiContextBlock = buildUIContext(
           graphViewType,
           semanticClusterData,
           selectedNode?.properties?.name ?? null,
           cityMetric,
           cityTopDebtNodes,
+          heatmapTopNodes,
         );
         const historyWithContext: AgentMessage[] = history.map((msg, idx) =>
           idx === history.length - 1 && msg.role === 'user'
