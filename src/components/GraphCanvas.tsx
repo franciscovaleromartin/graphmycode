@@ -381,7 +381,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             title="Mostrar dependencias externas (npm/PyPI) como capa exterior"
           >
             <Globe className="h-3 w-3" />
-            External
+            Import
           </button>
         </div>
       )}

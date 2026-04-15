@@ -1,5 +1,6 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { track } from '@vercel/analytics';
 import { AppStateProvider, useAppState } from './hooks/useAppState';
 import { LandingScreen } from './screens/LandingScreen';
 import { SidePanel } from './screens/SidePanel';
@@ -11,6 +12,12 @@ import { SettingsPanel } from './components/SettingsPanel';
 const AppContent = () => {
   const { viewMode, progress, isSettingsPanelOpen, setSettingsPanelOpen } = useAppState();
   const graphCanvasRef = useRef<GraphCanvasHandle>(null);
+
+  useEffect(() => {
+    if (viewMode === 'exploring') {
+      track('graph_viewed');
+    }
+  }, [viewMode]);
 
   if (viewMode === 'onboarding') {
     return <LandingScreen />;
