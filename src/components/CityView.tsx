@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { useState, useMemo, useCallback, forwardRef, useImperativeHandle, useRef, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { buildCityLayout, type CityMetric, type CityBuilding } from '../lib/city-layout';
@@ -7,10 +7,13 @@ import { CityDistricts } from './city/CityDistricts';
 import { CityTooltip } from './city/CityTooltip';
 import type { GraphNode, GraphRelationship } from 'gitnexus-shared';
 
+const DEFAULT_CAMERA_POS = [65, 55, 65] as const;
+
 export interface CityViewHandle {
   zoomIn: () => void;
   zoomOut: () => void;
   resetZoom: () => void;
+  restartAnimation: () => void;
 }
 
 interface Props {
@@ -21,28 +24,46 @@ interface Props {
   isActive: boolean;
 }
 
-// Componente interno que vive dentro del Canvas y accede a useThree
-const CityControls = forwardRef<CityViewHandle>((_, ref) => {
+// Componente interno para acceder a useThree (cámara)
+interface CityControlsProps {
+  zoomRef: React.MutableRefObject<{
+    zoomIn: () => void;
+    zoomOut: () => void;
+    resetZoom: () => void;
+  }>;
+}
+
+function CityControlsInner({ zoomRef }: CityControlsProps) {
   const { camera } = useThree();
 
-  useImperativeHandle(ref, () => ({
-    zoomIn: () => {
-      camera.position.multiplyScalar(0.75);
-    },
-    zoomOut: () => {
-      camera.position.multiplyScalar(1.33);
-    },
-    resetZoom: () => {
-      camera.position.set(40, 40, 40);
-    },
-  }));
+  zoomRef.current = {
+    zoomIn: () => { camera.position.multiplyScalar(0.75); },
+    zoomOut: () => { camera.position.multiplyScalar(1.33); },
+    resetZoom: () => { camera.position.set(...DEFAULT_CAMERA_POS); },
+  };
 
   return <OrbitControls enableDamping dampingFactor={0.05} minDistance={5} maxDistance={500} />;
-});
+}
 
 export const CityView = forwardRef<CityViewHandle, Props>(
   ({ nodes, relationships, metric, onNodeClick, isActive }, ref) => {
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+    const [animVersion, setAnimVersion] = useState(0);
+    const zoomRef = useRef({ zoomIn: () => {}, zoomOut: () => {}, resetZoom: () => {} });
+
+    // Reiniciar animación al activar la vista
+    useEffect(() => {
+      if (isActive) {
+        setAnimVersion(v => v + 1);
+      }
+    }, [isActive]);
+
+    useImperativeHandle(ref, () => ({
+      zoomIn: () => zoomRef.current.zoomIn(),
+      zoomOut: () => zoomRef.current.zoomOut(),
+      resetZoom: () => zoomRef.current.resetZoom(),
+      restartAnimation: () => setAnimVersion(v => v + 1),
+    }));
 
     const buildings = useMemo(
       () => buildCityLayout(nodes, relationships, metric),
@@ -74,7 +95,7 @@ export const CityView = forwardRef<CityViewHandle, Props>(
 
     return (
       <Canvas
-        camera={{ position: [40, 40, 40], fov: 60, near: 0.1, far: 2000 }}
+        camera={{ position: [...DEFAULT_CAMERA_POS], fov: 60, near: 0.1, far: 2000 }}
         gl={{ antialias: true, alpha: false }}
         style={{ background: '#0d0d1a', display: 'block', width: '100%', height: '100%' }}
       >
@@ -82,13 +103,15 @@ export const CityView = forwardRef<CityViewHandle, Props>(
         <directionalLight position={[50, 80, 30]} intensity={1.2} />
 
         <CityDistricts buildings={buildings} />
+        {/* key={metric} fuerza remontaje al cambiar métrica → animación siempre desde 0 */}
         <CityBuildings
+          key={metric}
           buildings={buildings}
           onHover={setHoveredNodeId}
           onClick={onNodeClick}
           hoveredNodeId={hoveredNodeId}
           isActive={isActive}
-          metric={metric}
+          animVersion={animVersion}
         />
 
         {hoveredBuilding && hoveredNode && (
@@ -101,7 +124,7 @@ export const CityView = forwardRef<CityViewHandle, Props>(
           />
         )}
 
-        <CityControls ref={ref} />
+        <CityControlsInner zoomRef={zoomRef} />
       </Canvas>
     );
   },

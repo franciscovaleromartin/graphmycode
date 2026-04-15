@@ -12,7 +12,7 @@ interface Props {
   onClick: (nodeId: string) => void;
   hoveredNodeId: string | null;
   isActive: boolean;
-  metric: string;
+  animVersion: number; // incrementar desde fuera para reiniciar la animación
 }
 
 function toHexString(hexInt: number): string {
@@ -26,22 +26,23 @@ function brighten(hexInt: number): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
-// Ease-out cúbico: arranca rápido y desacelera al llegar a la altura final
 function easeOutCubic(t: number): number {
   return 1 - Math.pow(1 - t, 3);
 }
 
-export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId, isActive, metric }: Props) {
+export function CityBuildings({ buildings, onHover, onClick, hoveredNodeId, isActive, animVersion }: Props) {
   const [animProgress, setAnimProgress] = useState(0);
   const animRef = useRef({ startTime: null as number | null, running: false });
 
+  // Se dispara al montar (incluido al remontar por cambio de key) y al cambiar animVersion
   useEffect(() => {
     if (isActive) {
       animRef.current.running = true;
       animRef.current.startTime = null;
       setAnimProgress(0);
     }
-  }, [isActive, metric]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animVersion]);
 
   useFrame(({ clock }) => {
     if (!animRef.current.running) return;

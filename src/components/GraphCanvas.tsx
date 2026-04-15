@@ -536,7 +536,13 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
 
         {/* Layout control */}
         <button
-          onClick={isLayoutRunning ? stopLayout : startLayout}
+          onClick={() => {
+            if (graphViewType === 'city') {
+              cityRef.current?.restartAnimation();
+            } else {
+              isLayoutRunning ? stopLayout() : startLayout();
+            }
+          }}
           className={`flex h-9 w-9 items-center justify-center rounded-md border transition-all ${
             isLayoutRunning
               ? 'animate-pulse border-accent bg-accent text-white shadow-glow'
