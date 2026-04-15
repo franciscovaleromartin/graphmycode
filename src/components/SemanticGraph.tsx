@@ -55,6 +55,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
 
     // Datos para interacción
     const simsRef = useRef<number[][]>([]);
+    const cappedRef = useRef<SemanticNode[]>([]);
     const points3DRef = useRef<[number, number, number][]>([]);
     const baseNodeTraceRef = useRef<any>(null);
     const layoutRef = useRef<any>(null);
@@ -102,12 +103,37 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
       },
     }));
 
-    // Re-aplicar la selección cuando cambia topN (sin reconstruir los listeners)
+    // ── Reconstruye textos de hover con k elementos ────────────────────
+    const buildHoverTexts = useCallback((k: number): string[] => {
+      const capped = cappedRef.current;
+      const sims = simsRef.current;
+      return capped.map((node, i) => {
+        const topK = (sims[i] ?? [])
+          .map((sim, j) => ({ j, sim }))
+          .filter(({ j }) => j !== i)
+          .sort((a, b) => b.sim - a.sim)
+          .slice(0, k)
+          .map(({ j, sim }) => `${capped[j]?.name ?? '?'} (${(sim * 100).toFixed(0)}%)`);
+        return `<b>${node.name}</b><br><span style="color:#8888a0">${node.label}</span><br><br><b>Top ${k} similares:</b><br>${topK.length > 0 ? topK.join('<br>') : '—'}`;
+      });
+    }, []);
+
+    // Re-aplicar cuando cambia topN: actualiza textos del trace base y la selección
     useEffect(() => {
       topNRef.current = topN;
+      if (!baseNodeTraceRef.current || cappedRef.current.length === 0) return;
+
+      // Reconstruir trace base con nuevos textos de hover
+      baseNodeTraceRef.current = {
+        ...baseNodeTraceRef.current,
+        text: buildHoverTexts(topN),
+      };
+
       const idx = selectedIdxRef.current;
-      if (idx !== null && plotRef.current && plotlyRef.current && baseNodeTraceRef.current) {
+      if (idx !== null && plotRef.current && plotlyRef.current) {
         applySelection(idx);
+      } else if (plotRef.current && plotlyRef.current) {
+        plotlyRef.current.react(plotRef.current, [baseNodeTraceRef.current], layoutRef.current, plotlyConfigRef.current);
       }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [topN]);
@@ -126,10 +152,15 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
     const applySelection = useCallback((clickedIdx: number) => {
       if (!plotRef.current || !plotlyRef.current || !baseNodeTraceRef.current) return;
       selectedIdxRef.current = clickedIdx;
-      const simRow = simsRef.current[clickedIdx] ?? [];
+
+      const allSims = simsRef.current;
+      const n = cappedRef.current.length;
+      if (n === 0) return;
+
+      const simRow = allSims[clickedIdx] ?? new Array(n).fill(0);
       const k = topNRef.current;
 
-      // Ordenar vecinos por similitud descendente y tomar los top K
+      // Top-K vecinos más cercanos (excluyendo el nodo clicado)
       const topSet = new Set(
         simRow
           .map((sim, j) => ({ j, sim }))
@@ -139,7 +170,8 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
           .map(({ j }) => j),
       );
 
-      const perNodeOpacity = simRow.map((_, j) => {
+      // Array de opacidad de longitud exacta n
+      const perNodeOpacity = Array.from({ length: n }, (_, j) => {
         if (j === clickedIdx) return 0.95;
         return topSet.has(j) ? 0.85 : 0.04;
       });
@@ -165,8 +197,6 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
         semNodes: SemanticNode[],
         points3D: [number, number, number][],
         clusters: number[],
-        sims: number[][],
-        top3: string[][],
       ) => {
         if (!plotRef.current) return;
 
@@ -185,12 +215,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
             opacity: 0.85,
             line: { width: 0 },
           },
-          text: semNodes.map(
-            (node, i) =>
-              `<b>${node.name}</b><br><span style="color:#8888a0">${node.label}</span><br><br><b>Más similares:</b><br>${
-                top3[i].length > 0 ? top3[i].join('<br>') : '—'
-              }`,
-          ),
+          text: buildHoverTexts(topNRef.current),
           hovertemplate: '%{text}<extra></extra>',
           name: 'Nodos',
           showlegend: false,
@@ -249,7 +274,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
           applyReset();
         });
       },
-      [applySelection, applyReset],
+      [applySelection, applyReset, buildHoverTexts],
     );
 
     // ── Lógica de carga ─────────────────────────────────────────────
@@ -289,16 +314,8 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
             }
           }
 
-          const top3: string[][] = Array.from({ length: n }, (_, i) =>
-            sims[i]
-              .map((sim, j) => ({ j, sim }))
-              .filter(({ j }) => j !== i)
-              .sort((a, b) => b.sim - a.sim)
-              .slice(0, 3)
-              .map(({ j, sim }) => `${capped[j].name} (${(sim * 100).toFixed(0)}%)`),
-          );
-
           simsRef.current = sims;
+          cappedRef.current = capped;
           points3DRef.current = points3D;
 
           // Computar datos de clusters para la leyenda del sidebar y el contexto del LLM
@@ -324,7 +341,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
           setState({ status: 'ready' });
           await new Promise<void>((r) => setTimeout(r, 50));
 
-          await renderPlot(capped, points3D, clusters, sims, top3);
+          await renderPlot(capped, points3D, clusters);
         } catch (error) {
           if (error instanceof WebGPUNotAvailableError) {
             setShowFallback(true);
