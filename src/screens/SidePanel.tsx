@@ -135,12 +135,12 @@ export const SidePanel = () => {
                 {/* Gradiente de calor */}
                 <div>
                   <p className="mb-1.5 text-xs text-text-muted">Color (intensidad)</p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-1">
                     <div
-                      className="h-2.5 w-16 flex-shrink-0 rounded-full"
+                      className="h-2.5 w-full rounded-full"
                       style={{ background: 'linear-gradient(to right, #3b82f6, #ff4444)' }}
                     />
-                    <div className="flex flex-1 justify-between">
+                    <div className="flex justify-between">
                       <span className="text-xs text-text-muted">Bajo</span>
                       <span className="text-xs text-red-400">Alto</span>
                     </div>
