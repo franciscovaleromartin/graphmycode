@@ -44,10 +44,11 @@ const DEFAULT_EYE = { x: 1.25, y: 1.25, z: 1.25 };
 interface Props {
   nodes: GraphNode[];
   onClustersReady?: (data: SemanticClusterEntry[]) => void;
+  topN?: number;
 }
 
 export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
-  ({ nodes, onClustersReady }, ref) => {
+  ({ nodes, onClustersReady, topN = 10 }, ref) => {
     const [state, setState] = useState<SemanticState>({ status: 'loading-model', percent: 0 });
     const [showFallback, setShowFallback] = useState(false);
     const plotRef = useRef<HTMLDivElement>(null);
@@ -57,6 +58,12 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
     const points3DRef = useRef<[number, number, number][]>([]);
     const baseNodeTraceRef = useRef<any>(null);
     const layoutRef = useRef<any>(null);
+    const plotlyConfigRef = useRef({ displayModeBar: false, responsive: true });
+
+    // Controla cuántos vecinos mostrar al seleccionar un nodo
+    const topNRef = useRef(topN);
+    // Índice del nodo actualmente seleccionado (null = ninguno)
+    const selectedIdxRef = useRef<number | null>(null);
 
     // Instancia Plotly y cámara para zoom programático
     const plotlyRef = useRef<any>(null);
@@ -95,6 +102,16 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
       },
     }));
 
+    // Re-aplicar la selección cuando cambia topN (sin reconstruir los listeners)
+    useEffect(() => {
+      topNRef.current = topN;
+      const idx = selectedIdxRef.current;
+      if (idx !== null && plotRef.current && plotlyRef.current && baseNodeTraceRef.current) {
+        applySelection(idx);
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [topN]);
+
     // Limpiar Plotly al desmontar
     useEffect(() => {
       return () => {
@@ -102,6 +119,43 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
           plotlyRef.current.purge(plotRef.current);
         }
       };
+    }, []);
+
+    // ── Funciones de selección (usan refs, sin recrearse) ─────────────
+
+    const applySelection = useCallback((clickedIdx: number) => {
+      if (!plotRef.current || !plotlyRef.current || !baseNodeTraceRef.current) return;
+      selectedIdxRef.current = clickedIdx;
+      const simRow = simsRef.current[clickedIdx] ?? [];
+      const k = topNRef.current;
+
+      // Ordenar vecinos por similitud descendente y tomar los top K
+      const topSet = new Set(
+        simRow
+          .map((sim, j) => ({ j, sim }))
+          .filter(({ j }) => j !== clickedIdx)
+          .sort((a, b) => b.sim - a.sim)
+          .slice(0, k)
+          .map(({ j }) => j),
+      );
+
+      const perNodeOpacity = simRow.map((_, j) => {
+        if (j === clickedIdx) return 0.95;
+        return topSet.has(j) ? 0.85 : 0.04;
+      });
+
+      plotlyRef.current.react(
+        plotRef.current,
+        [{ ...baseNodeTraceRef.current, marker: { ...baseNodeTraceRef.current.marker, opacity: perNodeOpacity } }],
+        layoutRef.current,
+        plotlyConfigRef.current,
+      );
+    }, []);
+
+    const applyReset = useCallback(() => {
+      if (!plotRef.current || !plotlyRef.current || !baseNodeTraceRef.current) return;
+      selectedIdxRef.current = null;
+      plotlyRef.current.react(plotRef.current, [baseNodeTraceRef.current], layoutRef.current, plotlyConfigRef.current);
     }, []);
 
     // ── Renderizar con Plotly ──────────────────────────────────────────
@@ -168,9 +222,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
         };
         layoutRef.current = layout;
 
-        const config = { displayModeBar: false, responsive: true };
-
-        await Plotly.newPlot(plotRef.current, [nodeTrace], layout, config);
+        await Plotly.newPlot(plotRef.current, [nodeTrace], layout, plotlyConfigRef.current);
 
         // Sincronizar cámara cuando el usuario rota/hace zoom manualmente
         (plotRef.current as any).on('plotly_relayout', (update: any) => {
@@ -178,46 +230,26 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
           if (eye) cameraEyeRef.current = { x: eye.x, y: eye.y, z: eye.z };
         });
 
-        // ── Interacción click ───────────────────────────────────────
+        // ── Interacción click (usa applySelection/applyReset de nivel componente) ──
         let lastClickWasOnNode = false;
-
-        const reactWithSelection = (clickedIdx: number) => {
-          if (!plotRef.current) return;
-          const simRow = simsRef.current[clickedIdx] ?? [];
-          const perNodeOpacity = simRow.map((sim, j) => {
-            if (j === clickedIdx) return 0.95;
-            return sim > SIMILARITY_THRESHOLD ? 0.85 : 0.04;
-          });
-          Plotly.react(
-            plotRef.current,
-            [{ ...baseNodeTraceRef.current, marker: { ...baseNodeTraceRef.current.marker, opacity: perNodeOpacity } }],
-            layoutRef.current,
-            config,
-          );
-        };
-
-        const reactReset = () => {
-          if (!plotRef.current || !baseNodeTraceRef.current) return;
-          Plotly.react(plotRef.current, [baseNodeTraceRef.current], layoutRef.current, config);
-        };
 
         (plotRef.current as any).on('plotly_click', (eventData: any) => {
           const point = eventData?.points?.[0];
           if (!point || point.curveNumber !== 0) {
             lastClickWasOnNode = false;
-            reactReset();
+            applyReset();
             return;
           }
           lastClickWasOnNode = true;
-          reactWithSelection(point.pointNumber as number);
+          applySelection(point.pointNumber as number);
         });
 
         plotRef.current.addEventListener('click', () => {
           if (lastClickWasOnNode) { lastClickWasOnNode = false; return; }
-          reactReset();
+          applyReset();
         });
       },
-      [],
+      [applySelection, applyReset],
     );
 
     // ── Lógica de carga ─────────────────────────────────────────────

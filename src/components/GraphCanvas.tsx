@@ -75,6 +75,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   const [hasCityBeenActivated, setHasCityBeenActivated] = useState(false);
   const [cityMetric, setCityMetric] = useState<'degree' | 'depth'>('degree');
   const [showExternalLayer, setShowExternalLayer] = useState(false);
+  const [semanticTopN, setSemanticTopN] = useState(10);
   const semanticRef = useRef<SemanticGraphHandle>(null);
 
   const effectiveHighlightedNodeIds = useMemo(() => {
@@ -330,6 +331,40 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         </div>
       )}
 
+      {/* Selector de vecinos cercanos — solo en vista semántica */}
+      {graph && graphViewType === 'semantic' && (
+        <div
+          className={`absolute top-12 z-20 flex items-center gap-2 rounded-lg border border-border-subtle bg-surface px-3 py-1.5 shadow-sm transition-all duration-300 ${isSidebarCollapsed ? 'left-14' : 'left-60'}`}
+        >
+          <span className="text-xs text-text-muted">Vecinos</span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setSemanticTopN((n) => Math.max(1, n - 1))}
+              className="flex h-5 w-5 items-center justify-center rounded text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
+            >
+              −
+            </button>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={semanticTopN}
+              onChange={(e) => {
+                const v = parseInt(e.target.value, 10);
+                if (!isNaN(v)) setSemanticTopN(Math.max(1, Math.min(100, v)));
+              }}
+              className="w-10 bg-transparent text-center font-mono text-xs text-text-primary outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            />
+            <button
+              onClick={() => setSemanticTopN((n) => Math.min(100, n + 1))}
+              className="flex h-5 w-5 items-center justify-center rounded text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Toggle External Layer — solo visible en vista estructural */}
       {graph && graphViewType === 'structural' && (
         <div
@@ -396,6 +431,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             ref={semanticRef}
             nodes={graph.nodes}
             onClustersReady={setSemanticClusterData}
+            topN={semanticTopN}
           />
         </div>
       )}
