@@ -80,11 +80,14 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       workbox: {
-        // Precachear JS, CSS, HTML, imágenes y los WASM de tree-sitter (≤5 MB c/u)
-        // Los archivos ORT se excluyen aquí y se cachean en runtime (son 21 MB y 11 MB)
+        // Precachear JS, CSS, HTML, imágenes y los WASM de tree-sitter (≤5 MB c/u).
+        // Los archivos ORT se excluyen del SW por completo: ya tienen
+        // Cache-Control: max-age=31536000,immutable en vercel.json y el browser
+        // los gestiona con HTTP cache. Interceptarlos con el SW rompe la carga
+        // de los módulos worker de onnxruntime (error "Importing a module script failed").
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,wasm}'],
         globIgnores: [
-          '**/ort/**',           // /ort/*.wasm en dist
+          '**/ort/**',           // /ort/*.wasm y /ort/*.mjs — gestionados por HTTP cache
           '**/assets/ort-wasm*', // /assets/ort-wasm-simd-threaded.jsep-*.wasm (21 MB)
         ],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB cubre cpp (4.4 MB), csharp (3.8 MB)…
@@ -107,16 +110,6 @@ export default defineConfig({
               cacheName: 'google-fonts-webfonts',
               cacheableResponse: { statuses: [0, 200] },
               expiration: { maxEntries: 30, maxAgeSeconds: 365 * 24 * 60 * 60 },
-            },
-          },
-          // ORT WASM (>10 MB): se cachean la primera vez que se usan
-          {
-            urlPattern: /\/(ort|assets)\/ort-wasm.*\.(wasm|mjs)$/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'ort-wasm',
-              cacheableResponse: { statuses: [0, 200] },
-              expiration: { maxEntries: 6, maxAgeSeconds: 365 * 24 * 60 * 60 },
             },
           },
           // ── APIs de IA: siempre red (fallan limpiamente sin conexión) ──
