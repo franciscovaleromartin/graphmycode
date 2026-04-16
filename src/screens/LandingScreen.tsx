@@ -270,7 +270,7 @@ const LandingCards = () => {
           <p style={{ fontSize: '15px', fontWeight: 600, color: '#f1f5f9', marginBottom: '4px', lineHeight: 1.35 }}>
             {t.cardsViewsTitle}
           </p>
-          <p style={{ fontSize: '12px', color: '#475569', marginBottom: '16px', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px', lineHeight: 1.5 }}>
             {t.cardsViewsSub}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -289,10 +289,10 @@ const LandingCards = () => {
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
                     {view.bullets.map((b: string) => (
                       <li key={b} style={{
-                        fontSize: '10px', color: '#475569', lineHeight: 1.4,
+                        fontSize: '10px', color: '#94a3b8', lineHeight: 1.4,
                         paddingLeft: '10px', position: 'relative',
                       }}>
-                        <span style={{ position: 'absolute', left: 0, color: '#334155' }}>-</span>
+                        <span style={{ position: 'absolute', left: 0, color: '#94a3b8' }}>-</span>
                         {b}
                       </li>
                     ))}
@@ -334,7 +334,7 @@ const LandingCards = () => {
           <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
             {t.cardsPrivacyTitle}
           </p>
-          <p style={{ fontSize: '11px', color: '#475569', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.6 }}>
             {t.cardsPrivacyBody}
           </p>
         </div>
@@ -366,7 +366,7 @@ const LandingCards = () => {
             </span>
             <span style={{
               fontSize: '9px', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase',
-              background: 'rgba(255,255,255,.05)', color: '#475569',
+              background: 'rgba(255,255,255,.05)', color: '#94a3b8',
               borderRadius: '5px', padding: '3px 7px', border: '1px solid rgba(255,255,255,.07)',
             }}>
               {t.cardsAiOptional}
@@ -375,7 +375,7 @@ const LandingCards = () => {
           <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px', lineHeight: 1.35 }}>
             {t.cardsAiTitle}
           </p>
-          <p style={{ fontSize: '11px', color: '#475569', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.6 }}>
             {t.cardsAiBody}
           </p>
           <p style={{
