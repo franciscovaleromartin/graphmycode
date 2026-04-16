@@ -378,6 +378,15 @@ const LandingCards = () => {
           <p style={{ fontSize: '11px', color: '#475569', lineHeight: 1.6 }}>
             {t.cardsAiBody}
           </p>
+          <p style={{
+            marginTop: '10px', fontSize: '10px', lineHeight: 1.5,
+            color: '#f59e0b',
+            background: 'rgba(245,158,11,.08)',
+            border: '1px solid rgba(245,158,11,.2)',
+            borderRadius: '7px', padding: '6px 9px',
+          }}>
+            {t.cardsAiWarning}
+          </p>
         </div>
 
       </div>

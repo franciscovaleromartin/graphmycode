@@ -72,6 +72,7 @@ const translations = {
     cardsAiOptional: 'Opcional',
     cardsAiTitle: 'Pregunta sobre tu código',
     cardsAiBody: 'Conecta tu API key (OpenAI, Gemini, Anthropic u Ollama) y hazle preguntas en lenguaje natural. Con Ollama, el código no sale de tu máquina.',
+    cardsAiWarning: '⚠️ ¡Ojo! Aquí parte de tu código viajará hacia el proveedor de IA.',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',
@@ -192,6 +193,7 @@ const translations = {
     cardsAiOptional: 'Optional',
     cardsAiTitle: 'Ask about your code',
     cardsAiBody: 'Connect your API key (OpenAI, Gemini, Anthropic or Ollama) and ask questions in natural language. With Ollama, your code never leaves your machine.',
+    cardsAiWarning: '⚠️ Heads up! Part of your code will travel to the AI provider.',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',
