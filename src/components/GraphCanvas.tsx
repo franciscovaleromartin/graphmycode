@@ -83,7 +83,6 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   const heatmapRef = useRef<HeatmapViewHandle>(null);
   const [isHeatmapLayoutRunning, setIsHeatmapLayoutRunning] = useState(false);
   const [hasHeatmapBeenActivated, setHasHeatmapBeenActivated] = useState(false);
-  const prevGraphViewTypeRef = useRef(graphViewType);
 
   const effectiveHighlightedNodeIds = useMemo(() => {
     if (!isAIHighlightsEnabled) return highlightedNodeIds;
@@ -254,14 +253,6 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       setSigmaSelectedNode(null);
     }
   }, [appSelectedNode, setSigmaSelectedNode]);
-
-  // Al volver a la vista estructural desde otra vista, arrancar el layout automáticamente
-  useEffect(() => {
-    if (graphViewType === 'structural' && prevGraphViewTypeRef.current !== 'structural') {
-      startLayout();
-    }
-    prevGraphViewTypeRef.current = graphViewType;
-  }, [graphViewType, startLayout]);
 
   // Focus on selected node
   const handleFocusSelected = useCallback(() => {
