@@ -1,5 +1,7 @@
 # GraphMyCode
 
+![GraphMyCode](public/og-image.png)
+
 **Visualize your codebase as an interactive knowledge graph — entirely in your browser.**
 
 GraphMyCode parses your source code and renders it as a navigable graph of files, functions, classes, interfaces, and their relationships. No server. No uploads. No account. Everything runs locally using WebAssembly.
