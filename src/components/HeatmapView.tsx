@@ -351,16 +351,16 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       buildGraph();
     }, [buildGraph]);
 
-    // ── Aleatorizar posiciones para forzar animación visible ────────────────
+    // ── Perturbar posiciones ligeramente para forzar animación visible ────────
     const randomizePositions = () => {
       const g = gRef.current;
       if (!g) return;
-      const canvas = canvasRef.current;
-      const W = canvas?.width ?? 800;
-      const H = canvas?.height ?? 600;
+      const jitter = 20;
       g.forEachNode((node) => {
-        g.setNodeAttribute(node, 'x', (Math.random() - 0.5) * W * 0.8);
-        g.setNodeAttribute(node, 'y', (Math.random() - 0.5) * H * 0.8);
+        const x = g.getNodeAttribute(node, 'x') as number;
+        const y = g.getNodeAttribute(node, 'y') as number;
+        g.setNodeAttribute(node, 'x', x + (Math.random() - 0.5) * jitter);
+        g.setNodeAttribute(node, 'y', y + (Math.random() - 0.5) * jitter);
       });
     };
 
