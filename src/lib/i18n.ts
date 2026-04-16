@@ -33,20 +33,45 @@ const translations = {
     errNoFiles: 'No se encontraron archivos de código fuente',
     privacy: 'Tu código nunca sale de tu navegador',
     // Acordeón
-    accordionTitle: 'Sobre la privacidad de tu código',
-    accordionQ1: '¿Qué problema resuelve?',
-    accordionA1:
-      'Cuando entras a un repositorio nuevo o grande, entender cómo están conectados los módulos es lento leyendo carpeta a carpeta. GraphMyCode te da esa visión global en segundos: archivos, clases, funciones, imports, llamadas entre funciones y clusters de código relacionado, todo como un grafo interactivo.\n\nLa vista semántica 3D agrupa los nodos por similitud de código usando embeddings, lo que permite identificar abstracciones de dominio, detectar acoplamiento lógico entre módulos aparentemente independientes y analizar el impacto real de un cambio más allá de las dependencias directas.\n\nLa vista Technical Debt representa el repositorio como una ciudad 3D donde cada nodo del grafo es un edificio agrupado por carpeta. La altura de cada edificio refleja el nivel de deuda técnica del nodo: cuantas más conexiones tiene un archivo o función (alta conectividad = difícil de cambiar sin romper otras cosas) o cuanto más profundo está en el árbol de directorios (alta anidación = difícil de encontrar y mantener), más alto aparece su edificio. El color complementa la altura: el tono base indica el tipo de nodo (archivo, clase, función…) y se tiñe progresivamente de rojo a medida que la métrica aumenta, haciendo que los puntos calientes de deuda sean inmediatamente reconocibles de un vistazo.\n\nLa vista Dependency Heatmap muestra el acoplamiento real entre ficheros. Dos cosas que no te da el grafo estructural normal: detección de ciclos (las dependencias bidireccionales —A importa a B y B importa a A— aparecen como líneas rojas punteadas, señalando exactamente dónde están los acoplamientos circulares problemáticos) y clustering por física (los módulos muy acoplados gravitan entre sí automáticamente, revelando arquitecturas "en silos" vs "espagueti" sin que el usuario tenga que analizar nada).',
-    accordionQ2: '¿Hay algún servidor o base de datos externa?',
-    accordionA2:
-      'No. Todo corre en tu navegador, en memoria. No hay cluster de Neo4j, no hay backend, no hay red. El Cypher que usa el agente es un lenguaje de consulta sobre el grafo local.',
-    accordionQ3: '¿Se almacena tu código o algún dato tuyo?',
-    accordionA3:
-      'No. GraphMyCode no tiene base de datos, no tiene servidor propio y no guarda ningún archivo. Todo el análisis ocurre en memoria dentro de tu navegador y desaparece en cuanto cierras la pestaña. Tampoco se recogen métricas de uso ni se registra ningún dato personal.',
-    accordionQ4: '¿Puedo hacer preguntas sobre mi código?',
-    accordionOptional: 'Opcional',
-    accordionA4:
-      'Sí. Una vez cargado el grafo, el botón AI Question te permite conectar tu propio proveedor de IA (OpenAI, Gemini, Anthropic, Ollama u otros) y hacerle preguntas en lenguaje natural sobre tu código. Tú pones tu API key, que se guarda solo en tu navegador. Ten en cuenta que al activar esta opción, fragmentos de tu código sí viajarán fuera del navegador hacia el proveedor de IA que hayas elegido. Si usas Ollama (local), el código no sale de tu máquina.',
+    // ── Landing cards ────────────────────────────────────────────────
+    cardsViewsTag: '✦ Cuatro vistas',
+    cardsViewsTitle: 'Entiende cualquier código en segundos',
+    cardsViewsSub: 'Cuatro formas de ver tu código. Ninguna requiere leer carpeta a carpeta.',
+    cardsStructuralName: 'Structural',
+    cardsStructuralBullets: [
+      '¿Qué importa este fichero?',
+      '¿Quién llama a esta función?',
+      '¿Qué módulos están aislados?',
+      'Sigue el recorrido de la pila fácilmente',
+    ],
+    cardsSemanticName: 'Semantic 3D',
+    cardsSemanticBullets: [
+      '¿Qué código hace lo mismo?',
+      '¿Hay lógica duplicada?',
+      '¿Qué módulos son similares?',
+      'Analiza el impacto real de un cambio más allá de las dependencias directas',
+    ],
+    cardsDebtName: 'Technical Debt',
+    cardsDebtBullets: [
+      '¿Qué fichero es el más difícil de cambiar?',
+      '¿Dónde está el código más acoplado?',
+      '¿Qué refactorizar primero?',
+      'Cuanto más alto el edificio de tu barrio, más deuda técnica',
+    ],
+    cardsHeatmapName: 'Dependency Heatmap',
+    cardsHeatmapBullets: [
+      '¿Hay ciclos de importación?',
+      '¿Qué módulos están acoplados circularmente?',
+      '¿Dónde romper dependencias?',
+      'Identifica código espagueti',
+    ],
+    cardsPrivacyTag: 'Privacidad',
+    cardsPrivacyTitle: 'Sin servidor.\nSin base de datos.',
+    cardsPrivacyBody: 'Todo corre en tu navegador, en memoria. Al cerrar la pestaña, desaparece sin dejar rastro. Sin telemetría, sin datos personales.',
+    cardsAiTag: 'IA',
+    cardsAiOptional: 'Opcional',
+    cardsAiTitle: 'Pregunta sobre tu código',
+    cardsAiBody: 'Conecta tu API key (OpenAI, Gemini, Anthropic u Ollama) y hazle preguntas en lenguaje natural. Con Ollama, el código no sale de tu máquina.',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',
@@ -128,21 +153,45 @@ const translations = {
     errDownload: 'Error downloading the repository',
     errNoFiles: 'No source files found',
     privacy: 'Your code never leaves your browser',
-    // Accordion
-    accordionTitle: 'About your code privacy',
-    accordionQ1: 'What problem does it solve?',
-    accordionA1:
-      'When you open a new or large repository, understanding how modules connect is slow when reading folder by folder. GraphMyCode gives you that global view in seconds: files, classes, functions, imports, call chains, and clusters of related code — all as an interactive graph.\n\nThe 3D Semantic view groups nodes by code similarity using embeddings, helping you identify domain abstractions, detect logical coupling between apparently independent modules, and analyse the real impact of a change beyond direct dependencies.\n\nThe Technical Debt view renders the repository as a 3D city where every graph node becomes a building grouped by folder. Building height reflects the technical debt level of that node: the more connections a file or function has (high connectivity = hard to change without breaking things), or the deeper it sits in the directory tree (high nesting = hard to find and maintain), the taller its building. Colour reinforces height: the base tone indicates node type (file, class, function…) and shifts progressively toward red as the metric increases, making debt hotspots instantly recognisable at a glance.\n\nThe Dependency Heatmap shows real file-level coupling. Two things the structural graph alone cannot give you: cycle detection (bidirectional dependencies — A imports B and B imports A — appear as red dashed lines, pinpointing exactly where problematic circular couplings are) and physics-based clustering (tightly coupled modules gravitate toward each other automatically, revealing "silo" vs "spaghetti" architectures without the user having to analyse anything).',
-    accordionQ2: 'Is there any external server or database?',
-    accordionA2:
-      'No. Everything runs in your browser, in memory. There is no Neo4j cluster, no backend, no network. The Cypher used by the agent is a query language over the local in-memory graph.',
-    accordionQ3: 'Is your code or any of your data stored?',
-    accordionA3:
-      'No. GraphMyCode has no database, no backend server, and saves no files. All analysis runs in memory inside your browser and disappears as soon as you close the tab. No usage metrics are collected and no personal data is recorded.',
-    accordionQ4: 'Can I ask questions about my code?',
-    accordionOptional: 'Optional',
-    accordionA4:
-      'Yes. Once the graph is loaded, the AI Question button lets you connect your own AI provider (OpenAI, Gemini, Anthropic, Ollama, and others) and ask questions in natural language about your code. You provide your API key, stored only in your browser. However, be aware that when this option is enabled, parts of your code will be sent outside your browser to the AI provider you have chosen. If you use Ollama (local), your code never leaves your machine.',
+    // ── Landing cards ────────────────────────────────────────────────
+    cardsViewsTag: '✦ Four views',
+    cardsViewsTitle: 'Understand any codebase in seconds',
+    cardsViewsSub: 'Four ways to see your code. None require reading folder by folder.',
+    cardsStructuralName: 'Structural',
+    cardsStructuralBullets: [
+      'What does this file import?',
+      'Who calls this function?',
+      'Which modules are isolated?',
+      'Follow the call stack easily',
+    ],
+    cardsSemanticName: 'Semantic 3D',
+    cardsSemanticBullets: [
+      'What code does the same thing?',
+      'Is there duplicated logic?',
+      'Which modules are similar?',
+      'Analyze the real impact of a change beyond direct dependencies',
+    ],
+    cardsDebtName: 'Technical Debt',
+    cardsDebtBullets: [
+      'Which file is the hardest to change?',
+      'Where is the most coupled code?',
+      'What should be refactored first?',
+      'The taller the building in your district, the more technical debt',
+    ],
+    cardsHeatmapName: 'Dependency Heatmap',
+    cardsHeatmapBullets: [
+      'Are there import cycles?',
+      'Which modules are circularly coupled?',
+      'Where to break dependencies?',
+      'Identify spaghetti code',
+    ],
+    cardsPrivacyTag: 'Privacy',
+    cardsPrivacyTitle: 'No server.\nNo database.',
+    cardsPrivacyBody: 'Everything runs in your browser, in memory. When you close the tab, it disappears without a trace. No telemetry, no personal data.',
+    cardsAiTag: 'AI',
+    cardsAiOptional: 'Optional',
+    cardsAiTitle: 'Ask about your code',
+    cardsAiBody: 'Connect your API key (OpenAI, Gemini, Anthropic or Ollama) and ask questions in natural language. With Ollama, your code never leaves your machine.',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',
