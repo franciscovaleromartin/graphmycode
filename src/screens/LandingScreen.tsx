@@ -80,57 +80,307 @@ function getWorkerApi(): Comlink.Remote<IngestionWorkerApi> {
   return workerApi;
 }
 
-// ── Explicación Accordion ─────────────────────────────────────────────────────
+// ── GraphAnimation ────────────────────────────────────────────────────────────
 
-const ExplicacionAccordion = () => {
-  const [open, setOpen] = useState(false);
-  const t = useT();
+const HEAT_STOPS = [
+  [59, 130, 246],
+  [34, 197, 94],
+  [245, 158, 11],
+  [239, 68, 68],
+] as const;
+
+function graphHeatColor(t: number, alpha = 1): string {
+  const clamped = Math.max(0, Math.min(1, t));
+  const seg = Math.min(Math.floor(clamped * 3), 2);
+  const lo = HEAT_STOPS[seg];
+  const hi = HEAT_STOPS[seg + 1];
+  const r2 = clamped * 3 - seg;
+  const r = Math.round(lo[0] + (hi[0] - lo[0]) * r2);
+  const g = Math.round(lo[1] + (hi[1] - lo[1]) * r2);
+  const b = Math.round(lo[2] + (hi[2] - lo[2]) * r2);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+const GRAPH_LABELS = [
+  'index.ts', 'utils.py', 'App.tsx', 'router.go',
+  'main.rs', 'api.js', 'auth.ts', 'models.py', 'store.ts', 'helpers.rb',
+];
+
+interface AnimNode {
+  x: number; y: number;
+  vx: number; vy: number;
+  r: number; heat: number;
+  phase: number; speed: number;
+}
+
+interface AnimEdge { i: number; j: number; bidir: boolean; }
+
+function buildAnimData(W: number, H: number): { nodes: AnimNode[]; edges: AnimEdge[] } {
+  const nodes: AnimNode[] = Array.from({ length: 40 }, () => {
+    const heat = Math.random();
+    return {
+      x: 60 + Math.random() * (W - 120),
+      y: 20 + Math.random() * (H - 40),
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      r: 3 + heat * 5,
+      heat,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.015 + Math.random() * 0.01,
+    };
+  });
+  const edges: AnimEdge[] = [];
+  nodes.forEach((a, i) => {
+    nodes.forEach((b, j) => {
+      if (j <= i) return;
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (d < 160 && Math.random() < 0.28) {
+        edges.push({ i, j, bidir: a.heat > 0.55 && b.heat > 0.55 && Math.random() < 0.4 });
+      }
+    });
+  });
+  return { nodes, edges };
+}
+
+const GraphAnimation = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number>(0);
+  const dataRef = useRef<{ nodes: AnimNode[]; edges: AnimEdge[] } | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const W = canvas.width;
+    const H = canvas.height;
+    dataRef.current = buildAnimData(W, H);
+
+    function draw() {
+      if (!canvas || !ctx || !dataRef.current) return;
+      const { nodes, edges } = dataRef.current;
+
+      ctx.clearRect(0, 0, W, H);
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, '#080d18');
+      bg.addColorStop(1, '#050a0f');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      nodes.forEach(n => {
+        n.phase += n.speed;
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 20 || n.x > W - 20) n.vx *= -1;
+        if (n.y < 10 || n.y > H - 10) n.vy *= -1;
+      });
+
+      edges.forEach(({ i, j, bidir }) => {
+        const a = nodes[i], b = nodes[j];
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d > 180) return;
+        const fade = 1 - d / 180;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = bidir
+          ? `rgba(249,115,22,${fade * 0.7})`
+          : `rgba(30,41,59,${fade * 2})`;
+        ctx.lineWidth = bidir ? 1.8 : 1;
+        ctx.stroke();
+      });
+
+      nodes.forEach((n, idx) => {
+        const pulse = 1 + Math.sin(n.phase) * 0.12;
+        const r = n.r * pulse;
+        if (n.heat > 0.6) {
+          const grd = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r + 8);
+          grd.addColorStop(0, graphHeatColor(n.heat, 0.15));
+          grd.addColorStop(1, 'transparent');
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, r + 8, 0, Math.PI * 2);
+          ctx.fillStyle = grd;
+          ctx.fill();
+        }
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = graphHeatColor(n.heat, 0.88);
+        ctx.fill();
+        if (n.heat > 0.68) {
+          ctx.font = '9px monospace';
+          ctx.fillStyle = 'rgba(100,116,139,0.55)';
+          ctx.fillText(GRAPH_LABELS[idx % GRAPH_LABELS.length], n.x + r + 4, n.y + 3);
+        }
+      });
+
+      rafRef.current = requestAnimationFrame(draw);
+    }
+
+    rafRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
 
   return (
-    <div className="mt-6 rounded-2xl border border-border-subtle bg-surface overflow-hidden">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-5 py-4 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
-      >
-        <span>{t.accordionTitle}</span>
-        <svg
-          className={`h-4 w-4 text-text-muted transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+    <div style={{ position: 'relative', height: '150px', overflow: 'hidden' }}>
+      <canvas
+        ref={canvasRef}
+        width={1120}
+        height={300}
+        style={{ width: '100%', height: '100%', display: 'block' }}
+      />
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: '70px',
+        background: 'linear-gradient(to bottom, transparent, #0c111d)',
+        pointerEvents: 'none',
+      }} />
+    </div>
+  );
+};
 
-      {open && (
-        <div className="border-t border-border-subtle px-5 pb-5 pt-4 space-y-4 text-sm text-text-secondary">
-          <div>
-            <p className="mb-1 font-medium text-text-primary">{t.accordionQ1}</p>
-            {t.accordionA1.split('\n\n').map((chunk, i) => (
-              <p key={i} className={i > 0 ? 'mt-2' : ''}>{chunk}</p>
+// ── LandingCards ──────────────────────────────────────────────────────────────
+
+const LandingCards = () => {
+  const t = useT();
+
+  const views = [
+    { icon: '🕸️', name: t.cardsStructuralName, bullets: t.cardsStructuralBullets },
+    { icon: '🧠', name: t.cardsSemanticName,   bullets: t.cardsSemanticBullets },
+    { icon: '🏙️', name: t.cardsDebtName,       bullets: t.cardsDebtBullets },
+    { icon: '🔥', name: t.cardsHeatmapName,    bullets: t.cardsHeatmapBullets },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
+
+      {/* ── Featured card ── */}
+      <div style={{
+        borderRadius: '16px', border: '1px solid #1e293b',
+        background: '#0c111d', overflow: 'hidden',
+      }}>
+        <GraphAnimation />
+        <div style={{ padding: '4px 22px 22px' }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center',
+            fontSize: '9px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase',
+            padding: '3px 9px', borderRadius: '6px', marginBottom: '10px',
+            background: 'rgba(251,191,36,.08)', color: '#fbbf24',
+            border: '1px solid rgba(251,191,36,.18)',
+          }}>
+            {t.cardsViewsTag}
+          </span>
+          <p style={{ fontSize: '15px', fontWeight: 600, color: '#f1f5f9', marginBottom: '4px', lineHeight: 1.35 }}>
+            {t.cardsViewsTitle}
+          </p>
+          <p style={{ fontSize: '12px', color: '#475569', marginBottom: '16px', lineHeight: 1.5 }}>
+            {t.cardsViewsSub}
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            {views.map(view => (
+              <div key={view.name} style={{
+                display: 'flex', alignItems: 'flex-start', gap: '9px',
+                padding: '11px 13px', borderRadius: '11px',
+                background: 'rgba(255,255,255,.025)',
+                border: '1px solid rgba(255,255,255,.055)',
+              }}>
+                <span style={{ fontSize: '15px', flexShrink: 0, marginTop: '1px' }}>{view.icon}</span>
+                <div>
+                  <p style={{ fontSize: '11px', fontWeight: 600, color: '#e2e8f0', marginBottom: '5px', lineHeight: 1.2 }}>
+                    {view.name}
+                  </p>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    {view.bullets.map((b: string) => (
+                      <li key={b} style={{
+                        fontSize: '10px', color: '#475569', lineHeight: 1.4,
+                        paddingLeft: '10px', position: 'relative',
+                      }}>
+                        <span style={{ position: 'absolute', left: 0, color: '#334155' }}>-</span>
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             ))}
           </div>
-
-          <div>
-            <p className="mb-1 font-medium text-text-primary">{t.accordionQ2}</p>
-            <p>{t.accordionA2}</p>
-          </div>
-
-          <div>
-            <p className="mb-1 font-medium text-text-primary">{t.accordionQ3}</p>
-            <p>{t.accordionA3}</p>
-          </div>
-
-          <div>
-            <p className="mb-1 font-medium text-text-primary">
-              {t.accordionQ4}{' '}
-              <span className="ml-1 rounded-md border border-border-subtle bg-elevated px-1.5 py-0.5 text-[10px] font-medium text-text-muted">
-                {t.accordionOptional}
-              </span>
-            </p>
-            <p>{t.accordionA4}</p>
-          </div>
         </div>
-      )}
+      </div>
+
+      {/* ── Pair row ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+
+        {/* Privacy */}
+        <div style={{
+          borderRadius: '14px', border: '1px solid #1e293b',
+          background: '#0c111d', padding: '18px 20px', position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute', top: '-30px', right: '-30px',
+            width: '100px', height: '100px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(45,212,191,.12) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+          <div style={{
+            width: '32px', height: '32px', borderRadius: '9px', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', fontSize: '14px', marginBottom: '12px',
+            background: 'rgba(45,212,191,.1)', border: '1px solid rgba(45,212,191,.2)',
+          }}>🔒</div>
+          <span style={{
+            display: 'inline-flex', fontSize: '9px', fontWeight: 700, letterSpacing: '.1em',
+            textTransform: 'uppercase', padding: '3px 9px', borderRadius: '6px', marginBottom: '8px',
+            background: 'rgba(20,184,166,.08)', color: '#2dd4bf',
+            border: '1px solid rgba(45,212,191,.18)',
+          }}>
+            {t.cardsPrivacyTag}
+          </span>
+          <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
+            {t.cardsPrivacyTitle}
+          </p>
+          <p style={{ fontSize: '11px', color: '#475569', lineHeight: 1.6 }}>
+            {t.cardsPrivacyBody}
+          </p>
+        </div>
+
+        {/* AI */}
+        <div style={{
+          borderRadius: '14px', border: '1px solid #1e293b',
+          background: '#0c111d', padding: '18px 20px', position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute', top: '-30px', right: '-30px',
+            width: '100px', height: '100px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(167,139,250,.14) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+          <div style={{
+            width: '32px', height: '32px', borderRadius: '9px', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', fontSize: '14px', marginBottom: '12px',
+            background: 'rgba(167,139,250,.1)', border: '1px solid rgba(167,139,250,.2)',
+          }}>✦</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <span style={{
+              display: 'inline-flex', fontSize: '9px', fontWeight: 700, letterSpacing: '.1em',
+              textTransform: 'uppercase', padding: '3px 9px', borderRadius: '6px',
+              background: 'rgba(167,139,250,.08)', color: '#c4b5fd',
+              border: '1px solid rgba(196,181,253,.18)',
+            }}>
+              {t.cardsAiTag}
+            </span>
+            <span style={{
+              fontSize: '9px', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase',
+              background: 'rgba(255,255,255,.05)', color: '#475569',
+              borderRadius: '5px', padding: '3px 7px', border: '1px solid rgba(255,255,255,.07)',
+            }}>
+              {t.cardsAiOptional}
+            </span>
+          </div>
+          <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px', lineHeight: 1.35 }}>
+            {t.cardsAiTitle}
+          </p>
+          <p style={{ fontSize: '11px', color: '#475569', lineHeight: 1.6 }}>
+            {t.cardsAiBody}
+          </p>
+        </div>
+
+      </div>
     </div>
   );
 };
@@ -374,8 +624,8 @@ export const LandingScreen = () => {
           </div>
         )}
 
-        {/* Explicación desplegable */}
-        <ExplicacionAccordion />
+        {/* Tarjetas informativas */}
+        <LandingCards />
 
         {/* Privacy badge */}
         <p className="mt-6 text-center text-xs text-text-muted">
