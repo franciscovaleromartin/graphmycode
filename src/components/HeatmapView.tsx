@@ -58,6 +58,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
     const edgesRef = useRef<HeatmapEdge[]>([]);
     const rafRef = useRef<number>(0);
     const isRunningRef = useRef(false);
+    const layoutFrameCountRef = useRef(0);
     const fa2SettingsRef = useRef<ReturnType<typeof forceAtlas2.inferSettings> | null>(null);
 
     // Camera state
@@ -173,6 +174,11 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
           maxIterations: 5,
           settings: { ratio: 1.2, margin: 8 },
         });
+        layoutFrameCountRef.current += 1;
+        if (layoutFrameCountRef.current >= 250) {
+          isRunningRef.current = false;
+          onLayoutStateChange?.(false);
+        }
       }
 
       ctx.clearRect(0, 0, W, H);
@@ -368,6 +374,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
     useEffect(() => {
       if (isActive) {
         randomizePositions();
+        layoutFrameCountRef.current = 0;
         isRunningRef.current = true;
         onLayoutStateChange?.(true);
       } else {
@@ -395,6 +402,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       },
       startLayout: () => {
         randomizePositions();
+        layoutFrameCountRef.current = 0;
         isRunningRef.current = true;
         onLayoutStateChange?.(true);
       },
