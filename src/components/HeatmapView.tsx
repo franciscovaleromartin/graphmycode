@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import Graph from 'graphology';
 import forceAtlas2 from 'graphology-layout-forceatlas2';
+import noverlap from 'graphology-layout-noverlap';
 import type { KnowledgeGraph } from '../core/graph/types';
 import type { GraphNode } from 'gitnexus-shared';
 import { computeHeatmapData, type HeatmapNode, type HeatmapEdge } from '../lib/heatmap-metrics';
@@ -168,6 +169,10 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       // Run layout step if active
       if (isRunningRef.current && fa2SettingsRef.current && g.order > 0) {
         forceAtlas2.assign(g, { iterations: 3, settings: fa2SettingsRef.current });
+        noverlap.assign(g, {
+          maxIterations: 5,
+          settings: { ratio: 1.2, margin: 8 },
+        });
       }
 
       ctx.clearRect(0, 0, W, H);
