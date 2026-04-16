@@ -23,3 +23,8 @@ temp-gitnexus/
 
 # Unlighthouse (auditorías locales)
 .unlighthouse/
+
+# Claude Code y Superpowers (sesiones locales, specs y planes internos)
+.claude/
+.superpowers/
+docs/superpowers/
