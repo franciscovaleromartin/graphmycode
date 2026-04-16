@@ -11,7 +11,7 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { CodeReferencesPanel } from './components/CodeReferencesPanel';
 
 const AppContent = () => {
-  const { viewMode, progress, isSettingsPanelOpen, setSettingsPanelOpen, isCodePanelOpen } = useAppState();
+  const { viewMode, progress, isSettingsPanelOpen, setSettingsPanelOpen, isCodePanelOpen, isSidebarCollapsed } = useAppState();
   const graphCanvasRef = useRef<GraphCanvasHandle>(null);
 
   useEffect(() => {
@@ -32,6 +32,8 @@ const AppContent = () => {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-void">
       <SidePanel />
+      {/* Spacer para que el panel de código no quede detrás del sidebar absoluto */}
+      <div className={`flex-shrink-0 transition-all duration-300 ${isSidebarCollapsed ? 'w-10' : 'w-56'}`} />
       {isCodePanelOpen && (
         <CodeReferencesPanel
           onFocusNode={(nodeId) => graphCanvasRef.current?.focusNode(nodeId)}

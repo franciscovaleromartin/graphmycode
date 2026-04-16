@@ -31,8 +31,8 @@ const customTheme = {
     background: '#0a0a10',
     margin: 0,
     padding: '12px 0',
-    fontSize: '13px',
-    lineHeight: '1.6',
+    fontSize: '11px',
+    lineHeight: '1.5',
   },
   'code[class*="language-"]': {
     ...vscDarkPlus['code[class*="language-"]'],
@@ -81,10 +81,10 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
     try {
       const saved = window.localStorage.getItem('gitnexus.codePanelWidth');
       const parsed = saved ? parseInt(saved, 10) : NaN;
-      if (!Number.isFinite(parsed)) return 560; // increased default
-      return Math.max(420, Math.min(parsed, 900));
+      if (!Number.isFinite(parsed)) return 380;
+      return Math.max(300, Math.min(parsed, 700));
     } catch {
-      return 560;
+      return 380;
     }
   });
 
@@ -325,27 +325,27 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
         title="Drag to resize"
       />
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border-subtle bg-gradient-to-r from-elevated/60 to-surface/60 px-3 py-2.5">
-        <div className="flex items-center gap-2">
-          <Code className="h-4 w-4 text-cyan-400" />
-          <span className="text-sm font-semibold text-text-primary">Code Inspector</span>
-        </div>
+      <div className="flex items-center justify-between border-b border-border-subtle bg-gradient-to-r from-elevated/60 to-surface/60 px-2.5 py-1.5">
         <div className="flex items-center gap-1.5">
+          <Code className="h-3.5 w-3.5 text-cyan-400" />
+          <span className="text-xs font-semibold text-text-primary">Code Inspector</span>
+        </div>
+        <div className="flex items-center gap-1">
           {showCitations && (
             <button
               onClick={() => clearCodeReferences()}
-              className="rounded p-1.5 text-text-muted transition-colors hover:bg-red-500/10 hover:text-red-400"
+              className="rounded p-1 text-text-muted transition-colors hover:bg-red-500/10 hover:text-red-400"
               title="Clear AI citations"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           )}
           <button
             onClick={() => setIsCollapsed(true)}
-            className="rounded p-1.5 text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
+            className="rounded p-1 text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
             title="Collapse Panel"
           >
-            <PanelLeftClose className="h-4 w-4" />
+            <PanelLeftClose className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
@@ -354,15 +354,15 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
         {/* Top: Selected file viewer (when a node is selected) */}
         {showSelectedViewer && (
           <div className={`${showCitations ? 'h-[42%]' : 'flex-1'} flex min-h-0 flex-col`}>
-            <div className="flex items-center gap-2 border-b border-amber-500/20 bg-gradient-to-r from-amber-500/8 to-orange-500/5 px-3 py-2">
-              <div className="flex items-center gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/15 px-2 py-0.5">
-                <MousePointerClick className="h-3 w-3 text-amber-400" />
-                <span className="text-[10px] font-semibold tracking-wide text-amber-300 uppercase">
+            <div className="flex items-center gap-1.5 border-b border-amber-500/20 bg-gradient-to-r from-amber-500/8 to-orange-500/5 px-2.5 py-1.5">
+              <div className="flex items-center gap-1 rounded border border-amber-500/25 bg-amber-500/15 px-1.5 py-0.5">
+                <MousePointerClick className="h-2.5 w-2.5 text-amber-400" />
+                <span className="text-[9px] font-semibold tracking-wide text-amber-300 uppercase">
                   Selected
                 </span>
               </div>
-              <FileCode className="ml-1 h-3.5 w-3.5 text-amber-400/70" />
-              <span className="flex-1 truncate font-mono text-xs text-text-primary">
+              <FileCode className="h-3 w-3 text-amber-400/70" />
+              <span className="flex-1 truncate font-mono text-[11px] text-text-primary">
                 {selectedNode?.properties?.filePath?.split('/').pop() ??
                   selectedNode?.properties?.name}
               </span>
@@ -377,8 +377,8 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
             <div ref={selectedViewerRef} className="scrollbar-thin min-h-0 flex-1 overflow-auto">
               {isLoadingFile ? (
                 <div className="flex items-center justify-center gap-2 py-8 text-text-muted">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Loading source...</span>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span className="text-xs">Loading source...</span>
                 </div>
               ) : selectedFileContent ? (
                 <SyntaxHighlighter
@@ -415,7 +415,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
                   {selectedFileContent}
                 </SyntaxHighlighter>
               ) : (
-                <div className="px-3 py-3 text-sm text-text-muted">
+                <div className="px-2.5 py-2 text-xs text-text-muted">
                   {selectedIsFile ? (
                     <>
                       Code not available in memory for{' '}
@@ -439,18 +439,18 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
         {showCitations && (
           <div className="flex min-h-0 flex-1 flex-col">
             {/* AI Citations Section Header */}
-            <div className="flex items-center gap-2 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-500/8 to-teal-500/5 px-3 py-2">
-              <div className="flex items-center gap-1.5 rounded-md border border-cyan-500/25 bg-cyan-500/15 px-2 py-0.5">
-                <Sparkles className="h-3 w-3 text-cyan-400" />
-                <span className="text-[10px] font-semibold tracking-wide text-cyan-300 uppercase">
+            <div className="flex items-center gap-1.5 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-500/8 to-teal-500/5 px-2.5 py-1.5">
+              <div className="flex items-center gap-1 rounded border border-cyan-500/25 bg-cyan-500/15 px-1.5 py-0.5">
+                <Sparkles className="h-2.5 w-2.5 text-cyan-400" />
+                <span className="text-[9px] font-semibold tracking-wide text-cyan-300 uppercase">
                   AI Citations
                 </span>
               </div>
-              <span className="ml-1 text-xs text-text-muted">
+              <span className="text-[11px] text-text-muted">
                 {aiReferences.length} reference{aiReferences.length !== 1 ? 's' : ''}
               </span>
             </div>
-            <div className="scrollbar-thin min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
+            <div className="scrollbar-thin min-h-0 flex-1 space-y-2 overflow-y-auto p-2">
               {refsWithSnippets.map(
                 ({ ref, content, start, highlightStart, highlightEnd, totalLines }) => {
                   const nodeColor = ref.label
@@ -476,19 +476,19 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
                           : '',
                       ].join(' ')}
                     >
-                      <div className="flex items-start gap-2 border-b border-border-subtle bg-surface/40 px-3 py-2">
+                      <div className="flex items-start gap-1.5 border-b border-border-subtle bg-surface/40 px-2.5 py-1.5">
                         <span
-                          className="mt-0.5 flex-shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase"
+                          className="mt-0.5 flex-shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold tracking-wide uppercase"
                           style={{ backgroundColor: nodeColor, color: '#06060a' }}
                           title={ref.label ?? 'Code'}
                         >
                           {ref.label ?? 'Code'}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <div className="truncate text-xs font-medium text-text-primary">
+                          <div className="truncate text-[11px] font-medium text-text-primary">
                             {ref.name ?? ref.filePath.split('/').pop() ?? ref.filePath}
                           </div>
-                          <div className="truncate font-mono text-[11px] text-text-muted">
+                          <div className="truncate font-mono text-[10px] text-text-muted">
                             {ref.filePath}
                             {startDisplay !== undefined && (
                               <span className="text-text-secondary">
@@ -568,7 +568,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
                             {content}
                           </SyntaxHighlighter>
                         ) : (
-                          <div className="px-3 py-3 text-sm text-text-muted">
+                          <div className="px-2.5 py-2 text-xs text-text-muted">
                             Code not available in memory for{' '}
                             <span className="font-mono">{ref.filePath}</span>
                           </div>
