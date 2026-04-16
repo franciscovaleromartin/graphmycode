@@ -6,6 +6,7 @@ import { CityBuildings } from './city/CityBuildings';
 import { CityDistricts } from './city/CityDistricts';
 import { CityTooltip } from './city/CityTooltip';
 import type { GraphNode, GraphRelationship } from 'gitnexus-shared';
+import { Building2 } from '@/lib/lucide-icons';
 
 const DEFAULT_CAMERA_POS = [100, 80, 100] as const;
 
@@ -92,6 +93,16 @@ export const CityView = forwardRef<CityViewHandle, Props>(
       },
       [metric, relationships, nodeMap],
     );
+
+    if (buildings.length === 0) {
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0d0d1a] text-center">
+          <Building2 className="h-8 w-8 text-text-muted opacity-40" />
+          <p className="text-sm text-text-muted">No hay datos de deuda técnica disponibles.</p>
+          <p className="text-xs text-text-muted opacity-60">Analiza un repositorio para visualizar su estructura.</p>
+        </div>
+      );
+    }
 
     return (
       <Canvas

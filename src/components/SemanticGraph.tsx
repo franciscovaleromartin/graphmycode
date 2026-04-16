@@ -357,6 +357,13 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
     );
 
     useEffect(() => {
+      if (!navigator.onLine) {
+        setState({
+          status: 'error',
+          message: 'La vista semántica requiere conexión a internet para descargar el modelo de embeddings. Conéctate y vuelve a intentarlo.',
+        });
+        return;
+      }
       handleLoad();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -436,16 +443,19 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
     }
 
     if (state.status === 'error') {
+      const isOffline = !navigator.onLine;
       return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void px-8 text-center">
           <AlertCircle className="h-6 w-6 text-red-400" />
-          <p className="text-sm text-red-400">{state.message}</p>
-          <button
-            onClick={() => handleLoad()}
-            className="text-xs text-text-secondary underline hover:text-text-primary"
-          >
-            Reintentar
-          </button>
+          <p className="max-w-xs text-sm text-red-400">{state.message}</p>
+          {!isOffline && (
+            <button
+              onClick={() => handleLoad()}
+              className="text-xs text-text-secondary underline hover:text-text-primary"
+            >
+              Reintentar
+            </button>
+          )}
         </div>
       );
     }
