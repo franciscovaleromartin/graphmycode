@@ -1,7 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 import { createReadStream, mkdirSync, readdirSync, copyFileSync, existsSync } from 'fs';
 
@@ -72,77 +71,7 @@ function ortWasmPlugin(): Plugin {
 
 export default defineConfig({
   base: '/',
-  plugins: [
-    react(),
-    tailwindcss(),
-    ortWasmPlugin(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      injectRegister: 'auto',
-      workbox: {
-        // Precachear JS, CSS, HTML, imágenes y los WASM de tree-sitter (≤5 MB c/u).
-        // Los archivos ORT se excluyen del SW por completo: ya tienen
-        // Cache-Control: max-age=31536000,immutable en vercel.json y el browser
-        // los gestiona con HTTP cache. Interceptarlos con el SW rompe la carga
-        // de los módulos worker de onnxruntime (error "Importing a module script failed").
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,wasm}'],
-        globIgnores: [
-          '**/ort/**',           // /ort/*.wasm y /ort/*.mjs — gestionados por HTTP cache
-          '**/assets/ort-wasm*', // /assets/ort-wasm-simd-threaded.jsep-*.wasm (21 MB)
-        ],
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB cubre cpp (4.4 MB), csharp (3.8 MB)…
-        navigateFallback: 'index.html',
-        runtimeCaching: [
-          // Google Fonts CSS — se actualiza cada semana
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'google-fonts-stylesheets',
-              expiration: { maxEntries: 4, maxAgeSeconds: 7 * 24 * 60 * 60 },
-            },
-          },
-          // Google Fonts archivos de fuentes — inmutables, 1 año
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-webfonts',
-              cacheableResponse: { statuses: [0, 200] },
-              expiration: { maxEntries: 30, maxAgeSeconds: 365 * 24 * 60 * 60 },
-            },
-          },
-          // ── APIs de IA: siempre red (fallan limpiamente sin conexión) ──
-          { urlPattern: /^https:\/\/api\.openai\.com\/.*/i,                     handler: 'NetworkOnly' },
-          { urlPattern: /^https:\/\/api\.anthropic\.com\/.*/i,                  handler: 'NetworkOnly' },
-          { urlPattern: /^https:\/\/generativelanguage\.googleapis\.com\/.*/i,  handler: 'NetworkOnly' },
-          { urlPattern: /^https:\/\/aistudio\.google\.com\/.*/i,                handler: 'NetworkOnly' },
-          { urlPattern: /^https:\/\/openrouter\.ai\/.*/i,                       handler: 'NetworkOnly' },
-          { urlPattern: /^https:\/\/api\.minimax\.io\/.*/i,                     handler: 'NetworkOnly' },
-          { urlPattern: /^https:\/\/api\.z\.ai\/.*/i,                           handler: 'NetworkOnly' },
-          // ── Recursos de repos externos ──
-          { urlPattern: /^https:\/\/api\.github\.com\/.*/i,                     handler: 'NetworkOnly' },
-          { urlPattern: /^https:\/\/raw\.githubusercontent\.com\/.*/i,          handler: 'NetworkOnly' },
-          { urlPattern: /^https:\/\/gitnexus\.vercel\.app\/.*/i,                handler: 'NetworkOnly' },
-          // ── HuggingFace (descarga de modelos de embeddings) ──
-          { urlPattern: /^https:\/\/huggingface\.co\/.*/i,                      handler: 'NetworkOnly' },
-          { urlPattern: /^https:\/\/cdn-lfs\.huggingface\.co\/.*/i,             handler: 'NetworkOnly' },
-        ],
-      },
-      manifest: {
-        name: 'GraphMyCode',
-        short_name: 'GraphMyCode',
-        description: 'Visualiza y entiende tu código como un grafo interactivo',
-        theme_color: '#000000',
-        background_color: '#000000',
-        display: 'standalone',
-        start_url: '/',
-        icons: [
-          { src: '/favicon.png', sizes: '512x512', type: 'image/png' },
-        ],
-      },
-    }),
-  ],
+  plugins: [react(), tailwindcss(), ortWasmPlugin()],
   worker: {
     format: 'es',
   },

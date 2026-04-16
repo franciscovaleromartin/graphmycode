@@ -86,7 +86,6 @@
     "tree-sitter-wasms": "^0.1.13",
     "typescript": "^5.4.5",
     "vite": "^5.2.0",
-    "vite-plugin-pwa": "^1.2.0",
     "vitest": "^3.2.4",
     "wait-on": "^8.0.5"
   }
