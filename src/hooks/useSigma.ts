@@ -603,6 +603,13 @@ export const useSigma = (options: UseSigmaOptions = {}): UseSigmaReturn => {
   const startLayout = useCallback(() => {
     const graph = graphRef.current;
     if (!graph || graph.order === 0) return;
+    const jitter = 20;
+    graph.forEachNode((node) => {
+      const x = graph.getNodeAttribute(node, 'x') as number;
+      const y = graph.getNodeAttribute(node, 'y') as number;
+      graph.setNodeAttribute(node, 'x', x + (Math.random() - 0.5) * jitter);
+      graph.setNodeAttribute(node, 'y', y + (Math.random() - 0.5) * jitter);
+    });
     runLayout(graph);
   }, [runLayout]);
 
