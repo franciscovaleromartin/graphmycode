@@ -17,6 +17,7 @@ export interface SigmaNodeAttributes {
   zIndex?: number;
   highlighted?: boolean;
   mass?: number; // ForceAtlas2 mass - higher = more repulsion
+  fixed?: boolean; // FA2 pin - el nodo no se mueve durante el layout
   community?: number; // Community index from Leiden algorithm
   communityColor?: string; // Color assigned by community
 }

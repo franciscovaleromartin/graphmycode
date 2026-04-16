@@ -80,52 +80,26 @@ interface UseSigmaReturn {
   refreshHighlights: () => void;
 }
 
-// Noverlap for final cleanup - minimal since it starts with good positions
 const NOVERLAP_SETTINGS = {
-  maxIterations: 20, // Reduced - less cleanup needed
+  maxIterations: 20,
   ratio: 1.1,
-  margin: 10,
-  expansion: 1.05,
+  margin: 8,
+  expansion: 1.0,
 };
 
-// ForceAtlas2 settings - FAST convergence since nodes start near their parents
 const getFA2Settings = (nodeCount: number) => {
-  const isSmall = nodeCount < 500;
-  const isMedium = nodeCount >= 500 && nodeCount < 2000;
-  const isLarge = nodeCount >= 2000 && nodeCount < 10000;
-
   return {
-    // Lower gravity allows folders to stay spread out
-    gravity: isSmall ? 0.8 : isMedium ? 0.5 : isLarge ? 0.3 : 0.15,
-
-    // Higher scaling ratio = more spread out overall
-    scalingRatio: isSmall ? 15 : isMedium ? 30 : isLarge ? 60 : 100,
-
-    // LOW slowDown = FASTER movement (converges quicker)
-    slowDown: isSmall ? 1 : isMedium ? 2 : isLarge ? 3 : 5,
-
-    // Barnes-Hut for performance - use it even on smaller graphs
     barnesHutOptimize: nodeCount > 200,
-    barnesHutTheta: isLarge ? 0.8 : 0.6, // Higher = faster but less accurate
-
-    // These help with clustering while keeping spread
-    strongGravityMode: false,
-    outboundAttractionDistribution: true,
-    linLogMode: false,
-    adjustSizes: true,
-    edgeWeightInfluence: 1,
+    barnesHutTheta: nodeCount > 2000 ? 0.8 : 0.6,
+    slowDown: nodeCount > 2000 ? 3 : nodeCount > 500 ? 2 : 1,
   };
 };
 
-// Layout duration - let it run longer for better results
-// Web Worker + WebGL means minimal system impact
 const getLayoutDuration = (nodeCount: number): number => {
-  if (nodeCount > 10000) return 45000; // 45s for huge graphs
-  if (nodeCount > 5000) return 35000; // 35s
-  if (nodeCount > 2000) return 30000; // 30s
-  if (nodeCount > 1000) return 30000; // 30s
-  if (nodeCount > 500) return 25000; // 25s
-  return 20000; // 20s for small graphs
+  if (nodeCount > 10000) return 20000;
+  if (nodeCount > 2000) return 15000;
+  if (nodeCount > 500) return 12000;
+  return 8000;
 };
 
 export const useSigma = (options: UseSigmaOptions = {}): UseSigmaReturn => {

@@ -705,6 +705,7 @@ function injectExternalNodes(
         nodeType: 'Package',
         filePath: '',
         mass: 20,
+        fixed: true,
       });
     }
 
