@@ -399,7 +399,7 @@ const LandingCards = () => {
 type InputMode = 'zip' | 'github';
 
 export const LandingScreen = () => {
-  const { setGraph, setViewMode, setProgress, setProjectName, setExternalDeps } = useAppState();
+  const { setGraph, setViewMode, setProgress, setProjectName, setExternalDeps, setGraphViewType } = useAppState();
   const t = useT();
 
   const [mode, setMode] = useState<InputMode>('zip');
@@ -463,6 +463,7 @@ export const LandingScreen = () => {
         setGraph(graph);
         setExternalDeps(result.externalDeps ?? {});
         setProgress(null);
+        setGraphViewType('structural');
         setViewMode('exploring');
       } catch (err) {
         const msg = err instanceof Error ? err.message : t.errDownload;
@@ -473,7 +474,7 @@ export const LandingScreen = () => {
         setIsProcessing(false);
       }
     },
-    [setGraph, setViewMode, setProgress, setProjectName, setExternalDeps],
+    [setGraph, setViewMode, setProgress, setProjectName, setExternalDeps, setGraphViewType],
   );
 
   const handleFiles = useCallback(

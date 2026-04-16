@@ -1166,6 +1166,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
           if (getActiveProviderConfig()) {
             await initializeAgent(pName);
           }
+          setGraphViewType('structural');
           setViewMode('exploring');
           startEmbeddingsWithFallback();
           setProgress(null);
@@ -1174,6 +1175,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
           setIsAgentReady(false);
           agentRef.current = null;
           setAgentError('Failed to initialize agent');
+          setGraphViewType('structural');
           setViewMode('exploring');
           setProgress(null);
         }
@@ -1188,6 +1190,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
         setIsAgentReady(false);
         agentRef.current = null;
         setTimeout(() => {
+          setGraphViewType('structural');
           setViewMode('exploring');
           setProgress(null);
         }, ERROR_RESET_DELAY_MS);
