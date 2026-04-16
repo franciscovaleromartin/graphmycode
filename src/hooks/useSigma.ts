@@ -603,11 +603,13 @@ export const useSigma = (options: UseSigmaOptions = {}): UseSigmaReturn => {
   const startLayout = useCallback(() => {
     const graph = graphRef.current;
     if (!graph || graph.order === 0) return;
-    // Aleatorizar posiciones para que la animación sea visible desde el inicio
-    const spread = Math.sqrt(graph.order) * 100;
+    // Perturbar ligeramente las posiciones para que la animación sea visible
+    const jitter = 20;
     graph.forEachNode((node) => {
-      graph.setNodeAttribute(node, 'x', (Math.random() - 0.5) * spread);
-      graph.setNodeAttribute(node, 'y', (Math.random() - 0.5) * spread);
+      const x = graph.getNodeAttribute(node, 'x') as number;
+      const y = graph.getNodeAttribute(node, 'y') as number;
+      graph.setNodeAttribute(node, 'x', x + (Math.random() - 0.5) * jitter);
+      graph.setNodeAttribute(node, 'y', y + (Math.random() - 0.5) * jitter);
     });
     runLayout(graph);
   }, [runLayout]);
