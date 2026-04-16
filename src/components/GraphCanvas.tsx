@@ -286,7 +286,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   }, [openChatPanel, setSettingsPanelOpen]);
 
   return (
-    <div className="relative h-full w-full bg-void">
+    <div className="relative h-full min-w-0 flex-1 bg-void">
       {/* Background gradient */}
       <div className="pointer-events-none absolute inset-0">
         <div

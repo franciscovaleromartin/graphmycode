@@ -8,9 +8,10 @@ import { LoadingOverlay } from './components/LoadingOverlay';
 import { GraphCanvas, GraphCanvasHandle } from './components/GraphCanvas';
 import { RightPanel } from './components/RightPanel';
 import { SettingsPanel } from './components/SettingsPanel';
+import { CodeReferencesPanel } from './components/CodeReferencesPanel';
 
 const AppContent = () => {
-  const { viewMode, progress, isSettingsPanelOpen, setSettingsPanelOpen } = useAppState();
+  const { viewMode, progress, isSettingsPanelOpen, setSettingsPanelOpen, isCodePanelOpen } = useAppState();
   const graphCanvasRef = useRef<GraphCanvasHandle>(null);
 
   useEffect(() => {
@@ -27,10 +28,15 @@ const AppContent = () => {
     return <LoadingOverlay progress={progress} />;
   }
 
-  // Exploring view — grafo a pantalla completa con panel lateral
+  // Exploring view — layout flex horizontal: sidebar | code panel | canvas | chat panel
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-void">
+    <div className="flex h-screen w-screen overflow-hidden bg-void">
       <SidePanel />
+      {isCodePanelOpen && (
+        <CodeReferencesPanel
+          onFocusNode={(nodeId) => graphCanvasRef.current?.focusNode(nodeId)}
+        />
+      )}
       <GraphCanvas ref={graphCanvasRef} />
       <RightPanel />
       <SettingsPanel
