@@ -167,15 +167,24 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       const H = canvas.height;
       const cam = cameraRef.current;
 
-      // Run layout step if active
+      // Run layout step if active — ralentización progresiva hasta parar
       if (isRunningRef.current && fa2SettingsRef.current && g.order > 0) {
-        forceAtlas2.assign(g, { iterations: 3, settings: fa2SettingsRef.current });
-        noverlap.assign(g, {
-          maxIterations: 5,
-          settings: { ratio: 1.2, margin: 8 },
-        });
+        const frame = layoutFrameCountRef.current;
+        const fa2Iters = frame < 150 ? 3 : frame < 220 ? 2 : frame < 270 ? 1 : 0;
+        const noverlapIters = frame < 150 ? 5 : frame < 220 ? 4 : frame < 270 ? 3 : frame < 300 ? 2 : 0;
+
+        if (fa2Iters > 0) {
+          forceAtlas2.assign(g, { iterations: fa2Iters, settings: fa2SettingsRef.current });
+        }
+        if (noverlapIters > 0) {
+          noverlap.assign(g, {
+            maxIterations: noverlapIters,
+            settings: { ratio: 1.2, margin: 8 },
+          });
+        }
+
         layoutFrameCountRef.current += 1;
-        if (layoutFrameCountRef.current >= 250) {
+        if (frame >= 300) {
           isRunningRef.current = false;
           onLayoutStateChange?.(false);
         }
