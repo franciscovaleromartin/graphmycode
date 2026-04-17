@@ -5,6 +5,7 @@ import noverlap from 'graphology-layout-noverlap';
 import type { KnowledgeGraph } from '../core/graph/types';
 import type { GraphNode } from 'gitnexus-shared';
 import { computeHeatmapData, type HeatmapNode, type HeatmapEdge } from '../lib/heatmap-metrics';
+import { useAppState } from '../hooks/useAppState';
 
 export interface HeatmapViewHandle {
   zoomIn: () => void;
@@ -77,6 +78,7 @@ const FA2_SETTINGS = {
 
 export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
   ({ graph, onNodeClick, onLayoutStateChange, isActive }, ref) => {
+    const { isSidebarCollapsed } = useAppState();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gRef = useRef<Graph | null>(null);
     const nodesRef = useRef<HeatmapNode[]>([]);
@@ -510,8 +512,11 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
 
     return (
       <div className="relative flex h-full w-full flex-col">
-        {/* Controles flotantes */}
-        <div className="absolute left-3 top-3 z-10 flex gap-2">
+        {/* Controles flotantes — respetan la sidebar y los botones de zoom */}
+        <div
+          className="absolute top-3 z-10 flex gap-2"
+          style={{ left: isSidebarCollapsed ? 56 : 224 }}
+        >
           <button
             onClick={handleReorganize}
             className="rounded border border-border-default bg-bg-surface px-2 py-1 text-xs text-text-secondary hover:text-text-primary"
@@ -519,7 +524,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
             ↺ Reorganizar
           </button>
         </div>
-        <div className="absolute right-3 top-3 z-10">
+        <div className="absolute top-3 z-10" style={{ right: 52 }}>
           <select
             value={filter}
             onChange={handleFilterChange}
@@ -547,8 +552,11 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
           onWheel={handleWheel}
         />
 
-        {/* Footer: leyenda de calor + stats */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-default bg-bg-surface px-4 py-2">
+        {/* Footer: leyenda de calor + stats — padding respeta sidebar (izq) y zoom controls (dcha) */}
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 border-t border-border-default bg-bg-surface py-2 pr-14"
+          style={{ paddingLeft: isSidebarCollapsed ? 56 : 224 }}
+        >
           <div className="flex items-center gap-2">
             <span className="text-xs text-text-muted">Bajo acoplamiento</span>
             <div
