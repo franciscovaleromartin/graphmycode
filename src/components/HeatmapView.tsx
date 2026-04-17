@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle, useState } from 'react';
 import Graph from 'graphology';
 import forceAtlas2 from 'graphology-layout-forceatlas2';
 import noverlap from 'graphology-layout-noverlap';
@@ -21,32 +21,57 @@ interface Props {
   isActive?: boolean;
 }
 
+type FilterMode = 'all' | 'hot' | 'cold';
+
+interface Stats {
+  nodes: number;
+  edges: number;
+  critical: number;
+  cycles: number;
+}
+
 // ── Color helpers ───────────────────────────────────────────────────────────
 
-const COLOR_STOPS = [
-  { t: 0,    r: 59,  g: 130, b: 246 }, // #3b82f6 blue
-  { t: 0.33, r: 34,  g: 197, b: 94  }, // #22c55e green
-  { t: 0.66, r: 245, g: 158, b: 11  }, // #f59e0b amber
-  { t: 1,    r: 239, g: 68,  b: 68  }, // #ef4444 red
-];
-
 function heatColor(t: number): string {
-  const clamped = Math.max(0, Math.min(1, t));
-  let i = 0;
-  while (i < COLOR_STOPS.length - 2 && clamped > COLOR_STOPS[i + 1].t) i++;
-  const a = COLOR_STOPS[i];
-  const b = COLOR_STOPS[i + 1];
-  const range = b.t - a.t;
-  const ratio = range > 0 ? (clamped - a.t) / range : 0;
-  const r = Math.round(a.r + (b.r - a.r) * ratio);
-  const g = Math.round(a.g + (b.g - a.g) * ratio);
-  const bl = Math.round(a.b + (b.b - a.b) * ratio);
-  return `rgb(${r},${g},${bl})`;
+  const c = Math.max(0, Math.min(1, t));
+  if (c < 0.25) {
+    const h = 210 + (1 - c) * 20;
+    const l = 30 + c * 20;
+    return `hsl(${h.toFixed(1)},75%,${l.toFixed(1)}%)`;
+  } else if (c < 0.5) {
+    const h = 40 - c * 60;
+    return `hsl(${h.toFixed(1)},80%,45%)`;
+  } else if (c < 0.75) {
+    const h = 20 - c * 10;
+    return `hsl(${h.toFixed(1)},85%,45%)`;
+  } else {
+    const l = 35 + (1 - c) * 10;
+    return `hsl(5,80%,${l.toFixed(1)}%)`;
+  }
 }
 
-function nodeRadius(normalizedDegree: number): number {
-  return 8 + normalizedDegree * 16;
+function nodeRadius(degree: number): number {
+  return Math.min(28, Math.max(7, 7 + degree * 1.4));
 }
+
+function baseName(filePath: string, fallback: string): string {
+  const file = (filePath || fallback).split('/').pop() ?? fallback;
+  return file.replace(/\.[^.]+$/, '');
+}
+
+function rootGroup(filePath: string, fallback: string): string {
+  return (filePath || fallback).split('/').filter(Boolean)[0] ?? '.';
+}
+
+// ── FA2 custom settings ──────────────────────────────────────────────────────
+
+const FA2_SETTINGS = {
+  scalingRatio: 10,
+  gravity: 0.003,
+  slowDown: 5,
+  edgeWeightInfluence: 1,
+  barnesHutOptimize: false,
+};
 
 // ── Component ───────────────────────────────────────────────────────────────
 
@@ -56,10 +81,14 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
     const gRef = useRef<Graph | null>(null);
     const nodesRef = useRef<HeatmapNode[]>([]);
     const edgesRef = useRef<HeatmapEdge[]>([]);
+    const maxDegreeRef = useRef(0);
     const rafRef = useRef<number>(0);
     const isRunningRef = useRef(false);
     const layoutFrameCountRef = useRef(0);
-    const fa2SettingsRef = useRef<ReturnType<typeof forceAtlas2.inferSettings> | null>(null);
+    const filterRef = useRef<FilterMode>('all');
+
+    const [filter, setFilter] = useState<FilterMode>('all');
+    const [stats, setStats] = useState<Stats>({ nodes: 0, edges: 0, critical: 0, cycles: 0 });
 
     // Camera state
     const cameraRef = useRef({ x: 0, y: 0, scale: 1 });
@@ -73,6 +102,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       const data = computeHeatmapData(graph);
       nodesRef.current = data.nodes;
       edgesRef.current = data.edges;
+      maxDegreeRef.current = data.maxDegree;
 
       const g = new Graph({ type: 'directed', multi: false });
       const canvas = canvasRef.current;
@@ -83,7 +113,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
         g.addNode(n.id, {
           x: (Math.random() - 0.5) * W * 0.8,
           y: (Math.random() - 0.5) * H * 0.8,
-          size: nodeRadius(n.normalizedDegree),
+          size: nodeRadius(n.degree),
         });
       });
       data.edges.forEach(e => {
@@ -92,8 +122,16 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
         }
       });
 
-      fa2SettingsRef.current = g.order > 0 ? forceAtlas2.inferSettings(g) : null;
+      FA2_SETTINGS.barnesHutOptimize = g.order > 100;
       gRef.current = g;
+
+      const maxDeg = data.maxDegree;
+      setStats({
+        nodes: data.nodes.length,
+        edges: data.edges.length,
+        critical: data.nodes.filter(n => n.degree >= maxDeg * 0.6).length,
+        cycles: data.bidirectionalCount,
+      });
     }, [graph]);
 
     // ── Tooltip drawing ──────────────────────────────────────────────────────
@@ -110,21 +148,15 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       const biCount = edgesRef.current.filter(
         e => e.isBidirectional && (e.source === node.id || e.target === node.id),
       ).length;
-      const coupledWith = edgesRef.current
-        .filter(e => e.isBidirectional && (e.source === node.id || e.target === node.id))
-        .map(e => {
-          const otherId = e.source === node.id ? e.target : e.source;
-          return nodesRef.current.find(n => n.id === otherId)?.name ?? otherId;
-        })
-        .slice(0, 3)
-        .join(', ');
 
-      const lines = [
-        `\u{1F4C4} ${node.name}`,
-        `Grado total: ${node.degree}`,
-        `Bidireccionales: ${biCount}`,
-        ...(coupledWith ? [`Acoplado con: ${coupledWith}`] : []),
-        `\u2192 Ver en panel de c\u00F3digo`,
+      const displayName = node.filePath || node.name;
+      const group = rootGroup(node.filePath, node.name);
+
+      const lines: Array<{ text: string; color: string; bold?: boolean }> = [
+        { text: displayName, color: '#f0f0f0', bold: true },
+        { text: `Grado: ${node.degree} deps`, color: '#94a3b8' },
+        { text: `Grupo: ${group}`, color: '#94a3b8' },
+        ...(biCount > 0 ? [{ text: `⚠ ${biCount} ciclo(s)`, color: '#f97316' }] : []),
       ];
 
       const boxW = 210;
@@ -140,15 +172,21 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       ctx.strokeStyle = '#f97316';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      (ctx as CanvasRenderingContext2D & { roundRect: (...args: unknown[]) => void }).roundRect(bx, by, boxW, boxH, 8);
+      (ctx as CanvasRenderingContext2D & { roundRect: (...args: unknown[]) => void }).roundRect(
+        bx, by, boxW, boxH, 8,
+      );
       ctx.fill();
       ctx.stroke();
 
       lines.forEach((line, i) => {
-        ctx.font = i === 0 ? 'bold 12px monospace' : '11px monospace';
-        ctx.fillStyle =
-          i === 0 ? '#f97316' : i === lines.length - 1 ? '#60a5fa' : '#94a3b8';
-        ctx.fillText(line, bx + padding, by + padding + lineH * i + lineH * 0.7, boxW - padding * 2);
+        ctx.font = line.bold ? 'bold 12px monospace' : '11px monospace';
+        ctx.fillStyle = line.color;
+        ctx.fillText(
+          line.text,
+          bx + padding,
+          by + padding + lineH * i + lineH * 0.7,
+          boxW - padding * 2,
+        );
       });
       ctx.restore();
     }
@@ -166,15 +204,17 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       const W = canvas.width;
       const H = canvas.height;
       const cam = cameraRef.current;
+      const maxDeg = maxDegreeRef.current;
+      const currentFilter = filterRef.current;
 
-      // Run layout step if active — ralentización progresiva hasta parar
-      if (isRunningRef.current && fa2SettingsRef.current && g.order > 0) {
+      // Run layout step — 200 ticks con ralentización progresiva
+      if (isRunningRef.current && g.order > 0) {
         const frame = layoutFrameCountRef.current;
-        const fa2Iters = frame < 150 ? 3 : frame < 220 ? 2 : frame < 270 ? 1 : 0;
-        const noverlapIters = frame < 150 ? 5 : frame < 220 ? 4 : frame < 270 ? 3 : frame < 300 ? 2 : 0;
+        const fa2Iters = frame < 150 ? 3 : frame < 200 ? 1 : 0;
+        const noverlapIters = frame < 150 ? 5 : frame < 200 ? 2 : 0;
 
         if (fa2Iters > 0) {
-          forceAtlas2.assign(g, { iterations: fa2Iters, settings: fa2SettingsRef.current });
+          forceAtlas2.assign(g, { iterations: fa2Iters, settings: FA2_SETTINGS });
         }
         if (noverlapIters > 0) {
           noverlap.assign(g, {
@@ -184,7 +224,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
         }
 
         layoutFrameCountRef.current += 1;
-        if (frame >= 300) {
+        if (frame >= 200) {
           isRunningRef.current = false;
           onLayoutStateChange?.(false);
         }
@@ -195,59 +235,89 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       ctx.translate(W / 2 + cam.x, H / 2 + cam.y);
       ctx.scale(cam.scale, cam.scale);
 
+      // Conjunto de nodos visibles según filtro
+      const visibleIds = new Set(
+        nodesRef.current
+          .filter(n => {
+            if (currentFilter === 'hot') return n.degree >= maxDeg * 0.5;
+            if (currentFilter === 'cold') return n.degree < maxDeg * 0.35;
+            return true;
+          })
+          .map(n => n.id),
+      );
+
       // Draw edges
       edgesRef.current.forEach(e => {
         if (!g.hasNode(e.source) || !g.hasNode(e.target)) return;
+        if (!visibleIds.has(e.source) || !visibleIds.has(e.target)) return;
         const srcAttr = g.getNodeAttributes(e.source);
         const tgtAttr = g.getNodeAttributes(e.target);
         ctx.beginPath();
         ctx.moveTo(srcAttr.x as number, srcAttr.y as number);
         ctx.lineTo(tgtAttr.x as number, tgtAttr.y as number);
         if (e.isBidirectional) {
-          ctx.strokeStyle = '#f97316';
-          ctx.lineWidth = Math.min(3 + e.weight * 1.5, 7);
-          ctx.globalAlpha = 0.85;
+          ctx.strokeStyle = 'rgba(231,76,60,0.6)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 3]);
         } else {
-          ctx.strokeStyle = '#334155';
-          ctx.lineWidth = 1.5;
-          ctx.globalAlpha = 0.5;
+          ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([]);
         }
         ctx.stroke();
-        ctx.globalAlpha = 1;
+        ctx.setLineDash([]);
       });
 
-      // Draw nodes
+      // Glow para nodos calientes (antes de dibujar el nodo)
       nodesRef.current.forEach(n => {
-        if (!g.hasNode(n.id)) return;
+        if (!g.hasNode(n.id) || !visibleIds.has(n.id)) return;
+        if (n.degree < maxDeg * 0.5) return;
         const attr = g.getNodeAttributes(n.id);
-        const r = nodeRadius(n.normalizedDegree);
-        const isHovered = hoveredNodeRef.current === n.id;
+        const r = nodeRadius(n.degree);
+        const grd = ctx.createRadialGradient(
+          attr.x as number, attr.y as number, r,
+          attr.x as number, attr.y as number, r * 3,
+        );
+        grd.addColorStop(0, 'rgba(231,76,60,0.25)');
+        grd.addColorStop(1, 'rgba(231,76,60,0)');
+        ctx.beginPath();
+        ctx.arc(attr.x as number, attr.y as number, r * 3, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+      });
 
-        // Glow for hot nodes
-        if (n.normalizedDegree > 0.6) {
-          ctx.beginPath();
-          ctx.arc(attr.x as number, attr.y as number, r + 6, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(239,68,68,0.12)';
-          ctx.fill();
-        }
+      // Draw nodes + labels
+      nodesRef.current.forEach(n => {
+        if (!g.hasNode(n.id) || !visibleIds.has(n.id)) return;
+        const attr = g.getNodeAttributes(n.id);
+        const r = nodeRadius(n.degree);
+        const isHovered = hoveredNodeRef.current === n.id;
 
         ctx.beginPath();
         ctx.arc(attr.x as number, attr.y as number, isHovered ? r + 2 : r, 0, Math.PI * 2);
         ctx.fillStyle = heatColor(n.normalizedDegree);
-        ctx.globalAlpha = 0.9;
         ctx.fill();
-        ctx.globalAlpha = 1;
 
         if (isHovered) {
           ctx.strokeStyle = '#fff';
           ctx.lineWidth = 1.5;
           ctx.stroke();
         }
+
+        // Label solo si radio > 12px
+        if (r > 12) {
+          const label = baseName(n.filePath, n.name);
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.font = '10px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(label, attr.x as number, (attr.y as number) + r + 13);
+          ctx.textAlign = 'left';
+        }
       });
 
       ctx.restore();
 
-      // Draw tooltip in screen coords
+      // Tooltip en coordenadas de pantalla
       const tooltip = tooltipRef.current;
       if (tooltip) {
         drawTooltip(ctx, tooltip.node, tooltip.px, tooltip.py, W, H);
@@ -269,13 +339,18 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
     function hitTestNode(wx: number, wy: number): HeatmapNode | null {
       const g = gRef.current;
       if (!g) return null;
+      const maxDeg = maxDegreeRef.current;
+      const currentFilter = filterRef.current;
       for (const n of nodesRef.current) {
         if (!g.hasNode(n.id)) continue;
+        // Respetar filtro activo en hit testing
+        if (currentFilter === 'hot' && n.degree < maxDeg * 0.5) continue;
+        if (currentFilter === 'cold' && n.degree >= maxDeg * 0.35) continue;
         const attr = g.getNodeAttributes(n.id);
-        const r = nodeRadius(n.normalizedDegree);
+        const r = nodeRadius(n.degree);
         const dx = wx - (attr.x as number);
         const dy = wy - (attr.y as number);
-        if (dx * dx + dy * dy <= r * r) return n;
+        if (dx * dx + dy * dy <= (r + 4) * (r + 4)) return n;
       }
       return null;
     }
@@ -324,7 +399,6 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       if (!isDraggingRef.current) return;
       isDraggingRef.current = false;
 
-      // Distinguir click de drag usando la posición inicial del mousedown
       const dx = Math.abs(e.clientX - mouseDownPosRef.current.x);
       const dy = Math.abs(e.clientY - mouseDownPosRef.current.y);
       if (dx > 4 || dy > 4) return;
@@ -421,21 +495,94 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       },
     }));
 
+    const handleReorganize = () => {
+      randomizePositions();
+      layoutFrameCountRef.current = 0;
+      isRunningRef.current = true;
+      onLayoutStateChange?.(true);
+    };
+
+    const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const v = e.target.value as FilterMode;
+      setFilter(v);
+      filterRef.current = v;
+    };
+
     return (
-      <canvas
-        ref={canvasRef}
-        className="h-full w-full"
-        style={{ cursor: 'grab' }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={() => {
-          isDraggingRef.current = false;
-          tooltipRef.current = null;
-          hoveredNodeRef.current = null;
-        }}
-        onWheel={handleWheel}
-      />
+      <div className="relative flex h-full w-full flex-col">
+        {/* Controles flotantes */}
+        <div className="absolute left-3 top-3 z-10 flex gap-2">
+          <button
+            onClick={handleReorganize}
+            className="rounded border border-border-default bg-bg-surface px-2 py-1 text-xs text-text-secondary hover:text-text-primary"
+          >
+            ↺ Reorganizar
+          </button>
+        </div>
+        <div className="absolute right-3 top-3 z-10">
+          <select
+            value={filter}
+            onChange={handleFilterChange}
+            className="rounded border border-border-default bg-bg-surface px-2 py-1 text-xs text-text-primary"
+          >
+            <option value="all">Todos los módulos</option>
+            <option value="hot">Solo acoplados (rojo)</option>
+            <option value="cold">Solo aislados (azul)</option>
+          </select>
+        </div>
+
+        {/* Canvas */}
+        <canvas
+          ref={canvasRef}
+          className="min-h-0 w-full flex-1"
+          style={{ cursor: 'grab' }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={() => {
+            isDraggingRef.current = false;
+            tooltipRef.current = null;
+            hoveredNodeRef.current = null;
+          }}
+          onWheel={handleWheel}
+        />
+
+        {/* Footer: leyenda de calor + stats */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-default bg-bg-surface px-4 py-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-text-muted">Bajo acoplamiento</span>
+            <div
+              style={{
+                width: 120,
+                height: 10,
+                borderRadius: 4,
+                background: 'linear-gradient(to right, #1d4e89, #2e86de, #f39c12, #e74c3c, #8e1a1a)',
+                flexShrink: 0,
+              }}
+            />
+            <span className="text-xs" style={{ color: '#e74c3c' }}>Alto acoplamiento</span>
+          </div>
+          <div className="flex gap-5">
+            {(
+              [
+                { label: 'Módulos', value: stats.nodes },
+                { label: 'Dependencias', value: stats.edges },
+                { label: 'Módulos críticos', value: stats.critical },
+                { label: 'Ciclos detectados', value: stats.cycles },
+              ] as const
+            ).map(({ label, value }) => (
+              <div key={label} className="flex flex-col items-center">
+                <span className="leading-none text-text-primary" style={{ fontSize: 18, fontWeight: 500 }}>
+                  {value}
+                </span>
+                <span className="mt-0.5 text-text-muted" style={{ fontSize: 12 }}>
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     );
   },
 );
