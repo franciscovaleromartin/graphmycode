@@ -1,3 +1,7 @@
+// Copyright (C) 2026 Francisco Alejandro Valero Martin
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+// https://polyformproject.org/licenses/noncommercial/1.0.0
+
 import { Brain, Loader2, Check, AlertCircle, Zap } from '@/lib/lucide-icons';
 import { useAppState } from '../hooks/useAppState';
 import { useState } from 'react';

@@ -1,3 +1,7 @@
+// Copyright (C) 2026 Francisco Alejandro Valero Martin
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+// https://polyformproject.org/licenses/noncommercial/1.0.0
+
 /** Distancia euclídea al cuadrado entre dos puntos 3D (sin sqrt, solo para comparar). */
 const dist2 = (a: [number, number, number], b: [number, number, number]): number => {
   const dx = a[0] - b[0];

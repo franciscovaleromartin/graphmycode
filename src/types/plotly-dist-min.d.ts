@@ -1,3 +1,7 @@
+// Copyright (C) 2026 Francisco Alejandro Valero Martin
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+// https://polyformproject.org/licenses/noncommercial/1.0.0
+
 // Type declaration for plotly.js-dist-min
 declare module 'plotly.js-dist-min' {
   interface PlotlyHTMLElement extends HTMLElement {

@@ -1,3 +1,7 @@
+// Copyright (C) 2026 Francisco Alejandro Valero Martin
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+// https://polyformproject.org/licenses/noncommercial/1.0.0
+
 // src/components/SemanticGraph.tsx
 import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { AlertCircle } from '@/lib/lucide-icons';

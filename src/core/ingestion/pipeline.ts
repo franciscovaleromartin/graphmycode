@@ -1,3 +1,7 @@
+// Copyright (C) 2026 Francisco Alejandro Valero Martin
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+// https://polyformproject.org/licenses/noncommercial/1.0.0
+
 import { createKnowledgeGraph } from '../graph/graph';
 import { extractZip, FileEntry } from '../../services/zip';
 import { processStructure } from './structure-processor';

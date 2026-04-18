@@ -1,3 +1,7 @@
+// Copyright (C) 2026 Francisco Alejandro Valero Martin
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+// https://polyformproject.org/licenses/noncommercial/1.0.0
+
 import { createContext, useContext, useCallback, useMemo, useState, ReactNode } from 'react';
 import type { GraphNode, NodeLabel } from 'gitnexus-shared';
 import type { KnowledgeGraph } from '../../core/graph/types';

@@ -1,3 +1,7 @@
+// Copyright (C) 2026 Francisco Alejandro Valero Martin
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+// https://polyformproject.org/licenses/noncommercial/1.0.0
+
 // Centralized UI and provider defaults to reduce magic numbers and duplicated URLs.
 export const ERROR_RESET_DELAY_MS = 3000;
 export const BACKEND_URL_DEBOUNCE_MS = 500;

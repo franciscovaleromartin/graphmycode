@@ -1,3 +1,7 @@
+// Copyright (C) 2026 Francisco Alejandro Valero Martin
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+// https://polyformproject.org/licenses/noncommercial/1.0.0
+
 import { initEmbedder, embedBatch, WebGPUNotAvailableError } from '../embeddings/embedder';
 import { EMBEDDABLE_LABELS } from '../embeddings/types';
 import type { GraphNode } from 'gitnexus-shared';
