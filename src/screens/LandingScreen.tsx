@@ -464,6 +464,38 @@ const TopBar = () => {
         </svg>
       </a>
 
+      {/* Web personal */}
+      <a
+        href="https://francisco-valero.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: '32px', height: '32px', borderRadius: '8px',
+          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'rgba(255,255,255,0.04)',
+          color: '#94a3b8', textDecoration: 'none',
+          transition: 'color 0.15s, background 0.15s, border-color 0.15s',
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLAnchorElement).style.color = '#f1f5f9';
+          (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.08)';
+          (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.2)';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLAnchorElement).style.color = '#94a3b8';
+          (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.04)';
+          (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.08)';
+        }}
+        aria-label="Web personal"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+      </a>
+
       {/* GitHub stars */}
       <a
         href="https://github.com/franciscovaleromartin/graphmycode"
