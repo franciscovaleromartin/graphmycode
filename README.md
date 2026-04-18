@@ -2,6 +2,8 @@
 
 ![GraphMyCode](public/og-image.png)
 
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0-blue.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0)
+
 **Visualize your codebase as an interactive knowledge graph — entirely in your browser.**
 
 GraphMyCode parses your source code and renders it as a navigable graph of files, functions, classes, interfaces, and their relationships. No server. No uploads. No account. Everything runs locally using WebAssembly.
@@ -106,4 +108,14 @@ npm test
 
 ## Author
 
-Built by [Francisco Valero](https://github.com/franciscovaleromartin).
+Built by [Francisco Alejandro Valero Martin](https://github.com/franciscovaleromartin).
+
+---
+
+## License
+
+Copyright (C) 2026 Francisco Alejandro Valero Martin.
+
+This project is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). Free for personal, educational, and non-commercial use. Commercial use is not permitted.
+
+The `gitnexus-shared` dependency is also licensed under PolyForm Noncommercial (© Abhigyan Patwari).

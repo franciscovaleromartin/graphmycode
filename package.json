@@ -1,7 +1,15 @@
 {
   "name": "graphmycode",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Visualize your codebase as an interactive knowledge graph — entirely in your browser.",
+  "homepage": "https://graphmycode.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/franciscovaleromartin/graphmycode"
+  },
+  "author": "Francisco Alejandro Valero Martin",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "engines": {
     "node": ">=20.0.0"
   },
