@@ -465,7 +465,7 @@ const TopBar = () => {
       </a>
 
       {/* GitHub stars */}
-      <
+      <a
         href="https://github.com/franciscovaleromartin/graphmycode"
         target="_blank"
         rel="noopener noreferrer"
