@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
+import '@fontsource-variable/inter';
+import '@fontsource-variable/jetbrains-mono';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';

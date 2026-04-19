@@ -34,8 +34,8 @@
   --color-node-method: #14b8a6;
 
   /* Fonts */
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'Fira Code', monospace;
 
   /* Animations */
   --animate-breathe: breathe 3s ease-in-out infinite;
