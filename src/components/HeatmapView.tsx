@@ -19,14 +19,15 @@ export interface HeatmapViewHandle {
   stopLayout: () => void;
 }
 
+export type HeatmapFilterMode = 'all' | 'hot' | 'cold';
+
 interface Props {
   graph: KnowledgeGraph;
   onNodeClick: (node: GraphNode) => void;
   onLayoutStateChange?: (running: boolean) => void;
   isActive?: boolean;
+  filter?: HeatmapFilterMode;
 }
-
-type FilterMode = 'all' | 'hot' | 'cold';
 
 interface Stats {
   nodes: number;
@@ -81,7 +82,7 @@ const FA2_SETTINGS = {
 // ── Component ───────────────────────────────────────────────────────────────
 
 export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
-  ({ graph, onNodeClick, onLayoutStateChange, isActive }, ref) => {
+  ({ graph, onNodeClick, onLayoutStateChange, isActive, filter = 'all' }, ref) => {
     const { isSidebarCollapsed } = useAppState();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gRef = useRef<Graph | null>(null);
@@ -91,13 +92,15 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
     const rafRef = useRef<number>(0);
     const isRunningRef = useRef(false);
     const layoutFrameCountRef = useRef(0);
-    const filterRef = useRef<FilterMode>('all');
+    const filterRef = useRef<HeatmapFilterMode>('all');
 
-    const [filter, setFilter] = useState<FilterMode>('all');
     const [stats, setStats] = useState<Stats>({ nodes: 0, edges: 0, critical: 0, cycles: 0 });
 
     // Camera state
     const cameraRef = useRef({ x: 0, y: 0, scale: 0.6 });
+
+    // Sincronizar el filtro prop → ref para que el render loop lo lea sin re-render
+    useEffect(() => { filterRef.current = filter; }, [filter]);
 
     // Tooltip & hover state
     const tooltipRef = useRef<{ node: HeatmapNode; px: number; py: number } | null>(null);
@@ -508,37 +511,8 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       onLayoutStateChange?.(true);
     };
 
-    const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const v = e.target.value as FilterMode;
-      setFilter(v);
-      filterRef.current = v;
-    };
-
     return (
       <div className="relative flex h-full w-full flex-col">
-        {/* Controles flotantes — respetan la sidebar y los botones de zoom */}
-        <div
-          className="absolute top-3 z-10 flex gap-2"
-          style={{ left: isSidebarCollapsed ? 56 : 224 }}
-        >
-          <button
-            onClick={handleReorganize}
-            className="rounded border border-border-default bg-bg-surface px-2 py-1 text-xs text-text-secondary hover:text-text-primary"
-          >
-            ↺ Reorganizar
-          </button>
-        </div>
-        <div className="absolute top-3 z-10" style={{ right: 52 }}>
-          <select
-            value={filter}
-            onChange={handleFilterChange}
-            className="rounded border border-border-default bg-bg-surface px-2 py-1 text-xs text-text-primary"
-          >
-            <option value="all">Todos los módulos</option>
-            <option value="hot">Solo acoplados (rojo)</option>
-            <option value="cold">Solo aislados (azul)</option>
-          </select>
-        </div>
 
         {/* Canvas */}
         <canvas

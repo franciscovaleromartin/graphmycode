@@ -180,6 +180,9 @@ interface AppState {
   // Métrica activa en la vista Technical Debt
   cityMetric: 'degree' | 'depth';
   setCityMetric: (v: 'degree' | 'depth') => void;
+  // Filtro activo en la vista Dependency Heatmap
+  heatmapFilter: 'all' | 'hot' | 'cold';
+  setHeatmapFilter: (v: 'all' | 'hot' | 'cold') => void;
   // Dependencias externas (npm/PyPI) para la capa External
   externalDeps: Record<string, string[]>;
   setExternalDeps: (deps: Record<string, string[]>) => void;
@@ -351,6 +354,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [graphViewType, setGraphViewType] = useState<'structural' | 'semantic' | 'city' | 'heatmap'>('structural');
   const [cityMetric, setCityMetric] = useState<'degree' | 'depth'>('degree');
+  const [heatmapFilter, setHeatmapFilter] = useState<'all' | 'hot' | 'cold'>('all');
   const [externalDeps, setExternalDeps] = useState<Record<string, string[]>>({});
   const [semanticClusterData, setSemanticClusterData] = useState<SemanticClusterEntry[] | null>(null);
   const [isAgentReady, setIsAgentReady] = useState(false);
@@ -1324,6 +1328,8 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
     setGraphViewType,
     cityMetric,
     setCityMetric,
+    heatmapFilter,
+    setHeatmapFilter,
     externalDeps,
     setExternalDeps,
     semanticClusterData,

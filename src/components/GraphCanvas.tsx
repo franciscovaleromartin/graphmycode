@@ -21,7 +21,7 @@ import {
   Globe,
 } from '@/lib/lucide-icons';
 import { CityView, type CityViewHandle } from './CityView';
-import { HeatmapView, type HeatmapViewHandle } from './HeatmapView';
+import { HeatmapView, type HeatmapViewHandle, type HeatmapFilterMode } from './HeatmapView';
 import { useSigma } from '../hooks/useSigma';
 import { useAppState } from '../hooks/useAppState';
 import { isProviderConfigured } from '../core/llm/settings-service';
@@ -70,6 +70,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
     setGraphViewType,
     cityMetric,
     setCityMetric,
+    heatmapFilter,
+    setHeatmapFilter,
     externalDeps,
     setSemanticClusterData,
   } = useAppState();
@@ -450,6 +452,37 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         </div>
       )}
 
+      {/* Filtro de nodos — visible solo en Dependency Heatmap */}
+      {graph && graphViewType === 'heatmap' && (
+        <div
+          className={`absolute top-12 z-20 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm transition-all duration-300 ${isSidebarCollapsed ? 'left-14' : 'left-60'}`}
+        >
+          {([
+            { value: 'all' as HeatmapFilterMode, label: 'Todos' },
+            { value: 'hot' as HeatmapFilterMode, label: 'Acoplados' },
+            { value: 'cold' as HeatmapFilterMode, label: 'Aislados' },
+          ] as { value: HeatmapFilterMode; label: string }[]).map(({ value, label }, i, arr) => (
+            <>
+              <button
+                key={value}
+                onClick={() => setHeatmapFilter(value)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+                  heatmapFilter === value
+                    ? 'bg-elevated text-text-primary'
+                    : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+                }`}
+              >
+                {value === 'all' && <Layers className="h-3 w-3" />}
+                {value === 'hot' && <span className="h-2 w-2 rounded-full bg-rose-500" />}
+                {value === 'cold' && <span className="h-2 w-2 rounded-full bg-blue-400" />}
+                {label}
+              </button>
+              {i < arr.length - 1 && <div className="w-px bg-border-subtle" />}
+            </>
+          ))}
+        </div>
+      )}
+
       {/* Sigma container — oculto (no destruido) en modo semántico */}
       <div
         ref={containerRef}
@@ -495,6 +528,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             ref={heatmapRef}
             graph={graph}
             isActive={graphViewType === 'heatmap'}
+            filter={heatmapFilter}
             onNodeClick={(node) => {
               setSelectedNode(node);
               openCodePanel();
