@@ -2,7 +2,41 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
-import { createReadStream, mkdirSync, readdirSync, copyFileSync, existsSync } from 'fs';
+import { createReadStream, mkdirSync, readdirSync, copyFileSync, existsSync, readFileSync, writeFileSync } from 'fs';
+
+// ─── Plugin: inlinar CSS crítico y cargar el resto de forma asíncrona ───────
+// Critters extrae el CSS necesario para el primer render y lo inlina en <head>,
+// convirtiendo el <link> original a rel="preload" para evitar bloqueo.
+function criticalCssPlugin(): Plugin {
+  return {
+    name: 'critical-css',
+    apply: 'build',
+    async closeBundle() {
+      const Critters = ((await import('critters')).default) as any;
+      const critters = new Critters({
+        path: path.join(__dirname, 'dist'),
+        publicPath: '/',
+        preload: 'media',
+        pruneSource: false,
+        logLevel: 'silent',
+      });
+      const htmlPath = path.join(__dirname, 'dist/index.html');
+      const html = readFileSync(htmlPath, 'utf-8');
+      let processed = await critters.process(html);
+      // Convertir los <link> con media=print (critters media mode) a rel=preload estándar
+      processed = processed.replace(
+        /<link rel="stylesheet"([^>]*)media="print"([^>]*)onload="this\.media='all'"([^>]*)>/g,
+        '<link rel="preload" as="style"$1$2$3 onload="this.onload=null;this.rel=\'stylesheet\'">',
+      );
+      // Corregir los <noscript> fallbacks: deben ser rel=stylesheet sin onload
+      processed = processed.replace(
+        /<noscript><link rel="preload" as="style"([^>]*)onload="[^"]*"([^>]*)><\/noscript>/g,
+        '<noscript><link rel="stylesheet"$1$2></noscript>',
+      );
+      writeFileSync(htmlPath, processed);
+    },
+  };
+}
 
 // ─── Plugin: sirve los archivos WASM de onnxruntime-web localmente ─────────
 // onnxruntime-web usa una versión dev que no existe en jsDelivr CDN,
@@ -71,7 +105,7 @@ function ortWasmPlugin(): Plugin {
 
 export default defineConfig({
   base: '/',
-  plugins: [react(), tailwindcss(), ortWasmPlugin()],
+  plugins: [react(), tailwindcss(), ortWasmPlugin(), criticalCssPlugin()],
   worker: {
     format: 'es',
   },
