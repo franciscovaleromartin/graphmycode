@@ -408,10 +408,17 @@ const TopBar = () => {
   const [stars, setStars] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch('https://api.github.com/repos/franciscovaleromartin/graphmycode')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => d?.stargazers_count != null && setStars(d.stargazers_count))
-      .catch(() => {});
+    const load = () =>
+      fetch('https://api.github.com/repos/franciscovaleromartin/graphmycode')
+        .then(r => r.ok ? r.json() : null)
+        .then(d => d?.stargazers_count != null && setStars(d.stargazers_count))
+        .catch(() => {});
+
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(load);
+    } else {
+      setTimeout(load, 5_000);
+    }
   }, []);
 
   return (
@@ -549,14 +556,16 @@ export const LandingScreen = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Pre-calentar el worker y los WASM de lenguaje al montar el componente.
-  // Objetivo: que el chunk JS del worker y todos los archivos WASM queden en
-  // caché del navegador antes de que el usuario pueda desconectarse de internet.
-  // Los WASM de lenguaje se descargan en segundo plano durante el tiempo de
-  // inactividad del navegador para no interferir con la carga inicial.
-  useEffect(() => {
+  // Precalentar el worker y los WASM solo cuando el usuario muestra intención
+  // de usar la herramienta (hover/focus sobre el panel de análisis).
+  // Evita descargas pesadas en la ruta crítica del LCP.
+  const preWarmedRef = useRef(false);
+  const triggerPreWarm = useCallback(() => {
+    if (preWarmedRef.current) return;
+    preWarmedRef.current = true;
+
     const api = getWorkerApi();
-    api.preWarm().catch(() => {/* no fatal */});
+    api.preWarm().catch(() => {});
 
     const languageWasms = [
       '/wasm/typescript/tree-sitter-typescript.wasm',
@@ -572,15 +581,7 @@ export const LandingScreen = () => {
       '/wasm/ruby/tree-sitter-ruby.wasm',
       '/wasm/php/tree-sitter-php.wasm',
     ];
-
-    const prefetch = () =>
-      languageWasms.forEach(url => fetch(url).catch(() => {}));
-
-    if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(prefetch, { timeout: 10_000 });
-    } else {
-      setTimeout(prefetch, 3_000);
-    }
+    languageWasms.forEach(url => fetch(url).catch(() => {}));
   }, []);
 
   const runPipeline = useCallback(
@@ -680,7 +681,7 @@ export const LandingScreen = () => {
         <div className="absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-node-function/6 blur-3xl" />
       </div>
 
-      <div className="relative w-full max-w-xl">
+      <div className="relative w-full max-w-xl" onPointerEnter={triggerPreWarm} onFocus={triggerPreWarm}>
         {/* Header */}
         <div className="mb-10 text-center">
           <h1 className="mb-1 text-4xl font-semibold tracking-tight text-text-primary">
