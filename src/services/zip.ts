@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
-import JSZip from 'jszip';
 import { shouldIgnorePath } from '../config/ignore-service';
 
 export interface FileEntry {
@@ -10,32 +9,18 @@ export interface FileEntry {
     content: string;
 }
 
-/**
- * Find the common root folder prefix in ZIP files
- * GitHub ZIPs have a root folder like "repo-main/" or "repo-branch/"
- */
 const findRootPrefix = (paths: string[]): string => {
     if (paths.length === 0) return '';
-    
-    // Get the first path segment of each file
     const firstSegments = paths
         .filter(p => p.includes('/'))
         .map(p => p.split('/')[0]);
-    
     if (firstSegments.length === 0) return '';
-    
-    // Check if ALL files share the same first segment
     const firstSegment = firstSegments[0];
-    const allSameRoot = firstSegments.every(s => s === firstSegment);
-    
-    if (allSameRoot) {
-        return firstSegment + '/';
-    }
-    
-    return '';
+    return firstSegments.every(s => s === firstSegment) ? firstSegment + '/' : '';
 };
 
 export const extractZip = async (file: File): Promise<FileEntry[]> => {
+    const JSZip = (await import('jszip')).default;
     const zip = await JSZip.loadAsync(file);
     const files: FileEntry[] = [];
     const allPaths: string[] = [];
@@ -52,7 +37,7 @@ export const extractZip = async (file: File): Promise<FileEntry[]> => {
     
     const promises: Promise<void>[] = [];
 
-    const processEntry = async (relativePath: string, entry: JSZip.JSZipObject) => {
+    const processEntry = async (relativePath: string, entry: { dir: boolean; async(type: 'string'): Promise<string> }) => {
         if (entry.dir) return;
         
         // Strip root prefix if present
