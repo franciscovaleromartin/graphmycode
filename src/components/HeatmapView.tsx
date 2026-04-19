@@ -97,7 +97,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
     const [stats, setStats] = useState<Stats>({ nodes: 0, edges: 0, critical: 0, cycles: 0 });
 
     // Camera state
-    const cameraRef = useRef({ x: 0, y: 0, scale: 1 });
+    const cameraRef = useRef({ x: 0, y: 0, scale: 0.6 });
 
     // Tooltip & hover state
     const tooltipRef = useRef<{ node: HeatmapNode; px: number; py: number } | null>(null);
@@ -487,7 +487,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
         cameraRef.current.scale = Math.max(0.1, cameraRef.current.scale / 1.25);
       },
       resetZoom: () => {
-        cameraRef.current = { x: 0, y: 0, scale: 1 };
+        cameraRef.current = { x: 0, y: 0, scale: 0.6 };
       },
       startLayout: () => {
         randomizePositions();
