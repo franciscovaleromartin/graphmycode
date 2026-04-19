@@ -673,7 +673,7 @@ export const LandingScreen = () => {
 
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-void px-6 pt-16">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-void px-6 pt-16">
       <TopBar />
       {/* Ambient glows */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -802,6 +802,6 @@ export const LandingScreen = () => {
           {t.privacy}
         </p>
       </div>
-    </div>
+    </main>
   );
 };

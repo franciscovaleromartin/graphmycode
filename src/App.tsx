@@ -45,7 +45,7 @@ const AppContent = () => {
 
   return (
     <Suspense fallback={null}>
-      <div className="flex h-screen w-screen overflow-hidden bg-void">
+      <main className="flex h-screen w-screen overflow-hidden bg-void">
         <SidePanel />
         <GraphCanvas ref={graphCanvasRef} />
         <RightPanel />
@@ -53,7 +53,7 @@ const AppContent = () => {
           isOpen={isSettingsPanelOpen}
           onClose={() => setSettingsPanelOpen(false)}
         />
-      </div>
+      </main>
     </Suspense>
   );
 };
