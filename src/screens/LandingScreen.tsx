@@ -686,15 +686,19 @@ export const LandingScreen = () => {
           <h1 className="mb-1 text-4xl font-semibold tracking-tight text-text-primary">
             <span className="text-fuchsia-400">Graph</span>My<span className="text-cyan-400">Code</span><span className="text-sm font-normal text-text-secondary">.com</span>
           </h1>
-          <p className="mb-2 text-xs text-text-muted">{t.by}</p>
+          <p className="mb-2 text-xs text-text-muted" aria-label={t.by}>{t.by}</p>
           <p className="text-sm text-text-secondary">{t.tagline}</p>
         </div>
 
         {/* Tab switcher */}
-        <div className="mb-4 flex rounded-xl border border-border-subtle bg-surface p-1">
+        <div role="tablist" aria-label="Modo de entrada" className="mb-4 flex rounded-xl border border-border-subtle bg-surface p-1">
           {(['zip', 'github'] as InputMode[]).map((tab) => (
             <button
               key={tab}
+              role="tab"
+              aria-selected={mode === tab}
+              aria-controls={tab === 'zip' ? 'panel-zip' : 'panel-github'}
+              id={tab === 'zip' ? 'tab-zip' : 'tab-github'}
               onClick={() => { setMode(tab); setError(null); }}
               className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
                 mode === tab
@@ -710,39 +714,52 @@ export const LandingScreen = () => {
         {/* ZIP drop zone */}
         {mode === 'zip' && (
           <div
-            className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed py-14 transition-all ${
-              isDragging
-                ? 'border-accent bg-accent/8 scale-[1.01]'
-                : 'border-border-default bg-surface hover:border-accent/50 hover:bg-elevated'
-            }`}
-            onDragOver={onDragOver}
-            onDragLeave={onDragLeave}
-            onDrop={onDrop}
-            onClick={() => fileInputRef.current?.click()}
+            id="panel-zip"
+            role="tabpanel"
+            aria-labelledby="tab-zip"
           >
-            <svg
-              className={`mb-4 h-10 w-10 transition-colors ${isDragging ? 'text-accent' : 'text-text-muted'}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label={`${t.dropTitle}. ${t.dropSubtitle}`}
+              className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed py-14 transition-all ${
+                isDragging
+                  ? 'border-accent bg-accent/8 scale-[1.01]'
+                  : 'border-border-default bg-surface hover:border-accent/50 hover:bg-elevated'
+              }`}
+              onDragOver={onDragOver}
+              onDragLeave={onDragLeave}
+              onDrop={onDrop}
+              onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
             >
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+              <svg
+                aria-hidden="true"
+                className={`mb-4 h-10 w-10 transition-colors ${isDragging ? 'text-accent' : 'text-text-muted'}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                />
+              </svg>
+              <p className="mb-1 text-sm font-medium text-text-primary" aria-hidden="true">{t.dropTitle}</p>
+              <p className="text-xs text-text-muted" aria-hidden="true">{t.dropSubtitle}</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".zip"
+                className="hidden"
+                aria-hidden="true"
+                tabIndex={-1}
+                onChange={(e) => e.target.files && handleFiles(e.target.files)}
               />
-            </svg>
-            <p className="mb-1 text-sm font-medium text-text-primary">{t.dropTitle}</p>
-            <p className="text-xs text-text-muted">{t.dropSubtitle}</p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".zip"
-              className="hidden"
-              onChange={(e) => e.target.files && handleFiles(e.target.files)}
-            />
+            </div>
           </div>
         )}
 
         {/* GitHub URL input */}
         {mode === 'github' && (
-          <div className="rounded-2xl border border-border-default bg-surface p-6">
+          <div id="panel-github" role="tabpanel" aria-labelledby="tab-github" className="rounded-2xl border border-border-default bg-surface p-6">
             <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-text-muted">
               {t.repoLabel}
             </label>

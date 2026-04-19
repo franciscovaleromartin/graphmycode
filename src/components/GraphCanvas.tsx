@@ -637,7 +637,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
           <p className="text-xs font-semibold text-text-primary">
             GraphMy<span className="text-secondary">Code</span>.com
           </p>
-          <p className="text-[10px] text-text-muted">por Francisco Valero</p>
+          <p className="text-xs text-text-muted" aria-label="por Francisco Valero">por Francisco Valero</p>
         </div>
         <button
           onClick={handleToggleAIHighlights}
