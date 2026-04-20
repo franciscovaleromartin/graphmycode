@@ -691,6 +691,18 @@ export const LandingScreen = () => {
           <p className="text-sm text-text-secondary">{t.tagline}</p>
         </div>
 
+        {/* Vídeo anuncio */}
+        <div className="mb-4 w-full max-w-xl overflow-hidden rounded-xl border border-border-subtle shadow-lg">
+          <video
+            controls
+            preload="none"
+            className="w-full"
+            aria-label="Vídeo de presentación de GraphMyCode"
+          >
+            <source src="/anuncio_GraphMyCode.mp4" type="video/mp4" />
+          </video>
+        </div>
+
         {/* Tab switcher */}
         <div role="tablist" aria-label="Modo de entrada" className="mb-4 flex rounded-xl border border-border-subtle bg-surface p-1">
           {(['zip', 'github'] as InputMode[]).map((tab) => (
