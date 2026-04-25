@@ -43,7 +43,7 @@ All analysis runs in-browser via WebAssembly. No code is sent to any server. No 
 
 ## Author
 
-- Name: Francisco Alejandro Valero Martin
+- Name: Francisco Valero
 - GitHub: https://github.com/franciscovaleromartin
 - LinkedIn: https://www.linkedin.com/in/francisco-valero/
 - Website: https://francisco-valero.com
