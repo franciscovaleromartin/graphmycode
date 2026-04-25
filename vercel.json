@@ -2,6 +2,14 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.graphmycode.com" }],
+      "destination": "https://graphmycode.com/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/privacy", "destination": "/privacy/index.html" },
     { "source": "/how-it-works", "destination": "/how-it-works/index.html" },
