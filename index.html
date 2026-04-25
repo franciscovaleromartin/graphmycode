@@ -6,10 +6,104 @@
     <title>GraphMyCode.com — Visualiza y entiende tu código como un grafo</title>
 
     <!-- SEO básico -->
-    <meta name="description" content="GraphMyCode convierte cualquier repositorio en un grafo interactivo de dependencias 3D. Navega archivos, clases y funciones visualmente, analiza el impacto de tus cambios y haz preguntas sobre tu código con IA." />
+    <meta name="description" content="GraphMyCode convierte cualquier repositorio en un grafo interactivo de dependencias. Navega archivos, detecta deuda técnica, ciclos de importación y pregunta a la IA. Sin servidor ni instalación." />
     <meta name="keywords" content="code graph, dependency graph, code visualization, semantic code analysis, codebase explorer, AI code assistant, knowledge graph" />
     <meta name="author" content="Francisco Valero" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <link rel="canonical" href="https://graphmycode.com" />
+
+    <!-- Structured Data / JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://graphmycode.com/#software",
+          "name": "GraphMyCode",
+          "alternateName": "GraphMyCode.com",
+          "url": "https://graphmycode.com",
+          "description": "GraphMyCode converts any codebase into an interactive dependency graph running entirely in the browser. Navigate files, classes, and functions visually, detect technical debt, analyze change impact, and ask AI questions about your code — no installation required.",
+          "applicationCategory": "DeveloperApplication",
+          "applicationSubCategory": "Code Visualization",
+          "operatingSystem": "Web Browser",
+          "browserRequirements": "Requires a modern browser with WebAssembly support",
+          "downloadUrl": "https://graphmycode.com",
+          "installUrl": "https://graphmycode.com",
+          "screenshot": "https://graphmycode.com/og-image.png",
+          "image": "https://graphmycode.com/og-image.png",
+          "programmingLanguage": [
+            "JavaScript", "TypeScript", "Python", "Java",
+            "Go", "Rust", "C", "C++", "C#", "PHP", "Ruby", "Swift"
+          ],
+          "featureList": [
+            "Interactive 3D dependency graph",
+            "Structural view — file, class, and function relationships",
+            "Semantic 3D view — code similarity clustering via WASM embeddings",
+            "Technical Debt City — 3D city metaphor for coupling metrics",
+            "Dependency Heatmap — import cycle and circular coupling detection",
+            "AI-powered code Q&A (optional, bring your own API key)",
+            "No installation required — runs entirely in browser via WebAssembly",
+            "Open source"
+          ],
+          "isAccessibleForFree": true,
+          "license": "https://polyformproject.org/licenses/noncommercial/1.0.0/",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock",
+            "url": "https://graphmycode.com"
+          },
+          "author": { "@id": "https://graphmycode.com/#author" },
+          "creator": { "@id": "https://graphmycode.com/#author" },
+          "maintainer": { "@id": "https://graphmycode.com/#author" },
+          "codeRepository": "https://github.com/franciscovaleromartin/graphmycode",
+          "sameAs": [
+            "https://github.com/franciscovaleromartin/graphmycode"
+          ],
+          "keywords": "code visualization, dependency graph, codebase explorer, code graph, semantic code analysis, AI code assistant, developer tool, open source, WebAssembly, tree-sitter"
+        },
+        {
+          "@type": "Person",
+          "@id": "https://graphmycode.com/#author",
+          "name": "Francisco Alejandro Valero Martin",
+          "givenName": "Francisco",
+          "familyName": "Valero Martin",
+          "alternateName": "Francisco Valero",
+          "url": "https://francisco-valero.com",
+          "description": "Software developer and creator of GraphMyCode. Builds developer tools focused on code comprehension, visualization, and AI-assisted analysis.",
+          "jobTitle": "Software Developer",
+          "knowsAbout": [
+            "Code visualization",
+            "Dependency graph analysis",
+            "React",
+            "TypeScript",
+            "WebAssembly",
+            "Tree-sitter",
+            "Semantic code analysis",
+            "Developer tools",
+            "Open source software"
+          ],
+          "sameAs": [
+            "https://www.linkedin.com/in/francisco-valero/",
+            "https://github.com/franciscovaleromartin",
+            "https://francisco-valero.com"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://graphmycode.com/#website",
+          "name": "GraphMyCode",
+          "alternateName": "GraphMyCode.com",
+          "url": "https://graphmycode.com",
+          "description": "Interactive code visualization tool — convert any repository into a dependency graph in the browser.",
+          "inLanguage": ["es", "en"],
+          "publisher": { "@id": "https://graphmycode.com/#author" }
+        }
+      ]
+    }
+    </script>
 
     <!-- Open Graph (LinkedIn, Facebook, WhatsApp, Slack…) -->
     <meta property="og:type" content="website" />

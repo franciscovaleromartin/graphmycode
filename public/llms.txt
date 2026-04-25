@@ -1,0 +1,45 @@
+# GraphMyCode
+
+> GraphMyCode visualizes any codebase as an interactive dependency graph running entirely in the browser. No uploads, no server, no account required. Uses WebAssembly (tree-sitter, Hugging Face transformers) for in-browser parsing and semantic analysis. Free and open source (PolyForm Noncommercial License).
+
+## Product
+
+- [GraphMyCode](https://graphmycode.com): Main application — interactive code graph visualization tool for developers
+
+## Features
+
+- Structural View: Interactive graph of files, classes, functions, imports, and call relationships. Answers "what does this file import?", "who calls this function?", "which modules are isolated?"
+- Semantic 3D: Groups nodes by code similarity using local WASM embeddings (HuggingFace transformers + UMAP + Leiden). Finds duplicated logic and similar modules.
+- Technical Debt City: 3D city metaphor where building height represents technical debt (coupling metrics). Identifies the hardest files to change.
+- Dependency Heatmap: Coupling visualization with bidirectional edge detection (orange edges). Detects import cycles and spaghetti code patterns.
+- AI Q&A (optional): Connect your own API key (OpenAI, Gemini, Anthropic, or Ollama) to ask natural-language questions about the codebase.
+
+## Supported Languages
+
+JavaScript, TypeScript, Python, Java, Go, Rust, C, C++, C#, PHP, Ruby, Swift
+
+## Tech Stack
+
+React 18, TypeScript, Vite, Tailwind CSS v4, Sigma.js, Three.js, web-tree-sitter (WASM), @huggingface/transformers (WASM), UMAP, Leiden algorithm, Graphology, ForceAtlas2
+
+## Input Methods
+
+- ZIP file upload (code never leaves the browser)
+- Public GitHub repository URL (max 250 source files)
+
+## Privacy
+
+All analysis runs in-browser via WebAssembly. No code is sent to any server. No telemetry. No personal data collected. When the tab is closed, everything disappears.
+
+## Source & License
+
+- [GitHub Repository](https://github.com/franciscovaleromartin/graphmycode): Source code under PolyForm Noncommercial License 1.0.0
+- License URL: https://polyformproject.org/licenses/noncommercial/1.0.0/
+- Free for personal, educational, and non-commercial use. Commercial use not permitted.
+
+## Author
+
+- Name: Francisco Alejandro Valero Martin
+- GitHub: https://github.com/franciscovaleromartin
+- LinkedIn: https://www.linkedin.com/in/francisco-valero/
+- Website: https://francisco-valero.com
