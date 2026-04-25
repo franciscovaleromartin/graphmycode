@@ -11,6 +11,9 @@
     <meta name="author" content="Francisco Valero" />
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <link rel="canonical" href="https://graphmycode.com" />
+    <link rel="alternate" hreflang="es" href="https://graphmycode.com/" />
+    <link rel="alternate" hreflang="en" href="https://graphmycode.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://graphmycode.com/" />
 
     <!-- Structured Data / JSON-LD -->
     <script type="application/ld+json">
@@ -30,8 +33,8 @@
           "browserRequirements": "Requires a modern browser with WebAssembly support",
           "downloadUrl": "https://graphmycode.com",
           "installUrl": "https://graphmycode.com",
-          "screenshot": "https://graphmycode.com/og-image.png",
-          "image": "https://graphmycode.com/og-image.png",
+          "screenshot": "https://graphmycode.com/og-image.jpg",
+          "image": "https://graphmycode.com/og-image.jpg",
           "programmingLanguage": [
             "JavaScript", "TypeScript", "Python", "Java",
             "Go", "Rust", "C", "C++", "C#", "PHP", "Ruby", "Swift"
@@ -47,7 +50,7 @@
             "Open source"
           ],
           "isAccessibleForFree": true,
-          "license": "https://polyformproject.org/licenses/noncommercial/1.0.0/",
+          "license": "https://polyformproject.org/licenses/noncommercial/1.0.0",
           "offers": {
             "@type": "Offer",
             "price": "0",
@@ -110,7 +113,7 @@
     <meta property="og:url" content="https://graphmycode.com" />
     <meta property="og:title" content="GraphMyCode.com — Visualiza y entiende tu código como un grafo" />
     <meta property="og:description" content="Convierte cualquier repositorio en un grafo interactivo. Navega dependencias, detecta acoplamiento, analiza impacto y pregunta a la IA sobre tu código. Todo en el navegador, sin instalar nada." />
-    <meta property="og:image" content="https://graphmycode.com/og-image.png" />
+    <meta property="og:image" content="https://graphmycode.com/og-image.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="es_ES" />
@@ -122,7 +125,7 @@
     <meta name="twitter:url" content="https://graphmycode.com" />
     <meta name="twitter:title" content="GraphMyCode.com — Visualiza y entiende tu código como un grafo" />
     <meta name="twitter:description" content="Convierte cualquier repositorio en un grafo interactivo. Navega dependencias, detecta acoplamiento, analiza impacto y pregunta a la IA sobre tu código. Todo en el navegador, sin instalar nada." />
-    <meta name="twitter:image" content="https://graphmycode.com/og-image.png" />
+    <meta name="twitter:image" content="https://graphmycode.com/og-image.jpg" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/favicon.png" />
@@ -132,7 +135,44 @@
     <meta name="msapplication-TileColor" content="#000000" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div aria-hidden="true" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0">
+      <main>
+        <h1>GraphMyCode — Visualiza y entiende tu código como un grafo</h1>
+        <p>por Francisco Valero. Convierte cualquier repositorio en un grafo interactivo de dependencias. Tu código nunca sale del navegador.</p>
+        <p>Visualize your code architecture instantly. Convert any repository into an interactive dependency graph — no installation, no server, no account required. Supports 12 programming languages, up to 250 source files.</p>
+        <h2>¿Qué es GraphMyCode?</h2>
+        <p>GraphMyCode convierte cualquier repositorio de código en un grafo interactivo de dependencias que se ejecuta completamente en tu navegador. Sin instalación, sin servidor, sin cuenta. Analiza hasta 250 archivos fuente de 12 lenguajes de programación. Todo el procesamiento ocurre mediante WebAssembly (tree-sitter, HuggingFace transformers) directamente en tu máquina.</p>
+        <h2>What is GraphMyCode?</h2>
+        <p>GraphMyCode converts any code repository into an interactive dependency graph running entirely in your browser. No installation, no server, no account required. Analyzes up to 250 source files across 12 programming languages using WebAssembly (tree-sitter, HuggingFace transformers).</p>
+        <h2>¿Cómo funciona?</h2>
+        <p>Sube un .zip de tu proyecto o pega una URL de GitHub público. GraphMyCode parsea el código con tree-sitter (WebAssembly), construye un grafo de símbolos y dependencias en memoria y lo renderiza de forma interactiva. Tu código nunca abandona el navegador.</p>
+        <h2>How does it work?</h2>
+        <p>Upload a .zip of your project or paste a public GitHub URL. GraphMyCode parses your code with tree-sitter (WebAssembly), builds a symbol and dependency graph in memory, and renders it interactively. Your code never leaves your browser.</p>
+        <h2>Cuatro vistas para entender cualquier código</h2>
+        <h3>Vista Structural — Grafo de dependencias interactivo</h3>
+        <p>Grafo 2D interactivo de archivos, clases, funciones e importaciones. Responde: ¿qué importa este fichero? ¿quién llama a esta función? ¿qué módulos están aislados? ¿cómo fluye la ejecución?</p>
+        <h3>Vista Semantic 3D — Similaridad semántica del código</h3>
+        <p>Agrupa nodos por similaridad de código usando embeddings locales (HuggingFace WASM) + UMAP + algoritmo de Leiden. Detecta lógica duplicada y analiza el impacto real de un cambio más allá de las dependencias directas.</p>
+        <h3>Vista Technical Debt City — Deuda técnica como ciudad 3D</h3>
+        <p>Visualiza el repositorio como una ciudad 3D. El edificio más alto de cada barrio tiene más deuda técnica (mayor acoplamiento). Identifica los ficheros más difíciles de cambiar y el código más acoplado.</p>
+        <h3>Vista Dependency Heatmap — Mapa de calor de dependencias</h3>
+        <p>Muestra el acoplamiento real entre archivos. Detecta ciclos de importación y código espagueti. Las dependencias bidireccionales aparecen como aristas naranjas. Identifica exactamente dónde romper dependencias.</p>
+        <h2>Privacidad: sin servidor ni base de datos</h2>
+        <p>Todo corre en tu navegador, en memoria. Al cerrar la pestaña, desaparece sin dejar rastro. Sin telemetría propia, sin datos personales. Zero server requests — all analysis runs in-browser via WebAssembly.</p>
+        <h2>IA para preguntar sobre tu código (opcional)</h2>
+        <p>Conecta tu propia API key (OpenAI, Gemini, Anthropic u Ollama) y hazle preguntas en lenguaje natural sobre tu codebase. Con Ollama, el código no sale de tu máquina.</p>
+        <h2>Lenguajes de programación soportados</h2>
+        <p>JavaScript, TypeScript, Python, Java, Go, Rust, C, C++, C#, PHP, Ruby y Swift. Soporta hasta 250 archivos fuente por repositorio.</p>
+        <h2>¿Es gratuito GraphMyCode?</h2>
+        <p>Sí. GraphMyCode es de código abierto bajo la licencia PolyForm Noncommercial 1.0. Gratuito para uso personal, educativo y no comercial. El código fuente está en GitHub.</p>
+        <nav>
+          <a href="/privacy">Política de privacidad</a>
+          <a href="/how-it-works">Cómo funciona</a>
+          <a href="/use-cases">Casos de uso</a>
+          <a href="https://github.com/franciscovaleromartin/graphmycode">GitHub</a>
+        </nav>
+      </main>
+    </div></div>
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {

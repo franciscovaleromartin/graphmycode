@@ -10,6 +10,11 @@
       "permanent": true
     }
   ],
+  "rewrites": [
+    { "source": "/privacy", "destination": "/privacy/index.html" },
+    { "source": "/how-it-works", "destination": "/how-it-works/index.html" },
+    { "source": "/use-cases", "destination": "/use-cases/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

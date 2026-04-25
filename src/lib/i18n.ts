@@ -138,6 +138,28 @@ const translations = {
       'Déjalo vacío para usar la API por defecto. Ponlo para proxies o APIs compatibles.',
     connected: 'Conectado',
     notConnected: 'No conectado',
+
+    // ── Stats chips ──────────────────────────────────────────────────
+    statsRow: ['12 lenguajes', 'hasta 250 archivos', '0 servidores', '4 vistas'],
+
+    // ── FAQ ──────────────────────────────────────────────────────────
+    faqTitle: 'Preguntas frecuentes',
+    faq1Q: '¿Qué es GraphMyCode?',
+    faq1A: 'GraphMyCode convierte cualquier repositorio en un grafo interactivo de dependencias que se ejecuta completamente en tu navegador. Sin instalación, sin servidor, sin cuenta. Analiza hasta 250 archivos fuente de 12 lenguajes de programación.',
+    faq2Q: '¿Cómo funciona?',
+    faq2A: 'Sube un .zip de tu proyecto o pega una URL de GitHub público. GraphMyCode parsea el código con tree-sitter (WebAssembly), construye un grafo de símbolos y dependencias en memoria y lo renderiza de forma interactiva. Tu código nunca abandona el navegador.',
+    faq3Q: '¿Qué lenguajes de programación soporta?',
+    faq3A: 'JavaScript, TypeScript, Python, Java, Go, Rust, C, C++, C#, PHP, Ruby y Swift. Hasta 250 archivos fuente por repositorio.',
+    faq4Q: '¿Es gratuito?',
+    faq4A: 'Sí. GraphMyCode es de código abierto bajo la licencia PolyForm Noncommercial 1.0. Gratuito para uso personal, educativo y no comercial.',
+
+    // ── Footer ───────────────────────────────────────────────────────
+    footerPrivacy: 'Política de privacidad',
+    footerHowItWorks: 'Cómo funciona',
+    footerUseCases: 'Casos de uso',
+    footerLicense: 'Licencia PolyForm',
+    footerRights: '© 2026 Francisco Valero',
+    footerUpdated: 'Actualizado: abril 2026',
   },
 
   en: {
@@ -256,6 +278,28 @@ const translations = {
     baseUrlHint: 'Leave empty to use the default API. Set a custom URL for proxies or compatible APIs.',
     connected: 'Connected',
     notConnected: 'Not connected',
+
+    // ── Stats chips ──────────────────────────────────────────────────
+    statsRow: ['12 languages', 'up to 250 files', '0 servers', '4 views'],
+
+    // ── FAQ ──────────────────────────────────────────────────────────
+    faqTitle: 'Frequently asked questions',
+    faq1Q: 'What is GraphMyCode?',
+    faq1A: 'GraphMyCode converts any code repository into an interactive dependency graph running entirely in your browser. No installation, no server, no account required. Analyzes up to 250 source files across 12 programming languages.',
+    faq2Q: 'How does it work?',
+    faq2A: 'Upload a .zip of your project or paste a public GitHub URL. GraphMyCode parses your code with tree-sitter (WebAssembly), builds a symbol and dependency graph in memory, and renders it interactively. Your code never leaves your browser.',
+    faq3Q: 'Which programming languages are supported?',
+    faq3A: 'JavaScript, TypeScript, Python, Java, Go, Rust, C, C++, C#, PHP, Ruby, and Swift. Up to 250 source files per repository.',
+    faq4Q: 'Is it free?',
+    faq4A: 'Yes. GraphMyCode is open source under the PolyForm Noncommercial 1.0 license. Free for personal, educational, and non-commercial use.',
+
+    // ── Footer ───────────────────────────────────────────────────────
+    footerPrivacy: 'Privacy policy',
+    footerHowItWorks: 'How it works',
+    footerUseCases: 'Use cases',
+    footerLicense: 'PolyForm License',
+    footerRights: '© 2026 Francisco Valero',
+    footerUpdated: 'Updated: April 2026',
   },
 };
 

@@ -271,9 +271,9 @@ const LandingCards = () => {
           }}>
             {t.cardsViewsTag}
           </span>
-          <p style={{ fontSize: '15px', fontWeight: 600, color: '#f1f5f9', marginBottom: '4px', lineHeight: 1.35 }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#f1f5f9', margin: '0 0 4px', lineHeight: 1.35 }}>
             {t.cardsViewsTitle}
-          </p>
+          </h2>
           <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px', lineHeight: 1.5 }}>
             {t.cardsViewsSub}
           </p>
@@ -287,9 +287,9 @@ const LandingCards = () => {
               }}>
                 <span style={{ fontSize: '15px', flexShrink: 0, marginTop: '1px' }}>{view.icon}</span>
                 <div>
-                  <p style={{ fontSize: '11px', fontWeight: 600, color: '#e2e8f0', marginBottom: '5px', lineHeight: 1.2 }}>
+                  <h3 style={{ fontSize: '11px', fontWeight: 600, color: '#e2e8f0', margin: '0 0 5px', lineHeight: 1.2 }}>
                     {view.name}
-                  </p>
+                  </h3>
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
                     {view.bullets.map((b: string) => (
                       <li key={b} style={{
@@ -335,9 +335,9 @@ const LandingCards = () => {
           }}>
             {t.cardsPrivacyTag}
           </span>
-          <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', margin: '0 0 6px', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
             {t.cardsPrivacyTitle}
-          </p>
+          </h2>
           <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.6 }}>
             {t.cardsPrivacyBody}
           </p>
@@ -376,9 +376,9 @@ const LandingCards = () => {
               {t.cardsAiOptional}
             </span>
           </div>
-          <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px', lineHeight: 1.35 }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', margin: '0 0 6px', lineHeight: 1.35 }}>
             {t.cardsAiTitle}
-          </p>
+          </h2>
           <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.6 }}>
             {t.cardsAiBody}
           </p>
@@ -395,6 +395,119 @@ const LandingCards = () => {
 
       </div>
     </div>
+  );
+};
+
+// ── VideoLazy ─────────────────────────────────────────────────────────────────
+// El elemento <video> solo se inserta en el DOM cuando el contenedor entra
+// en el viewport, evitando cualquier petición de red en la carga inicial.
+
+const VideoLazy = () => {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { rootMargin: '200px' },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={wrapperRef}
+      className="mb-4 w-full max-w-xl overflow-hidden rounded-xl border border-border-subtle shadow-lg"
+      style={{ aspectRatio: '16/9', background: '#0c111d' }}
+    >
+      {visible && (
+        <video
+          controls
+          preload="metadata"
+          className="w-full h-full"
+          aria-label="Vídeo de presentación de GraphMyCode"
+        >
+          <source src="/anuncio_GraphMyCode.mp4" type="video/mp4" />
+        </video>
+      )}
+    </div>
+  );
+};
+
+// ── StatsRow ──────────────────────────────────────────────────────────────────
+
+const StatsRow = () => {
+  const t = useT();
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '6px', margin: '10px 0 14px' }}>
+      {(t.statsRow as string[]).map((stat) => (
+        <span key={stat} style={{
+          fontSize: '11px', fontWeight: 500, padding: '3px 10px',
+          borderRadius: '20px', background: 'rgba(255,255,255,.04)',
+          border: '1px solid rgba(255,255,255,.07)', color: '#64748b',
+          letterSpacing: '.02em',
+        }}>
+          {stat}
+        </span>
+      ))}
+    </div>
+  );
+};
+
+// ── FaqSection ────────────────────────────────────────────────────────────────
+
+const FaqSection = () => {
+  const t = useT();
+  const [open, setOpen] = useState<number | null>(null);
+
+  const items = [
+    { q: t.faq1Q, a: t.faq1A },
+    { q: t.faq2Q, a: t.faq2A },
+    { q: t.faq3Q, a: t.faq3A },
+    { q: t.faq4Q, a: t.faq4A },
+  ];
+
+  return (
+    <section aria-labelledby="faq-heading" style={{ marginTop: '20px' }}>
+      <h2 id="faq-heading" style={{
+        fontSize: '11px', fontWeight: 600, color: '#475569',
+        textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: '6px',
+      }}>
+        {t.faqTitle}
+      </h2>
+      {items.map((item, i) => (
+        <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,.05)' }}>
+          <button
+            onClick={() => setOpen(open === i ? null : i)}
+            style={{
+              width: '100%', display: 'flex', justifyContent: 'space-between',
+              alignItems: 'center', padding: '12px 0', background: 'none',
+              border: 'none', cursor: 'pointer', color: '#cbd5e1',
+              fontSize: '12px', fontWeight: 500, textAlign: 'left', gap: '12px',
+            }}
+            aria-expanded={open === i}
+          >
+            <span>{item.q}</span>
+            <svg
+              width="13" height="13" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              style={{ flexShrink: 0, transform: open === i ? 'rotate(180deg)' : 'none', transition: 'transform .2s', color: '#475569' }}
+              aria-hidden="true"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          {open === i && (
+            <p style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.65, paddingBottom: '12px', margin: 0 }}>
+              {item.a}
+            </p>
+          )}
+        </div>
+      ))}
+    </section>
   );
 };
 
@@ -689,19 +802,11 @@ export const LandingScreen = () => {
           </h1>
           <p className="mb-2 text-xs text-text-muted" aria-label={t.by}>{t.by}</p>
           <p className="text-sm text-text-secondary">{t.tagline}</p>
+          <StatsRow />
         </div>
 
-        {/* Vídeo anuncio */}
-        <div className="mb-4 w-full max-w-xl overflow-hidden rounded-xl border border-border-subtle shadow-lg">
-          <video
-            controls
-            preload="none"
-            className="w-full"
-            aria-label="Vídeo de presentación de GraphMyCode"
-          >
-            <source src="/anuncio_GraphMyCode.mp4" type="video/mp4" />
-          </video>
-        </div>
+        {/* Vídeo anuncio — se monta solo cuando entra en viewport */}
+        <VideoLazy />
 
         {/* Tab switcher */}
         <div role="tablist" aria-label="Modo de entrada" className="mb-4 flex rounded-xl border border-border-subtle bg-surface p-1">
@@ -808,11 +913,36 @@ export const LandingScreen = () => {
         {/* Tarjetas informativas */}
         <LandingCards />
 
-        {/* Privacy badge */}
-        <p className="mt-6 text-center text-xs text-text-muted">
-          <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-node-function align-middle" />
-          {t.privacy}
-        </p>
+        {/* FAQ */}
+        <FaqSection />
+
+        {/* Footer */}
+        <footer style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,.05)' }}>
+          <nav aria-label="Footer links" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '4px 14px', marginBottom: '8px' }}>
+            {([
+              { label: t.footerPrivacy, href: '/privacy' },
+              { label: t.footerHowItWorks, href: '/how-it-works' },
+              { label: t.footerUseCases, href: '/use-cases' },
+              { label: 'GitHub', href: 'https://github.com/franciscovaleromartin/graphmycode' },
+              { label: t.footerLicense, href: 'https://polyformproject.org/licenses/noncommercial/1.0.0' },
+            ] as { label: string; href: string }[]).map(({ label, href }) => (
+              <a
+                key={label}
+                href={href}
+                target={href.startsWith('http') ? '_blank' : undefined}
+                rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                style={{ fontSize: '11px', color: '#334155', textDecoration: 'none' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#64748b'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#334155'; }}
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+          <p style={{ textAlign: 'center', fontSize: '11px', color: '#1e293b' }}>
+            {t.footerRights} · <time dateTime="2026-04-25">{t.footerUpdated}</time>
+          </p>
+        </footer>
       </div>
     </main>
   );

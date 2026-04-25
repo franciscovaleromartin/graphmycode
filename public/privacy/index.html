@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de privacidad — GraphMyCode</title>
+  <meta name="description" content="GraphMyCode no recopila ningún dato personal. Todo el análisis de código ocurre en tu navegador mediante WebAssembly. Tu código nunca sale de tu máquina." />
+  <link rel="canonical" href="https://graphmycode.com/privacy" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #080d18; color: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; line-height: 1.7; min-height: 100vh; }
+    nav { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: rgba(8,13,24,.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,.06); }
+    .logo { font-size: 16px; font-weight: 700; letter-spacing: -.02em; color: #f1f5f9; text-decoration: none; }
+    .logo .g { color: #e879f9; }
+    .logo .c { color: #22d3ee; }
+    .back-link { font-size: 13px; color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 6px; padding: 5px 12px; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; background: rgba(255,255,255,.04); }
+    .back-link:hover { color: #f1f5f9; background: rgba(255,255,255,.08); }
+    main { max-width: 720px; margin: 0 auto; padding: 56px 24px 80px; }
+    h1 { font-size: 30px; font-weight: 700; color: #f1f5f9; line-height: 1.25; margin-bottom: 16px; letter-spacing: -.025em; }
+    h2 { font-size: 18px; font-weight: 600; color: #f1f5f9; margin: 40px 0 12px; }
+    h3 { font-size: 15px; font-weight: 600; color: #e2e8f0; margin: 24px 0 8px; }
+    p { margin-bottom: 16px; }
+    ul { padding-left: 20px; margin-bottom: 16px; }
+    li { margin-bottom: 6px; }
+    a { color: #a78bfa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .lead { font-size: 17px; color: #cbd5e1; margin-bottom: 32px; line-height: 1.6; }
+    .tag { display: inline-flex; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 6px; margin-bottom: 16px; background: rgba(45,212,191,.08); color: #2dd4bf; border: 1px solid rgba(45,212,191,.18); }
+    .card { background: #0c111d; border: 1px solid #1e293b; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+    .highlight { background: rgba(45,212,191,.06); border: 1px solid rgba(45,212,191,.15); border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; color: #cbd5e1; }
+    footer { border-top: 1px solid #1e293b; margin-top: 64px; padding-top: 24px; display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: #475569; }
+    footer a { color: #475569; }
+    footer a:hover { color: #94a3b8; text-decoration: none; }
+    @media (max-width: 640px) { main { padding: 40px 16px 60px; } h1 { font-size: 24px; } }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Política de privacidad — GraphMyCode",
+    "url": "https://graphmycode.com/privacy",
+    "description": "GraphMyCode no recopila ningún dato personal. Todo el análisis de código ocurre en tu navegador mediante WebAssembly.",
+    "isPartOf": { "@type": "WebSite", "name": "GraphMyCode", "url": "https://graphmycode.com" }
+  }
+  </script>
+</head>
+<body>
+  <nav>
+    <a href="/" class="logo"><span class="g">Graph</span>My<span class="c">Code</span></a>
+    <a href="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Volver a la app
+    </a>
+  </nav>
+
+  <main>
+    <span class="tag">Privacidad</span>
+    <h1>Política de privacidad</h1>
+    <p class="lead">GraphMyCode no recopila, no almacena y no transmite ningún dato personal ni ninguna línea de tu código. Esta página explica exactamente qué ocurre con tu información cuando usas la herramienta.</p>
+
+    <div class="highlight">
+      <strong style="color:#2dd4bf">Resumen en una línea:</strong> tu código nunca sale de tu navegador. Nada llega a ningún servidor nuestro porque no existe ningún servidor nuestro.
+    </div>
+
+    <h2>Análisis de código — 100% en tu navegador</h2>
+    <p>GraphMyCode funciona íntegramente en el cliente. El análisis de código se realiza mediante <strong>WebAssembly (WASM)</strong> directamente en tu navegador:</p>
+    <ul>
+      <li><strong>tree-sitter</strong> parsea el código fuente sin enviar ningún byte a ningún servidor.</li>
+      <li>El grafo de dependencias se construye en memoria RAM del navegador.</li>
+      <li>Los embeddings semánticos (vista Semantic 3D) se calculan con <a href="https://huggingface.co/docs/transformers.js" target="_blank" rel="noopener">@huggingface/transformers</a> vía WASM — también localmente.</li>
+      <li>Al cerrar la pestaña, toda la información desaparece sin dejar rastro.</li>
+    </ul>
+    <p>No existe ninguna base de datos, ningún backend propio ni ningún almacenamiento persistente asociado a GraphMyCode.com.</p>
+
+    <h2>Carga de repositorios de GitHub</h2>
+    <p>Cuando usas la opción "URL de GitHub", GraphMyCode llama directamente a la <strong>API pública de GitHub</strong> desde tu navegador:</p>
+    <ul>
+      <li>Solo funciona con repositorios públicos.</li>
+      <li>Los archivos se descargan directamente de <code>raw.githubusercontent.com</code> a tu navegador.</li>
+      <li>La petición proviene de tu IP, no de nuestros servidores.</li>
+      <li>GitHub puede registrar estas peticiones según su propia <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener">política de privacidad</a>.</li>
+    </ul>
+
+    <h2>Función de IA (opcional)</h2>
+    <p>La función de chat con IA es <strong>completamente opcional</strong> y está desactivada por defecto. Si decides usarla:</p>
+    <ul>
+      <li>Debes proporcionar tu propia API key (OpenAI, Google Gemini, Anthropic o Ollama).</li>
+      <li>La API key se guarda <strong>únicamente en el sessionStorage de tu navegador</strong> y se borra al cerrar la pestaña.</li>
+      <li>Cuando haces una pregunta, fragmentos del grafo de código se envían al proveedor de IA elegido. La cantidad de código enviada depende del contexto de la pregunta.</li>
+      <li>Cada proveedor tiene sus propias condiciones de uso y política de privacidad. GraphMyCode no tiene acceso ni control sobre el tratamiento que el proveedor hace de esa información.</li>
+    </ul>
+    <p>Con <strong>Ollama</strong>, el modelo corre localmente en tu máquina y ningún dato sale a internet.</p>
+
+    <h2>Analítica web (Vercel Analytics)</h2>
+    <p>GraphMyCode usa <a href="https://vercel.com/docs/analytics" target="_blank" rel="noopener">Vercel Analytics</a> para recopilar métricas de uso anónimas:</p>
+    <ul>
+      <li>Páginas visitadas y eventos básicos de interacción (p. ej. "grafo visualizado").</li>
+      <li>No incluye datos personales identificables ni contenido de código.</li>
+      <li>Gestionado por Vercel según su <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">política de privacidad</a>.</li>
+    </ul>
+
+    <h2>Cookies</h2>
+    <p>GraphMyCode no usa cookies propias. Vercel Analytics puede usar cookies de sesión técnicas mínimas para contabilizar visitas únicas.</p>
+
+    <h2>Derechos y contacto</h2>
+    <p>Al no recopilar datos personales, no hay datos que eliminar, exportar ni rectificar. Si tienes cualquier duda sobre esta política, puedes contactar al autor:</p>
+    <ul>
+      <li>Email: <a href="mailto:correodefranciscovalero@gmail.com">correodefranciscovalero@gmail.com</a></li>
+      <li>GitHub: <a href="https://github.com/franciscovaleromartin/graphmycode" target="_blank" rel="noopener">github.com/franciscovaleromartin/graphmycode</a></li>
+    </ul>
+
+    <h2>Cambios en esta política</h2>
+    <p>Si esta política cambia de forma significativa, se actualizará la fecha de esta página. Última actualización: <time datetime="2026-04-25">25 de abril de 2026</time>.</p>
+
+    <footer>
+      <a href="/">GraphMyCode</a>
+      <a href="/privacy">Privacidad</a>
+      <a href="/how-it-works">Cómo funciona</a>
+      <a href="/use-cases">Casos de uso</a>
+      <a href="https://github.com/franciscovaleromartin/graphmycode" target="_blank" rel="noopener">GitHub</a>
+      <span>© 2026 Francisco Valero — <a href="https://polyformproject.org/licenses/noncommercial/1.0.0" target="_blank" rel="noopener">PolyForm Noncommercial</a></span>
+    </footer>
+  </main>
+</body>
+</html>
