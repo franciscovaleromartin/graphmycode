@@ -431,7 +431,7 @@ const VideoLazy = () => {
           aria-label="Vídeo de presentación de GraphMyCode"
         >
           <source src="/anuncio_GraphMyCode.mp4" type="video/mp4" />
-          <track kind="captions" src="/anuncio_GraphMyCode.vtt" srclang="es" label="Español" default />
+          <track kind="captions" src="/anuncio_GraphMyCode.vtt" srcLang="es" label="Español" default />
         </video>
       )}
     </div>
