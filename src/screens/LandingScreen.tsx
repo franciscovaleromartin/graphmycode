@@ -431,6 +431,7 @@ const VideoLazy = () => {
           aria-label="Vídeo de presentación de GraphMyCode"
         >
           <source src="/anuncio_GraphMyCode.mp4" type="video/mp4" />
+          <track kind="captions" src="/anuncio_GraphMyCode.vtt" srclang="es" label="Español" default />
         </video>
       )}
     </div>
@@ -447,7 +448,7 @@ const StatsRow = () => {
         <span key={stat} style={{
           fontSize: '11px', fontWeight: 500, padding: '3px 10px',
           borderRadius: '20px', background: 'rgba(255,255,255,.04)',
-          border: '1px solid rgba(255,255,255,.07)', color: '#64748b',
+          border: '1px solid rgba(255,255,255,.07)', color: '#94a3b8',
           letterSpacing: '.02em',
         }}>
           {stat}
@@ -501,7 +502,7 @@ const FaqSection = () => {
             </svg>
           </button>
           {open === i && (
-            <p style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.65, paddingBottom: '12px', margin: 0 }}>
+            <p style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.65, paddingBottom: '12px', margin: 0 }}>
               {item.a}
             </p>
           )}
@@ -561,7 +562,7 @@ const TopBar = () => {
         rel="noopener noreferrer"
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: '32px', height: '32px', borderRadius: '8px',
+          width: '44px', height: '44px', borderRadius: '8px',
           border: '1px solid rgba(255,255,255,0.08)',
           background: 'rgba(255,255,255,0.04)',
           color: '#94a3b8', textDecoration: 'none',
@@ -591,7 +592,7 @@ const TopBar = () => {
         rel="noopener noreferrer"
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: '32px', height: '32px', borderRadius: '8px',
+          width: '44px', height: '44px', borderRadius: '8px',
           border: '1px solid rgba(255,255,255,0.08)',
           background: 'rgba(255,255,255,0.04)',
           color: '#94a3b8', textDecoration: 'none',
@@ -623,7 +624,7 @@ const TopBar = () => {
         rel="noopener noreferrer"
         style={{
           display: 'flex', alignItems: 'center', gap: '7px',
-          padding: '5px 12px', borderRadius: '8px',
+          padding: '5px 12px', minHeight: '44px', borderRadius: '8px',
           border: '1px solid rgba(255,255,255,0.08)',
           background: 'rgba(255,255,255,0.04)',
           color: '#94a3b8', fontSize: '12px', fontWeight: 500,
@@ -818,7 +819,7 @@ export const LandingScreen = () => {
               aria-controls={tab === 'zip' ? 'panel-zip' : 'panel-github'}
               id={tab === 'zip' ? 'tab-zip' : 'tab-github'}
               onClick={() => { setMode(tab); setError(null); }}
-              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 rounded-lg py-3 text-sm font-medium transition-colors ${
                 mode === tab
                   ? 'bg-accent/15 text-accent'
                   : 'text-text-muted hover:text-text-secondary'
@@ -889,12 +890,12 @@ export const LandingScreen = () => {
                 onKeyDown={onKeyDown}
                 placeholder={t.repoPlaceholder}
                 disabled={isProcessing}
-                className="flex-1 rounded-xl border border-border-default bg-elevated px-4 py-2.5 text-sm text-text-primary placeholder-text-muted outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/30 disabled:opacity-50"
+                className="flex-1 rounded-xl border border-border-default bg-elevated px-4 py-3 text-sm text-text-primary placeholder-text-muted outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/30 disabled:opacity-50"
               />
               <button
                 onClick={handleGitHub}
                 disabled={isProcessing || !githubUrl.trim()}
-                className="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-void transition-all hover:bg-accent-dim disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-xl bg-accent px-5 py-3 text-sm font-medium text-void transition-all hover:bg-accent-dim disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {t.analyzeBtn}
               </button>
