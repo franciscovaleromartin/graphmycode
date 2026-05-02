@@ -9,7 +9,7 @@ import {
   Sparkles,
   Github,
   Globe,
-  LinkedIn,
+  Linkedin,
   Star,
   FolderOpen,
   ChevronDown,
@@ -458,7 +458,7 @@ export const Header = ({
           className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="LinkedIn"
         >
-          <LinkedIn className="h-4 w-4" />
+          <Linkedin className="h-4 w-4" />
         </a>
 
         {/* GitHub Star Button */}

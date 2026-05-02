@@ -45,7 +45,7 @@ export {
   Layers,
   Lightbulb,
   LightbulbOff,
-  LinkedIn,
+  Linkedin,
   List,
   Loader2,
   Maximize2,
