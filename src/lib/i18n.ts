@@ -77,6 +77,10 @@ const translations = {
     cardsAiTitle: 'Pregunta sobre tu código',
     cardsAiBody: 'Conecta tu API key (OpenAI, Gemini, Anthropic u Ollama) y hazle preguntas en lenguaje natural. Con Ollama, el código no sale de tu máquina.',
     cardsAiWarning: '⚠️ ¡Ojo! Aquí parte de tu código viajará hacia el proveedor de IA.',
+    cardsCypherTag: 'Graph Query',
+    cardsCypherTitle: 'Consulta tu código con Cypher',
+    cardsCypherBody: 'El grafo estructural es compatible con Neo4j. Escribe queries Cypher para encontrar patrones, dependencias circulares o cualquier relación entre nodos de tu código.',
+    cardsCypherExample: 'MATCH (a)-[:IMPORTS]->(b)-[:IMPORTS]->(a) RETURN a, b',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',
@@ -198,6 +202,10 @@ const translations = {
     cardsAiTitle: 'Ask about your code',
     cardsAiBody: 'Connect your API key (OpenAI, Gemini, Anthropic or Ollama) and ask questions in natural language. With Ollama, your code never leaves your machine.',
     cardsAiWarning: '⚠️ Heads up! Part of your code will travel to the AI provider.',
+    cardsCypherTag: 'Graph Query',
+    cardsCypherTitle: 'Query your code with Cypher',
+    cardsCypherBody: 'The structural graph is Neo4j-compatible. Write Cypher queries to find patterns, circular dependencies, or any relationship between nodes in your codebase.',
+    cardsCypherExample: 'MATCH (a)-[:IMPORTS]->(b)-[:IMPORTS]->(a) RETURN a, b',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',

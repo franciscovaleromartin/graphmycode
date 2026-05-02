@@ -192,6 +192,17 @@
         <p>Las "torres" del mapa son los puntos de mayor deuda técnica: archivos que han crecido demasiado, que concentran demasiadas responsabilidades o que son dependidos por demasiados otros módulos. La vista convierte métricas abstractas en una imagen inmediata.</p>
       </div>
 
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-icon">🔎</div>
+          <h2>Hacer consultas Cypher sobre tu código</h2>
+        </div>
+        <p>El grafo estructural que genera GraphMyCode es compatible con el lenguaje de consultas <span class="highlight">Cypher</span>, el mismo que usa Neo4j. Puedes escribir queries directamente para interrogar las relaciones entre nodos de tu codebase con precisión quirúrgica.</p>
+        <p>Por ejemplo, para encontrar dependencias circulares entre dos módulos:</p>
+        <pre style="margin-top:10px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);border-radius:8px;padding:10px 14px;font-size:12px;color:#34d399;overflow-x:auto;"><code>MATCH (a)-[:IMPORTS]->(b)-[:IMPORTS]->(a) RETURN a, b</code></pre>
+        <p style="margin-top:10px;">O localizar todos los archivos que importan un módulo concreto, encontrar funciones sin ningún caller, o detectar qué nodos actúan como hubs de alto acoplamiento. Cypher convierte el grafo en una base de datos consultable sobre la arquitectura de tu proyecto.</p>
+      </div>
+
     </div>
   </main>
 
