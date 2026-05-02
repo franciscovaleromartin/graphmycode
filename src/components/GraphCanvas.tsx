@@ -614,8 +614,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         </div>
       )}
 
-      {/* Query FAB */}
-      <QueryFAB />
+      {/* Query FAB — solo disponible en la vista estructural */}
+      {graphViewType === 'structural' && <QueryFAB />}
 
       {/* AI FAB */}
       <button

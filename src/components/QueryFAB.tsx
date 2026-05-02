@@ -193,7 +193,7 @@ export const QueryFAB = () => {
         className="group absolute bottom-36 left-4 z-20 flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 px-4 py-2.5 text-sm font-medium text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]"
       >
         <Terminal className="h-4 w-4" />
-        <span>Query</span>
+        <span>Consulta Cypher</span>
         {queryResult && queryResult.nodeIds.length > 0 && (
           <span className="ml-1 rounded-md bg-white/20 px-1.5 py-0.5 text-xs font-semibold">
             {queryResult.nodeIds.length}
