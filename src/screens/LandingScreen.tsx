@@ -593,7 +593,7 @@ const LandingFooter = () => (
         </a>
         <Dot />
         <a
-          href="https://polyformproject.org/licenses/noncommercial/1.0.0/"
+          href="https://polyformproject.org/licenses/noncommercial/1.0.0"
           target="_blank"
           rel="noopener noreferrer"
           className="hover:text-text-secondary transition-colors"
