@@ -8,6 +8,8 @@ import {
   HelpCircle,
   Sparkles,
   Github,
+  Globe,
+  LinkedIn,
   Star,
   FolderOpen,
   ChevronDown,
@@ -437,6 +439,28 @@ export const Header = ({
 
       {/* Right section */}
       <div className="flex items-center gap-2">
+        {/* Portfolio */}
+        <a
+          href="https://www.franciscoo-valero.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+          title="Portfolio"
+        >
+          <Globe className="h-4 w-4" />
+        </a>
+
+        {/* LinkedIn */}
+        <a
+          href="https://www.linkedin.com/in/francisco-valero/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+          title="LinkedIn"
+        >
+          <LinkedIn className="h-4 w-4" />
+        </a>
+
         {/* GitHub Star Button */}
         <a
           href="https://github.com/abhigyanpatwari/GitNexus"
