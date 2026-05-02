@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de privacidad — GraphMyCode</title>
+  <meta name="description" content="GraphMyCode analiza tu código localmente en el navegador con WebAssembly. Tu código nunca llega a ningún servidor de GraphMyCode. Descubre qué datos se procesan y cómo." />
+  <meta name="author" content="Francisco Alejandro Valero Martin" />
+  <link rel="canonical" href="https://graphmycode.com/privacy" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://graphmycode.com/privacy" />
+  <meta property="og:title" content="Política de privacidad — GraphMyCode" />
+  <meta property="og:description" content="Tu código nunca sale de tu navegador. GraphMyCode analiza repositorios localmente con WebAssembly. Sin servidores propios, sin almacenamiento de código." />
+  <meta property="og:image" content="https://graphmycode.com/og-image.png" />
+  <meta property="og:site_name" content="GraphMyCode" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Política de privacidad — GraphMyCode",
+    "description": "GraphMyCode analiza repositorios de código localmente en el navegador usando WebAssembly. El código del usuario nunca llega a ningún servidor propio.",
+    "url": "https://graphmycode.com/privacy",
+    "dateModified": "2026-05-02",
+    "author": {
+      "@type": "Person",
+      "name": "Francisco Alejandro Valero Martin",
+      "url": "https://francisco-valero.com",
+      "email": "correodefranciscovalero@gmail.com"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "GraphMyCode",
+      "url": "https://graphmycode.com"
+    }
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #080d18;
+      --surface:   #0c111d;
+      --elevated:  #111827;
+      --border:    rgba(255,255,255,0.07);
+      --text-1:    #f1f5f9;
+      --text-2:    #94a3b8;
+      --text-3:    #475569;
+      --accent:    #e879f9;
+      --cyan:      #22d3ee;
+      --emerald:   #34d399;
+      --amber:     #f59e0b;
+      --teal:      #2dd4bf;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text-2);
+      line-height: 1.7; min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px;
+      background: rgba(8,13,24,0.88);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; color: var(--text-1); text-decoration: none; }
+    .logo .g { color: var(--accent); }
+    .logo .c { color: var(--cyan); }
+    .back { font-size: 12px; color: var(--text-3); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.15s; }
+    .back:hover { color: var(--text-2); }
+    main { flex: 1; max-width: 680px; width: 100%; margin: 0 auto; padding: 56px 24px 72px; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-bottom: 14px; }
+    h1 { font-size: clamp(24px, 4.5vw, 32px); font-weight: 700; color: var(--text-1); line-height: 1.2; margin-bottom: 12px; letter-spacing: -0.02em; }
+    .updated { font-size: 12px; color: var(--text-3); margin-bottom: 40px; }
+    .sections { display: flex; flex-direction: column; gap: 32px; }
+    .section { padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+    .section:last-child { border-bottom: none; padding-bottom: 0; }
+    .section h2 { font-size: 16px; font-weight: 600; color: var(--text-1); margin-bottom: 12px; }
+    .section p { font-size: 14px; color: var(--text-2); line-height: 1.75; }
+    .section p + p { margin-top: 10px; }
+    .section ul { margin-top: 10px; margin-left: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .section ul li { font-size: 14px; color: var(--text-2); line-height: 1.6; padding-left: 16px; position: relative; }
+    .section ul li::before { content: '–'; position: absolute; left: 0; color: var(--text-3); }
+    .highlight { color: var(--text-1); font-weight: 500; }
+    .callout {
+      margin-top: 14px; padding: 14px 18px;
+      border-radius: 10px; font-size: 13px; line-height: 1.6;
+    }
+    .callout-green { background: rgba(52,211,153,0.06); border: 1px solid rgba(52,211,153,0.2); color: #6ee7b7; }
+    .callout-amber { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2); color: #fbbf24; }
+    a.link { color: var(--teal); text-decoration: none; }
+    a.link:hover { text-decoration: underline; }
+    footer { border-top: 1px solid var(--border); padding: 28px 24px; text-align: center; }
+    .footer-links { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
+    .footer-links a { font-size: 12px; color: var(--text-3); text-decoration: none; transition: color 0.15s; }
+    .footer-links a:hover { color: var(--text-2); }
+    .footer-links .sep { color: var(--border); font-size: 12px; user-select: none; }
+    .footer-copy { font-size: 11px; color: var(--text-3); opacity: 0.6; }
+    .gh-icon { display: inline-flex; align-items: center; gap: 5px; }
+    @media (max-width: 600px) { main { padding: 40px 16px 56px; } .topbar { padding: 12px 16px; } }
+  </style>
+</head>
+<body>
+  <nav class="topbar">
+    <a href="/" class="logo"><span class="g">Graph</span>My<span class="c">Code</span></a>
+    <a href="/" class="back">← Volver a la app</a>
+  </nav>
+
+  <main>
+    <p class="eyebrow">Política de privacidad</p>
+    <h1>Tu código nunca sale<br>de tu navegador</h1>
+    <p class="updated">Última actualización: mayo de 2026</p>
+
+    <div class="sections">
+
+      <div class="section">
+        <h2>Procesamiento local</h2>
+        <p>GraphMyCode es una aplicación que se ejecuta <span class="highlight">íntegramente en tu navegador</span>. Todo el análisis de código — parsing, construcción del grafo, cálculo de dependencias — ocurre localmente usando WebAssembly (tree-sitter) y la API de Web Workers.</p>
+        <p>No existe ningún servidor de GraphMyCode que reciba, procese ni almacene tu código fuente. Cuando subes un ZIP o analizas un repo de GitHub, los archivos se descargan directamente en la memoria de tu navegador y no abandonan tu dispositivo.</p>
+        <div class="callout callout-green">
+          ✓ Tu código propietario permanece en tu máquina en todo momento.
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>¿Qué datos se procesan localmente?</h2>
+        <p>Durante el análisis, GraphMyCode procesa en tu dispositivo:</p>
+        <ul>
+          <li>Archivos de código fuente del repositorio analizado</li>
+          <li>Metadata de imports, exports, clases y funciones extraída por tree-sitter</li>
+          <li>Embeddings vectoriales generados localmente por modelos de HuggingFace Transformers</li>
+          <li>El grafo de dependencias construido a partir del análisis</li>
+        </ul>
+        <p>Toda esta información se mantiene en la memoria del navegador durante la sesión y se elimina al cerrar o recargar la página.</p>
+      </div>
+
+      <div class="section">
+        <h2>Cuando usas el chat con IA</h2>
+        <p>El chat con IA es una funcionalidad <span class="highlight">opcional</span> que requiere que configures tu propio proveedor LLM. GraphMyCode no tiene un servidor de IA propio ni accede a tus claves de API.</p>
+        <p>Cuando haces una pregunta, GraphMyCode selecciona el contexto relevante del grafo (los archivos y relaciones relacionados con tu consulta) y lo envía junto con tu pregunta al proveedor que hayas elegido:</p>
+        <ul>
+          <li>OpenAI (GPT-4, GPT-4o, etc.)</li>
+          <li>Google Gemini</li>
+          <li>Anthropic Claude</li>
+          <li>Ollama (modelos locales, sin conexión a internet)</li>
+        </ul>
+        <div class="callout callout-amber">
+          ⚠️ El contexto de código relevante para tu consulta viaja al proveedor que hayas seleccionado. GraphMyCode no recibe ni registra estas conversaciones.
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Analytics</h2>
+        <p>GraphMyCode usa <span class="highlight">Vercel Analytics</span> para recoger métricas de uso anónimas: páginas visitadas, tiempo de sesión y errores del navegador. Estos datos no contienen información personal identificable y no incluyen código ni contenido del repositorio analizado.</p>
+        <p>No se usan cookies de tracking de terceros ni herramientas de seguimiento publicitario.</p>
+      </div>
+
+      <div class="section">
+        <h2>Almacenamiento local</h2>
+        <p>GraphMyCode puede guardar tu configuración (preferencias de proveedor IA, ajustes de visualización) en el <span class="highlight">localStorage</span> de tu navegador. Esta información permanece en tu dispositivo y no se envía a ningún servidor. Puedes borrarla en cualquier momento desde los ajustes del navegador.</p>
+      </div>
+
+      <div class="section">
+        <h2>Repositorios de GitHub</h2>
+        <p>Cuando analizas un repositorio público de GitHub introduciendo su URL, GraphMyCode hace peticiones directamente desde tu navegador a la API pública de GitHub para descargar el árbol de archivos. Estas peticiones están sujetas a la <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener noreferrer" class="link">política de privacidad de GitHub</a>. GraphMyCode no intermedia ni almacena estas peticiones.</p>
+      </div>
+
+      <div class="section">
+        <h2>Contacto</h2>
+        <p>Si tienes preguntas sobre esta política de privacidad, puedes escribir a <a href="mailto:correodefranciscovalero@gmail.com" class="link">correodefranciscovalero@gmail.com</a>.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-links">
+      <a href="/como-funciona">Cómo funciona</a>
+      <span class="sep">·</span>
+      <a href="/casos-de-uso">Casos de uso</a>
+      <span class="sep">·</span>
+      <a href="/privacy">Política de privacidad</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/franciscovaleromartin/graphmycode" target="_blank" rel="noopener noreferrer" class="gh-icon">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+      <span class="sep">·</span>
+      <a href="https://polyformproject.org/licenses/noncommercial/1.0.0/" target="_blank" rel="noopener noreferrer">Licencia PolyForm</a>
+    </div>
+    <p class="footer-copy">© 2026 Francisco Valero</p>
+  </footer>
+</body>
+</html>

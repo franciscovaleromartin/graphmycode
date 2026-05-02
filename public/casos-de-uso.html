@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Casos de uso de GraphMyCode — Para qué sirve la visualización de dependencias</title>
+  <meta name="description" content="GraphMyCode ayuda en el onboarding de proyectos, análisis de repos de GitHub, detección de acoplamiento, planificación de refactorizaciones, code reviews y exploración de proyectos open-source." />
+  <meta name="author" content="Francisco Alejandro Valero Martin" />
+  <link rel="canonical" href="https://graphmycode.com/casos-de-uso" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://graphmycode.com/casos-de-uso" />
+  <meta property="og:title" content="Casos de uso de GraphMyCode — Para qué sirve la visualización de dependencias" />
+  <meta property="og:description" content="Onboarding, análisis de repositorios GitHub, detección de acoplamiento, refactorizaciones, code reviews y más. Descubre para qué usar GraphMyCode." />
+  <meta property="og:image" content="https://graphmycode.com/og-image.png" />
+  <meta property="og:site_name" content="GraphMyCode" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "name": "Casos de uso de GraphMyCode",
+    "headline": "¿Para qué sirve GraphMyCode? Casos de uso de la visualización de dependencias",
+    "description": "GraphMyCode ayuda en el onboarding de proyectos, análisis de repositorios GitHub, detección de acoplamiento excesivo, planificación de refactorizaciones y exploración de proyectos open-source.",
+    "url": "https://graphmycode.com/casos-de-uso",
+    "datePublished": "2026-05-02",
+    "author": {
+      "@type": "Person",
+      "name": "Francisco Alejandro Valero Martin",
+      "url": "https://francisco-valero.com"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "GraphMyCode",
+      "url": "https://graphmycode.com"
+    },
+    "about": {
+      "@type": "SoftwareApplication",
+      "name": "GraphMyCode",
+      "url": "https://graphmycode.com"
+    },
+    "keywords": "code visualization, dependency graph, onboarding, refactoring, code review, GitHub analysis, technical debt, open source"
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #080d18;
+      --surface:   #0c111d;
+      --elevated:  #111827;
+      --border:    rgba(255,255,255,0.07);
+      --border-sub:rgba(255,255,255,0.04);
+      --text-1:    #f1f5f9;
+      --text-2:    #94a3b8;
+      --text-3:    #475569;
+      --accent:    #e879f9;
+      --cyan:      #22d3ee;
+      --emerald:   #34d399;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-2);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px;
+      background: rgba(8,13,24,0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; color: var(--text-1); text-decoration: none; }
+    .logo .g { color: var(--accent); }
+    .logo .c { color: var(--cyan); }
+    .back { font-size: 12px; color: var(--text-3); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.15s; }
+    .back:hover { color: var(--text-2); }
+    main { flex: 1; max-width: 720px; width: 100%; margin: 0 auto; padding: 56px 24px 72px; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+    h1 { font-size: clamp(26px, 5vw, 36px); font-weight: 700; color: var(--text-1); line-height: 1.2; margin-bottom: 16px; letter-spacing: -0.02em; }
+    .lead { font-size: 16px; color: var(--text-2); line-height: 1.7; margin-bottom: 56px; max-width: 600px; }
+    .cases { display: flex; flex-direction: column; gap: 24px; }
+    .case-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 32px;
+      transition: border-color 0.2s;
+    }
+    .case-card:hover { border-color: rgba(232,121,249,0.2); }
+    .case-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 12px; }
+    .case-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+    .case-header h2 { font-size: 17px; font-weight: 600; color: var(--text-1); line-height: 1.3; }
+    .case-card p { font-size: 14px; color: var(--text-2); line-height: 1.7; }
+    .case-card p + p { margin-top: 8px; }
+    .highlight { color: var(--text-1); font-weight: 500; }
+    footer { border-top: 1px solid var(--border); padding: 28px 24px; text-align: center; }
+    .footer-links { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
+    .footer-links a { font-size: 12px; color: var(--text-3); text-decoration: none; transition: color 0.15s; }
+    .footer-links a:hover { color: var(--text-2); }
+    .footer-links .sep { color: var(--border); font-size: 12px; user-select: none; }
+    .footer-copy { font-size: 11px; color: var(--text-3); opacity: 0.6; }
+    .gh-icon { display: inline-flex; align-items: center; gap: 5px; }
+    @media (max-width: 600px) { main { padding: 40px 16px 56px; } .topbar { padding: 12px 16px; } .case-card { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <nav class="topbar">
+    <a href="/" class="logo"><span class="g">Graph</span>My<span class="c">Code</span></a>
+    <a href="/" class="back">← Volver a la app</a>
+  </nav>
+
+  <main>
+    <p class="eyebrow">Casos de uso</p>
+    <h1>¿Para qué sirve GraphMyCode?</h1>
+    <p class="lead">
+      GraphMyCode convierte cualquier repositorio en un grafo interactivo de dependencias.
+      Estos son los escenarios en los que resulta más útil para equipos y desarrolladores individuales.
+    </p>
+
+    <div class="cases">
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-icon">🚀</div>
+          <h2>Onboarding en un proyecto nuevo</h2>
+        </div>
+        <p>Cuando te incorporas a un codebase desconocido, entender su estructura puede llevar días. GraphMyCode genera el grafo de dependencias en minutos y te permite ver de un vistazo los módulos principales, los puntos de entrada de la aplicación y las capas de la arquitectura.</p>
+        <p>En lugar de leer archivo por archivo, navegas visualmente desde los nodos más conectados hacia los detalles. El tiempo de onboarding se reduce drásticamente.</p>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-icon">🐙</div>
+          <h2>Analizar un repositorio de GitHub</h2>
+        </div>
+        <p>Pega la URL de cualquier repositorio público de GitHub y GraphMyCode descarga los archivos fuente directamente en tu navegador para analizarlos. No necesitas clonar el repositorio ni instalar nada.</p>
+        <p>Es especialmente útil para <span class="highlight">evaluar librerías open-source antes de adoptarlas</span>: puedes ver si tienen muchas dependencias internas, si el código está bien modularizado o si hay acoplamiento excesivo entre componentes.</p>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-icon">🔍</div>
+          <h2>Detectar acoplamiento excesivo</h2>
+        </div>
+        <p>El <span class="highlight">heatmap de dependencias</span> colorea los nodos según el número de imports entrantes. Los archivos más calientes — los más dependidos — son candidatos prioritarios a refactorización, ya que un cambio en ellos impacta a muchos otros módulos.</p>
+        <p>Las dependencias circulares entre módulos aparecen visualmente resaltadas, facilitando su identificación y resolución antes de que se conviertan en deuda técnica acumulada.</p>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-icon">✂️</div>
+          <h2>Planificar una refactorización</h2>
+        </div>
+        <p>Antes de mover un módulo, extraer una librería o dividir un servicio, GraphMyCode muestra exactamente <span class="highlight">qué archivos se verán afectados</span> por el cambio. El análisis de impacto sobre el grafo evita romper dependencias inesperadas.</p>
+        <p>Puedes validar visualmente que tu plan de refactorización no introduce nuevas dependencias circulares ni aumenta el acoplamiento de los módulos que deberían quedar independientes.</p>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-icon">👁️</div>
+          <h2>Revisar arquitectura en un code review</h2>
+        </div>
+        <p>La vista de grafo estructural hace evidente si un Pull Request introduce <span class="highlight">dependencias circulares</span>, acopla módulos que deberían estar separados o añade imports hacia capas de la arquitectura en la dirección incorrecta.</p>
+        <p>En lugar de revisar el diff línea a línea sin contexto global, el grafo te muestra el impacto estructural del PR de un vistazo.</p>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-icon">🔭</div>
+          <h2>Explorar proyectos open-source</h2>
+        </div>
+        <p>¿Cómo está organizado internamente React? ¿Cómo gestiona Next.js el routing? ¿Qué módulos componen FastAPI? GraphMyCode te permite analizar el código fuente de cualquier proyecto popular sin salir del navegador.</p>
+        <p>Es una forma práctica de <span class="highlight">aprender de codebases de referencia</span>: observar cómo los equipos más experimentados organizan sus dependencias, definen sus interfaces y modularízan sus responsabilidades.</p>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-icon">🏙️</div>
+          <h2>Visualizar deuda técnica con Technical Debt City</h2>
+        </div>
+        <p>El modo <span class="highlight">Technical Debt City</span> representa cada archivo como un edificio en una ciudad 3D. La altura del edificio refleja la complejidad del archivo: el número de dependencias, su tamaño y su centralidad en el grafo.</p>
+        <p>Las "torres" del mapa son los puntos de mayor deuda técnica: archivos que han crecido demasiado, que concentran demasiadas responsabilidades o que son dependidos por demasiados otros módulos. La vista convierte métricas abstractas en una imagen inmediata.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-links">
+      <a href="/como-funciona">Cómo funciona</a>
+      <span class="sep">·</span>
+      <a href="/casos-de-uso">Casos de uso</a>
+      <span class="sep">·</span>
+      <a href="/privacy">Política de privacidad</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/franciscovaleromartin/graphmycode" target="_blank" rel="noopener noreferrer" class="gh-icon">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+      <span class="sep">·</span>
+      <a href="https://polyformproject.org/licenses/noncommercial/1.0.0/" target="_blank" rel="noopener noreferrer">Licencia PolyForm</a>
+    </div>
+    <p class="footer-copy">© 2026 Francisco Valero</p>
+  </footer>
+</body>
+</html>
