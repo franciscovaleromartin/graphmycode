@@ -719,6 +719,14 @@ export const LandingScreen = () => {
           </h1>
           <p className="mb-2 text-xs text-text-muted">{t.by}</p>
           <p className="text-sm text-text-secondary">{t.tagline}</p>
+          <div className="mt-6 overflow-hidden rounded-xl border border-border-subtle shadow-lg">
+            <video
+              src="/anuncio_GraphMyCode.mp4"
+              controls
+              playsInline
+              className="w-full"
+            />
+          </div>
         </div>
 
         {/* Tab switcher */}
