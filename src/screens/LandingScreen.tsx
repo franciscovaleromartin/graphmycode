@@ -469,7 +469,7 @@ const TopBar = () => {
 
         {/* Portfolio */}
         <a
-          href="https://www.franciscoo-valero.com"
+          href="https://francisco-valero.com"
           target="_blank"
           rel="noopener noreferrer"
           style={{
