@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GraphMyCode.com — Visualiza y entiende tu código como un grafo</title>
 
     <!-- SEO básico -->
-    <meta name="description" content="GraphMyCode convierte cualquier repositorio en un grafo interactivo de dependencias 3D. Navega archivos, clases y funciones visualmente, analiza el impacto de tus cambios y haz preguntas sobre tu código con IA." />
+    <meta name="description" content="GraphMyCode visualiza cualquier repositorio como un grafo 3D de dependencias. Navega, detecta acoplamiento, analiza impacto e interroga tu código con IA. Sin instalación." />
     <meta name="keywords" content="code graph, dependency graph, code visualization, semantic code analysis, codebase explorer, AI code assistant, knowledge graph" />
     <meta name="author" content="Francisco Valero" />
     <link rel="canonical" href="https://graphmycode.com" />
@@ -36,6 +36,101 @@
     <link rel="apple-touch-icon" href="/favicon.png" />
     <meta name="msapplication-TileImage" content="/favicon.png" />
     <meta name="msapplication-TileColor" content="#000000" />
+    <!-- Schema: SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "GraphMyCode",
+      "url": "https://graphmycode.com",
+      "description": "GraphMyCode convierte cualquier repositorio en un grafo interactivo de dependencias 3D. Navega archivos, clases y funciones visualmente, analiza el impacto de tus cambios y haz preguntas sobre tu código con IA.",
+      "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "Code Visualization",
+      "operatingSystem": "Web Browser",
+      "featureList": [
+        "Visualización 3D de grafos de dependencias",
+        "Análisis semántico de código con embeddings locales",
+        "Chat IA sobre el código (OpenAI, Gemini, Anthropic, Ollama)",
+        "Soporte para 15+ lenguajes (TypeScript, JavaScript, Python, Go, Rust, Java, PHP y más)",
+        "Detección de acoplamiento y dependencias circulares",
+        "Análisis de impacto de cambios",
+        "Funciona en el navegador sin instalación ni servidor"
+      ],
+      "screenshot": "https://graphmycode.com/og-image.png",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "Gratuito para uso no comercial bajo licencia PolyForm-Noncommercial-1.0.0",
+        "availability": "https://schema.org/OnlineOnly"
+      },
+      "license": "https://polyformproject.org/licenses/noncommercial/1.0.0/",
+      "creator": {
+        "@type": "Person",
+        "name": "Francisco Alejandro Valero Martin",
+        "url": "https://francisco-valero.com",
+        "sameAs": [
+          "https://github.com/franciscovaleromartin",
+          "https://francisco-valero.com"
+        ]
+      },
+      "codeRepository": "https://github.com/franciscovaleromartin/graphmycode",
+      "isAccessibleForFree": true,
+      "audience": { "@type": "Audience", "audienceType": "Software Developers" }
+    }
+    </script>
+
+    <!-- Schema: Person (Autor) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Francisco Alejandro Valero Martin",
+      "url": "https://francisco-valero.com",
+      "email": "correodefranciscovalero@gmail.com",
+      "jobTitle": "Software Developer",
+      "sameAs": [
+        "https://github.com/franciscovaleromartin",
+        "https://francisco-valero.com"
+      ],
+      "knowsAbout": ["Code Visualization", "Dependency Graphs", "Static Code Analysis", "React", "TypeScript", "Python", "Graph Theory"]
+    }
+    </script>
+
+    <!-- Schema: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "GraphMyCode",
+      "url": "https://graphmycode.com",
+      "description": "Herramienta web que convierte repositorios de código en grafos interactivos de dependencias 3D con análisis semántico e inteligencia artificial.",
+      "email": "correodefranciscovalero@gmail.com",
+      "sameAs": ["https://github.com/franciscovaleromartin/graphmycode"],
+      "founder": {
+        "@type": "Person",
+        "name": "Francisco Alejandro Valero Martin",
+        "url": "https://francisco-valero.com"
+      }
+    }
+    </script>
+
+    <!-- Schema: WebSite -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "GraphMyCode",
+      "url": "https://graphmycode.com",
+      "publisher": {
+        "@type": "Person",
+        "name": "Francisco Alejandro Valero Martin",
+        "url": "https://francisco-valero.com"
+      },
+      "inLanguage": "es"
+    }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

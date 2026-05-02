@@ -1,0 +1,46 @@
+# GraphMyCode
+
+> Herramienta browser-first que convierte cualquier repositorio en un grafo interactivo de dependencias 3D, con análisis semántico por IA, múltiples modos de visualización, y procesamiento completamente local (cero upload de código).
+
+## Producto
+
+GraphMyCode analiza repositorios de código y genera grafos interactivos navegables que muestran las relaciones entre archivos, módulos, clases y funciones. El análisis se ejecuta íntegramente en el navegador usando WebAssembly (tree-sitter) para el parsing y modelos de embeddings locales (HuggingFace Transformers) para la agrupación semántica.
+
+## Funcionalidades principales
+
+- Grafo estructural de dependencias: visualización de imports/exports entre archivos, clases y funciones
+- Agrupación semántica 3D: similitud de código representada en espacio tridimensional con UMAP
+- Technical Debt City: vista 3D estilo mapa de ciudad para identificar zonas de deuda técnica
+- Heatmap de dependencias: detección visual de imports circulares y acoplamiento alto
+- Chat IA integrado: preguntas en lenguaje natural sobre el código con soporte a OpenAI, Gemini, Anthropic y Ollama
+- Análisis de impacto: qué archivos se ven afectados al modificar uno dado
+
+## Lenguajes soportados
+
+TypeScript, JavaScript, Python, Go, Rust, Java, PHP, C, C++, C#, Swift, Kotlin, Ruby, y más.
+
+## Tecnología
+
+- Frontend: React 19, Vite, Tailwind CSS, Three.js, Sigma.js
+- Análisis: tree-sitter WASM, AST parsing, análisis semántico
+- IA: HuggingFace Transformers (local), LangChain (multi-proveedor: OpenAI, Gemini, Anthropic, Ollama)
+- Sin backend requerido para análisis básico
+
+## Privacidad
+
+Tu código nunca sale de tu navegador salvo cuando activas el chat IA con un proveedor externo, en cuyo caso el contexto relevante viaja al proveedor seleccionado. No hay servidor propio que almacene código.
+
+## Autor
+
+Francisco Alejandro Valero Martin
+- Portfolio: https://francisco-valero.com
+- GitHub: https://github.com/franciscovaleromartin
+
+## Repositorio
+
+https://github.com/franciscovaleromartin/graphmycode
+
+## Licencia
+
+PolyForm-Noncommercial-1.0.0 — gratuito para uso no comercial
+https://polyformproject.org/licenses/noncommercial/1.0.0/
