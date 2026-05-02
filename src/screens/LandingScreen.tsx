@@ -3,6 +3,7 @@
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { Globe, Linkedin } from '@/lib/lucide-icons';
 import * as Comlink from 'comlink';
 import { useAppState } from '../hooks/useAppState';
 import { useT } from '../lib/i18n';
@@ -462,6 +463,56 @@ const TopBar = () => {
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
         </svg>
         <span>{stars !== null ? formatStars(stars) : '—'}</span>
+      </a>
+
+      {/* Portfolio */}
+      <a
+        href="https://www.franciscoo-valero.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: '32px', height: '32px', borderRadius: '8px',
+          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'rgba(255,255,255,0.04)',
+          color: '#94a3b8', textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLAnchorElement).style.color = '#f1f5f9';
+          (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.08)';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLAnchorElement).style.color = '#94a3b8';
+          (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.04)';
+        }}
+        title="Portfolio"
+      >
+        <Globe size={16} />
+      </a>
+
+      {/* LinkedIn */}
+      <a
+        href="https://www.linkedin.com/in/francisco-valero/"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: '32px', height: '32px', borderRadius: '8px',
+          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'rgba(255,255,255,0.04)',
+          color: '#94a3b8', textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLAnchorElement).style.color = '#f1f5f9';
+          (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.08)';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLAnchorElement).style.color = '#94a3b8';
+          (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.04)';
+        }}
+        title="LinkedIn"
+      >
+        <Linkedin size={16} />
       </a>
     </div>
   );
