@@ -760,7 +760,14 @@ export const LandingScreen = () => {
           </h1>
           <p className="mb-2 text-xs text-text-muted">{t.by}</p>
           <p className="text-sm text-text-secondary">{t.tagline}</p>
-          <div className="mt-6 overflow-hidden rounded-xl border border-border-subtle shadow-lg">
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {['12 lenguajes', 'hasta 250 archivos', '0 servidores', '4 vistas'].map((label) => (
+              <span key={label} className="rounded-full border border-border-subtle bg-surface px-3 py-1 text-xs text-text-muted">
+                {label}
+              </span>
+            ))}
+          </div>
+          <div className="mt-4 overflow-hidden rounded-xl border border-border-subtle shadow-lg">
             <video
               src="/anuncio_GraphMyCode.mp4"
               controls
