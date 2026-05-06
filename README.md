@@ -114,7 +114,7 @@ Built by [Francisco Alejandro Valero Martin](https://github.com/franciscovalerom
 
 ## License
 
-Copyright (C) 2026 Francisco Alejandro Valero Martin.
+Copyright (C) 2026 Francisco Valero.
 
 This project is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). Free for personal, educational, and non-commercial use. Commercial use is not permitted.
 
