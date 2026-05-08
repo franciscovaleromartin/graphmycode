@@ -13,7 +13,7 @@ import {
 } from 'react';
 import * as d3 from 'd3';
 import type { graphlib } from '@dagrejs/dagre';
-import { ChevronRight, Download } from '@/lib/lucide-icons';
+import { ChevronRight } from '@/lib/lucide-icons';
 import { useAppState } from '../hooks/useAppState';
 import { buildDagreGraph } from '../lib/codeflow/buildDagreGraph';
 import { CodeFlowExplorer } from './CodeFlowExplorer';
@@ -25,6 +25,7 @@ export interface CodeFlowViewHandle {
   zoomIn: () => void;
   zoomOut: () => void;
   resetZoom: () => void;
+  exportSvg: () => void;
 }
 
 const NODE_STYLE: Record<FlowNodeType, { fill: string; stroke: string }> = {
@@ -71,14 +72,14 @@ function renderGraph(
     .append('marker')
     .attr('id', 'cf-arrow')
     .attr('viewBox', '0 -5 10 10')
-    .attr('refX', 9)
+    .attr('refX', 10)
     .attr('refY', 0)
-    .attr('markerWidth', 6)
-    .attr('markerHeight', 6)
-    .attr('orient', 'auto')
+    .attr('markerWidth', 8)
+    .attr('markerHeight', 8)
+    .attr('orient', 'auto-start-reverse')
     .append('path')
-    .attr('d', 'M0,-5L10,0L0,5')
-    .attr('fill', '#3a3a50');
+    .attr('d', 'M0,-4L10,0L0,4Z')
+    .attr('fill', '#5a5a80');
 
   const container = svg.append('g').attr('class', 'cf-container');
 
@@ -99,13 +100,12 @@ function renderGraph(
     const line = d3
       .line<{ x: number; y: number }>()
       .x(d => d.x)
-      .y(d => d.y)
-      .curve(d3.curveCatmullRom.alpha(0.5));
+      .y(d => d.y);
     edgeGroup
       .append('path')
       .attr('d', line(edge.points))
       .attr('fill', 'none')
-      .attr('stroke', '#2a2a3a')
+      .attr('stroke', '#3a3a58')
       .attr('stroke-width', 1.5)
       .attr('marker-end', 'url(#cf-arrow)');
   }
@@ -220,6 +220,20 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
     resetZoom: () => {
       if (svgRef.current && dagreGraph) renderGraph(svgRef.current, dagreGraph, zoomRef);
     },
+    exportSvg: () => {
+      if (!svgRef.current) return;
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(svgRef.current);
+      const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `codeflow-${selectedFile?.split('/').pop() ?? 'graph'}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    },
   }));
 
   const handleFileSelect = useCallback(async (filePath: string) => {
@@ -259,26 +273,11 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
     setNodeCount(0);
   }, []);
 
-  const handleExport = useCallback(() => {
-    if (!svgRef.current) return;
-    const serializer = new XMLSerializer();
-    const svgStr = serializer.serializeToString(svgRef.current);
-    const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `codeflow-${selectedFile?.split('/').pop() ?? 'graph'}.svg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, [selectedFile]);
-
   return (
     <div className="flex h-full w-full flex-col bg-void">
-      {/* Toolbar */}
-      <div className="flex h-10 shrink-0 items-center gap-2 border-b border-border-subtle bg-deep px-3">
-        {mode === 'graph' && (
+      {/* Barra de navegación */}
+      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border-subtle bg-deep px-3">
+        {mode === 'graph' ? (
           <>
             <button
               onClick={handleBack}
@@ -300,20 +299,10 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
               </>
             )}
           </>
-        )}
-        {mode === 'explorer' && (
-          <span className="text-xs font-medium text-text-secondary">Code Flow — Selecciona un archivo</span>
-        )}
-        <div className="flex-1" />
-        {mode === 'graph' && dagreGraph && (
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-1.5 rounded border border-border-subtle px-2 py-1 text-xs text-text-secondary transition-colors hover:border-accent/40 hover:text-accent"
-            title="Exportar SVG"
-          >
-            <Download className="h-3.5 w-3.5" />
-            Exportar SVG
-          </button>
+        ) : (
+          <span className="text-xs font-medium text-text-secondary">
+            Selecciona un archivo compatible (.js .ts .jsx .tsx .py)
+          </span>
         )}
       </div>
 

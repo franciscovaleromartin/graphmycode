@@ -20,6 +20,7 @@ import {
   GitBranch,
   Globe,
   Share2,
+  Download,
 } from '@/lib/lucide-icons';
 import { CityView, type CityViewHandle } from './CityView';
 import { HeatmapView, type HeatmapViewHandle } from './HeatmapView';
@@ -467,10 +468,24 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         </div>
       )}
 
+      {/* Exportar SVG — control secundario de Code Flow */}
+      {graph && graphViewType === 'codeflow' && (
+        <div className="absolute top-12 right-4 z-20">
+          <button
+            onClick={() => codeFlowRef.current?.exportSvg()}
+            className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary shadow-sm transition-colors hover:border-accent/40 hover:text-accent"
+            title="Exportar flujo como SVG"
+          >
+            <Download className="h-3 w-3" />
+            Exportar SVG
+          </button>
+        </div>
+      )}
+
       {/* Sigma container — oculto (no destruido) en modo semántico */}
       <div
         ref={containerRef}
-        className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' || graphViewType === 'city' || graphViewType === 'heatmap' ? ' invisible pointer-events-none' : ''}`}
+        className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' || graphViewType === 'city' || graphViewType === 'heatmap' || graphViewType === 'codeflow' ? ' invisible pointer-events-none' : ''}`}
       />
 
       {/* Vista semántica 3D — se monta una vez y permanece (invisible cuando no activa) */}
@@ -523,7 +538,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
 
       {/* Vista Code Flow — Dagre + D3 */}
       {hasCodeFlowBeenActivated && graph && (
-        <div className={`absolute inset-0 z-10 overflow-hidden${graphViewType !== 'codeflow' ? ' invisible pointer-events-none' : ''}`}>
+        <div
+          className={`absolute bottom-0 right-0 z-10 overflow-hidden transition-all duration-300${graphViewType !== 'codeflow' ? ' invisible pointer-events-none' : ''} top-11 ${isSidebarCollapsed ? 'left-10' : 'left-56'}`}
+        >
           <CodeFlowView ref={codeFlowRef} />
         </div>
       )}
