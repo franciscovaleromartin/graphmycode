@@ -232,10 +232,10 @@ const LandingCards = () => {
 
   const views = [
     { icon: '🕸️', name: t.cardsStructuralName, bullets: t.cardsStructuralBullets },
-    { icon: '🧠', name: t.cardsSemanticName,   bullets: t.cardsSemanticBullets },
-    { icon: '🏙️', name: t.cardsDebtName,       bullets: t.cardsDebtBullets },
-    { icon: '🔥', name: t.cardsHeatmapName,    bullets: t.cardsHeatmapBullets },
-    { icon: '🔀', name: t.cardsCodeFlowName,   bullets: t.cardsCodeFlowBullets },
+    { icon: '🧠', name: t.cardsSemanticName, bullets: t.cardsSemanticBullets },
+    { icon: '🏙️', name: t.cardsDebtName, bullets: t.cardsDebtBullets },
+    { icon: '🔥', name: t.cardsHeatmapName, bullets: t.cardsHeatmapBullets },
+    { icon: '🔀', name: t.cardsCodeFlowName, bullets: t.cardsCodeFlowBullets },
   ];
 
   return (
@@ -438,7 +438,7 @@ const TopBar = () => {
     fetch('https://api.github.com/repos/franciscovaleromartin/graphmycode')
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.stargazers_count != null && setStars(d.stargazers_count))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   return (
@@ -613,7 +613,7 @@ export const LandingScreen = () => {
   // inactividad del navegador para no interferir con la carga inicial.
   useEffect(() => {
     const api = getWorkerApi();
-    api.preWarm().catch(() => {/* no fatal */});
+    api.preWarm().catch(() => {/* no fatal */ });
 
     const languageWasms = [
       '/wasm/typescript/tree-sitter-typescript.wasm',
@@ -631,7 +631,7 @@ export const LandingScreen = () => {
     ];
 
     const prefetch = () =>
-      languageWasms.forEach(url => fetch(url).catch(() => {}));
+      languageWasms.forEach(url => fetch(url).catch(() => { }));
 
     if ('requestIdleCallback' in window) {
       (window as any).requestIdleCallback(prefetch, { timeout: 10_000 });
@@ -746,7 +746,7 @@ export const LandingScreen = () => {
           <p className="mb-2 text-xs text-text-muted">{t.by}</p>
           <p className="text-sm text-text-secondary">{t.tagline}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {['12 lenguajes', 'hasta 250 archivos', '0 servidores', '4 vistas'].map((label) => (
+            {['12 lenguajes', 'hasta 250 archivos', '0 servidores', '5 vistas'].map((label) => (
               <span key={label} className="rounded-full border border-border-subtle bg-surface px-3 py-1 text-xs text-text-muted">
                 {label}
               </span>
@@ -768,11 +768,10 @@ export const LandingScreen = () => {
             <button
               key={tab}
               onClick={() => { setMode(tab); setError(null); }}
-              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-                mode === tab
+              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${mode === tab
                   ? 'bg-accent/15 text-accent'
                   : 'text-text-muted hover:text-text-secondary'
-              }`}
+                }`}
             >
               {tab === 'zip' ? t.tabZip : t.tabGithub}
             </button>
@@ -782,11 +781,10 @@ export const LandingScreen = () => {
         {/* ZIP drop zone */}
         {mode === 'zip' && (
           <div
-            className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed py-14 transition-all ${
-              isDragging
+            className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed py-14 transition-all ${isDragging
                 ? 'border-accent bg-accent/8 scale-[1.01]'
                 : 'border-border-default bg-surface hover:border-accent/50 hover:bg-elevated'
-            }`}
+              }`}
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
