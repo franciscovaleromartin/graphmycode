@@ -49,6 +49,7 @@ export async function buildDagreGraph(filePath: string, content: string): Promis
   const parser = await loadParser();
   await loadLanguage(lang, filePath);
   const tree = parser.parse(content);
+  if (!tree) throw new Error(`tree-sitter failed to parse: ${filePath}`);
 
   const flow =
     lang === SupportedLanguages.Python ? parsePython(tree) : parseJsTs(tree);

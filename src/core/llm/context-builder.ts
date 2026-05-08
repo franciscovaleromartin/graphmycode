@@ -431,7 +431,7 @@ export interface SemanticClusterEntry {
  * en qué vista está el usuario sin necesidad de reinicializar el agente.
  */
 export function buildUIContext(
-  graphViewType: 'structural' | 'semantic' | 'city' | 'heatmap',
+  graphViewType: 'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow',
   semanticClusterData: SemanticClusterEntry[] | null,
   selectedNodeName?: string | null,
   cityMetric?: 'degree' | 'depth',
