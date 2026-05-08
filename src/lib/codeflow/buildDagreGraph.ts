@@ -42,7 +42,11 @@ function detectLanguage(filePath: string): SupportedLanguages | null {
   return null;
 }
 
-export async function buildDagreGraph(filePath: string, content: string): Promise<graphlib.Graph> {
+export async function buildDagreGraph(
+  filePath: string,
+  content: string,
+  deep = false,
+): Promise<graphlib.Graph> {
   const lang = detectLanguage(filePath);
   if (!lang) throw new Error(`Unsupported file type: ${filePath}`);
 
@@ -52,7 +56,7 @@ export async function buildDagreGraph(filePath: string, content: string): Promis
   if (!tree) throw new Error(`tree-sitter failed to parse: ${filePath}`);
 
   const flow =
-    lang === SupportedLanguages.Python ? parsePython(tree) : parseJsTs(tree);
+    lang === SupportedLanguages.Python ? parsePython(tree, deep) : parseJsTs(tree, deep);
 
   const g = new graphlib.Graph();
   g.setGraph({ rankdir: 'TB', nodesep: 55, ranksep: 65, marginx: 24, marginy: 24 });

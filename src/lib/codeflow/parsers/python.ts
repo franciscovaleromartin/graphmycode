@@ -5,7 +5,7 @@
 import type { Tree, Node as TSNode } from 'web-tree-sitter';
 import type { CodeFlowGraph, FlowNode, FlowEdge } from '../types';
 
-export function parsePython(tree: Tree): CodeFlowGraph {
+export function parsePython(tree: Tree, deep = false): CodeFlowGraph {
   const nodes: FlowNode[] = [];
   const edges: FlowEdge[] = [];
   let counter = 0;
@@ -75,6 +75,24 @@ export function parsePython(tree: Tree): CodeFlowGraph {
           const id = uid('if');
           nodes.push({ id, label, type: 'decision' });
           edges.push({ id: uid('e'), source: parentId, target: id });
+          if (deep) {
+            const consequence = child.childForFieldName('consequence');
+            if (consequence) walkBody(consequence, id);
+            for (const sibling of child.namedChildren) {
+              if (sibling.type === 'elif_clause') {
+                const elifCond = sibling.childForFieldName('condition')?.text ?? 'elif';
+                const elifLabel = 'elif ' + (elifCond.length > 22 ? elifCond.slice(0, 21) + '…' : elifCond);
+                const elifId = uid('elif');
+                nodes.push({ id: elifId, label: elifLabel, type: 'decision' });
+                edges.push({ id: uid('e'), source: id, target: elifId });
+                const elifBody = sibling.childForFieldName('consequence') ?? sibling.namedChildren.find(c => c.type === 'block');
+                if (elifBody) walkBody(elifBody, elifId);
+              } else if (sibling.type === 'else_clause') {
+                const elseBody = sibling.namedChildren.find(c => c.type === 'block');
+                if (elseBody) walkBody(elseBody, id);
+              }
+            }
+          }
           break;
         }
         case 'for_statement': {
@@ -85,6 +103,10 @@ export function parsePython(tree: Tree): CodeFlowGraph {
           const id = uid('loop');
           nodes.push({ id, label, type: 'loop' });
           edges.push({ id: uid('e'), source: parentId, target: id });
+          if (deep) {
+            const body = child.childForFieldName('body');
+            if (body) walkBody(body, id);
+          }
           break;
         }
         case 'while_statement': {
@@ -93,12 +115,37 @@ export function parsePython(tree: Tree): CodeFlowGraph {
           const id = uid('loop');
           nodes.push({ id, label, type: 'loop' });
           edges.push({ id: uid('e'), source: parentId, target: id });
+          if (deep) {
+            const body = child.childForFieldName('body');
+            if (body) walkBody(body, id);
+          }
           break;
         }
         case 'try_statement': {
           const id = uid('try');
           nodes.push({ id, label: 'try / except', type: 'error' });
           edges.push({ id: uid('e'), source: parentId, target: id });
+          if (deep) {
+            const body = child.childForFieldName('body');
+            if (body) walkBody(body, id);
+            for (const sibling of child.namedChildren) {
+              if (sibling.type === 'except_clause') {
+                const exceptBody = sibling.namedChildren.find(c => c.type === 'block');
+                if (exceptBody) walkBody(exceptBody, id);
+              }
+            }
+          }
+          break;
+        }
+        case 'function_definition': {
+          if (!deep) break;
+          const name = child.childForFieldName('name')?.text ?? `fn${counter}`;
+          const id = uid('fn');
+          fnNameToId.set(name, id);
+          nodes.push({ id, label: name, type: 'function' });
+          edges.push({ id: uid('e'), source: parentId, target: id });
+          const body = child.childForFieldName('body');
+          if (body) walkBody(body, id);
           break;
         }
         case 'return_statement': {

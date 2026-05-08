@@ -250,7 +250,12 @@ function renderGraph(
   }
 }
 
-export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
+interface CodeFlowViewProps {
+  depth?: 'high' | 'low';
+}
+
+export const CodeFlowView = forwardRef<CodeFlowViewHandle, CodeFlowViewProps>(
+  ({ depth = 'high' }, ref) => {
   const { graph } = useAppState();
   const [mode, setMode] = useState<'explorer' | 'graph'>('explorer');
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -262,6 +267,10 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const explorerInitialized = useRef(false);
+
+  // Keeps the latest depth accessible inside the stable handleFileSelect callback
+  const depthRef = useRef(depth);
+  useEffect(() => { depthRef.current = depth; }, [depth]);
 
   const handleExplorerToggle = useCallback((path: string) => {
     setExplorerExpandedPaths(prev => {
@@ -375,7 +384,7 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
         setLoadError('No se pudo leer el contenido del archivo.');
         return;
       }
-      const g = await buildDagreGraph(filePath, content);
+      const g = await buildDagreGraph(filePath, content, depthRef.current === 'low');
       setNodeCount(g.nodes().length);
       setDagreGraph(g);
     } catch (err) {
@@ -389,6 +398,15 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
     if (!dagreGraph || !svgRef.current) return;
     renderGraph(svgRef.current, dagreGraph, zoomRef);
   }, [dagreGraph]);
+
+  const prevDepthRef = useRef(depth);
+  useEffect(() => {
+    if (prevDepthRef.current === depth) return;
+    prevDepthRef.current = depth;
+    if (selectedFile && mode === 'graph') {
+      handleFileSelect(selectedFile);
+    }
+  }, [depth, selectedFile, mode, handleFileSelect]);
 
   const handleBack = useCallback(() => {
     setMode('explorer');
@@ -471,6 +489,7 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
       </div>
     </div>
   );
-});
+  },
+);
 
 CodeFlowView.displayName = 'CodeFlowView';

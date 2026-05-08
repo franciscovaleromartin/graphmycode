@@ -21,6 +21,7 @@ import {
   Globe,
   Share2,
   Download,
+  List,
 } from '@/lib/lucide-icons';
 import { CityView, type CityViewHandle } from './CityView';
 import { HeatmapView, type HeatmapViewHandle } from './HeatmapView';
@@ -93,6 +94,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   const [hasHeatmapBeenActivated, setHasHeatmapBeenActivated] = useState(false);
   const [hasCodeFlowBeenActivated, setHasCodeFlowBeenActivated] = useState(false);
   const codeFlowRef = useRef<CodeFlowViewHandle>(null);
+  const [codeFlowDepth, setCodeFlowDepth] = useState<'high' | 'low'>('high');
 
   const effectiveHighlightedNodeIds = useMemo(() => {
     if (!isAIHighlightsEnabled) return highlightedNodeIds;
@@ -468,6 +470,39 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         </div>
       )}
 
+      {/* Toggle Alto / Bajo nivel — visible en Code Flow */}
+      {graph && graphViewType === 'codeflow' && (
+        <div
+          className={`absolute top-12 z-20 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm transition-all duration-300 ${isSidebarCollapsed ? 'left-14' : 'left-60'}`}
+        >
+          <button
+            onClick={() => setCodeFlowDepth('high')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              codeFlowDepth === 'high'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Vista estructural: funciones, clases, flujo de control principal"
+          >
+            <Layers className="h-3 w-3" />
+            Alto nivel
+          </button>
+          <div className="w-px bg-border-subtle" />
+          <button
+            onClick={() => setCodeFlowDepth('low')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              codeFlowDepth === 'low'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Vista detallada: incluye bloques anidados, switch/case y funciones internas"
+          >
+            <List className="h-3 w-3" />
+            Bajo nivel
+          </button>
+        </div>
+      )}
+
       {/* Exportar SVG — control secundario de Code Flow */}
       {graph && graphViewType === 'codeflow' && (
         <div className="absolute top-12 right-4 z-20">
@@ -541,7 +576,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         <div
           className={`absolute bottom-0 right-0 z-10 overflow-hidden transition-all duration-300${graphViewType !== 'codeflow' ? ' invisible pointer-events-none' : ''} top-11 ${isSidebarCollapsed ? 'left-10' : 'left-56'}`}
         >
-          <CodeFlowView ref={codeFlowRef} />
+          <CodeFlowView ref={codeFlowRef} depth={codeFlowDepth} />
         </div>
       )}
 

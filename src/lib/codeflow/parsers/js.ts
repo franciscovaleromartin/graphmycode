@@ -5,7 +5,7 @@
 import type { Tree, Node as TSNode } from 'web-tree-sitter';
 import type { CodeFlowGraph, FlowNode, FlowEdge } from '../types';
 
-export function parseJsTs(tree: Tree): CodeFlowGraph {
+export function parseJsTs(tree: Tree, deep = false): CodeFlowGraph {
   const nodes: FlowNode[] = [];
   const edges: FlowEdge[] = [];
   let counter = 0;
@@ -85,24 +85,48 @@ export function parseJsTs(tree: Tree): CodeFlowGraph {
           const id = uid('if');
           nodes.push({ id, label, type: 'decision' });
           edges.push({ id: uid('e'), source: parentId, target: id });
+          if (deep) {
+            const consequence = child.childForFieldName('consequence');
+            if (consequence?.type === 'statement_block') walkBody(consequence, id);
+            const alt = child.childForFieldName('alternative');
+            if (alt) {
+              if (alt.type === 'statement_block') {
+                walkBody(alt, id);
+              } else if (alt.type === 'if_statement') {
+                walkBody({ namedChildren: [alt] } as unknown as TSNode, id);
+              }
+            }
+          }
           break;
         }
         case 'for_statement': {
           const id = uid('loop');
           nodes.push({ id, label: 'for (...)', type: 'loop' });
           edges.push({ id: uid('e'), source: parentId, target: id });
+          if (deep) {
+            const body = child.childForFieldName('body');
+            if (body) walkBody(body, id);
+          }
           break;
         }
         case 'for_in_statement': {
           const id = uid('loop');
           nodes.push({ id, label: 'for...in', type: 'loop' });
           edges.push({ id: uid('e'), source: parentId, target: id });
+          if (deep) {
+            const body = child.childForFieldName('body');
+            if (body) walkBody(body, id);
+          }
           break;
         }
         case 'for_of_statement': {
           const id = uid('loop');
           nodes.push({ id, label: 'for...of', type: 'loop' });
           edges.push({ id: uid('e'), source: parentId, target: id });
+          if (deep) {
+            const body = child.childForFieldName('body');
+            if (body) walkBody(body, id);
+          }
           break;
         }
         case 'while_statement': {
@@ -111,18 +135,74 @@ export function parseJsTs(tree: Tree): CodeFlowGraph {
           const id = uid('loop');
           nodes.push({ id, label, type: 'loop' });
           edges.push({ id: uid('e'), source: parentId, target: id });
+          if (deep) {
+            const body = child.childForFieldName('body');
+            if (body) walkBody(body, id);
+          }
           break;
         }
         case 'do_statement': {
           const id = uid('loop');
           nodes.push({ id, label: 'do...while', type: 'loop' });
           edges.push({ id: uid('e'), source: parentId, target: id });
+          if (deep) {
+            const body = child.childForFieldName('body');
+            if (body) walkBody(body, id);
+          }
           break;
         }
         case 'try_statement': {
           const id = uid('try');
           nodes.push({ id, label: 'try / catch', type: 'error' });
           edges.push({ id: uid('e'), source: parentId, target: id });
+          if (deep) {
+            const body = child.childForFieldName('body');
+            if (body) walkBody(body, id);
+            const handler = child.childForFieldName('handler');
+            if (handler) {
+              const catchBody = handler.childForFieldName('body');
+              if (catchBody) walkBody(catchBody, id);
+            }
+          }
+          break;
+        }
+        case 'switch_statement': {
+          if (!deep) break;
+          const val = child.childForFieldName('value')?.text ?? 'expr';
+          const raw = val.replace(/^\(|\)$/g, '');
+          const label = 'switch ' + (raw.length > 18 ? raw.slice(0, 17) + '…' : raw);
+          const id = uid('sw');
+          nodes.push({ id, label, type: 'decision' });
+          edges.push({ id: uid('e'), source: parentId, target: id });
+          const switchBody = child.namedChildren.find((c: TSNode) => c.type === 'switch_body');
+          if (switchBody) {
+            for (const caseNode of switchBody.namedChildren) {
+              if (caseNode.type === 'switch_case') {
+                const caseVal = caseNode.childForFieldName('value')?.text ?? '';
+                const caseLabel = 'case ' + (caseVal.length > 16 ? caseVal.slice(0, 15) + '…' : caseVal);
+                const caseId = uid('case');
+                nodes.push({ id: caseId, label: caseLabel, type: 'decision' });
+                edges.push({ id: uid('e'), source: id, target: caseId });
+                walkBody(caseNode, caseId);
+              } else if (caseNode.type === 'switch_default') {
+                const defaultId = uid('default');
+                nodes.push({ id: defaultId, label: 'default', type: 'decision' });
+                edges.push({ id: uid('e'), source: id, target: defaultId });
+                walkBody(caseNode, defaultId);
+              }
+            }
+          }
+          break;
+        }
+        case 'function_declaration': {
+          if (!deep) break;
+          const name = child.childForFieldName('name')?.text ?? `fn${counter}`;
+          const id = uid('fn');
+          fnNameToId.set(name, id);
+          nodes.push({ id, label: name, type: 'function' });
+          edges.push({ id: uid('e'), source: parentId, target: id });
+          const body = child.childForFieldName('body');
+          if (body) walkBody(body, id);
           break;
         }
         case 'return_statement': {
