@@ -38,9 +38,9 @@ const translations = {
     privacy: 'Tu código nunca sale de tu navegador',
     // Acordeón
     // ── Landing cards ────────────────────────────────────────────────
-    cardsViewsTag: '✦ Cuatro vistas',
+    cardsViewsTag: '✦ Cinco vistas',
     cardsViewsTitle: 'Entiende cualquier código en segundos',
-    cardsViewsSub: 'Cuatro formas de ver tu código. Ninguna requiere leer carpeta a carpeta.',
+    cardsViewsSub: 'Cinco formas de ver tu código. Ninguna requiere leer carpeta a carpeta.',
     cardsStructuralName: 'Structural',
     cardsStructuralBullets: [
       '¿Qué importa este fichero?',
@@ -68,6 +68,13 @@ const translations = {
       '¿Qué módulos están acoplados circularmente?',
       '¿Dónde romper dependencias?',
       'Identifica código espagueti',
+    ],
+    cardsCodeFlowName: 'Code Flow',
+    cardsCodeFlowBullets: [
+      '¿Cómo fluye la ejecución de este archivo?',
+      '¿Qué funciones se llaman entre sí?',
+      '¿Dónde están los ifs, bucles y try/catch?',
+      'Exporta el flowchart completo como SVG',
     ],
     cardsPrivacyTag: 'Privacidad',
     cardsPrivacyTitle: 'Sin servidor.\nSin base de datos.',
@@ -163,9 +170,9 @@ const translations = {
     errNoFiles: 'No source files found',
     privacy: 'Your code never leaves your browser',
     // ── Landing cards ────────────────────────────────────────────────
-    cardsViewsTag: '✦ Four views',
+    cardsViewsTag: '✦ Five views',
     cardsViewsTitle: 'Understand any codebase in seconds',
-    cardsViewsSub: 'Four ways to see your code. None require reading folder by folder.',
+    cardsViewsSub: 'Five ways to see your code. None require reading folder by folder.',
     cardsStructuralName: 'Structural',
     cardsStructuralBullets: [
       'What does this file import?',
@@ -193,6 +200,13 @@ const translations = {
       'Which modules are circularly coupled?',
       'Where to break dependencies?',
       'Identify spaghetti code',
+    ],
+    cardsCodeFlowName: 'Code Flow',
+    cardsCodeFlowBullets: [
+      'How does execution flow through this file?',
+      'Which functions call each other?',
+      'Where are the ifs, loops and try/catch?',
+      'Export the full flowchart as SVG',
     ],
     cardsPrivacyTag: 'Privacy',
     cardsPrivacyTitle: 'No server.\nNo database.',

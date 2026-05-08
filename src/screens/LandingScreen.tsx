@@ -235,6 +235,7 @@ const LandingCards = () => {
     { icon: '🧠', name: t.cardsSemanticName,   bullets: t.cardsSemanticBullets },
     { icon: '🏙️', name: t.cardsDebtName,       bullets: t.cardsDebtBullets },
     { icon: '🔥', name: t.cardsHeatmapName,    bullets: t.cardsHeatmapBullets },
+    { icon: '🔀', name: t.cardsCodeFlowName,   bullets: t.cardsCodeFlowBullets },
   ];
 
   return (

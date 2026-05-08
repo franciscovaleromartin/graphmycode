@@ -248,13 +248,25 @@
         <div class="step-body">
           <h2>Layout y visualización</h2>
           <p><strong style="color:var(--text-1)">ForceAtlas2</strong> calcula el layout del grafo mediante simulación de fuerzas: los nodos más relacionados se atraen entre sí, los independientes se repelen. El resultado es una distribución que revela la arquitectura real del proyecto.</p>
-          <p>GraphMyCode ofrece cuatro modos de visualización:</p>
+          <p>GraphMyCode ofrece cinco modos de visualización:</p>
           <div class="lang-grid" style="margin-top: 10px;">
             <span class="lang-pill">🕸️ Grafo estructural</span>
             <span class="lang-pill">🧠 Agrupación semántica 3D</span>
             <span class="lang-pill">🏙️ Technical Debt City</span>
             <span class="lang-pill">🔥 Heatmap de dependencias</span>
+            <span class="lang-pill">🔀 Code Flow</span>
           </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4b</div>
+        <div class="step-line"></div>
+        <div class="step-body">
+          <h2>Code Flow: flujo de ejecución por archivo</h2>
+          <p>La vista <strong style="color:var(--text-1)">Code Flow</strong> analiza un archivo individual con tree-sitter y genera un <strong style="color:var(--text-1)">flowchart interactivo</strong> de su flujo de ejecución completo: funciones, clases, bloques <code style="font-family:monospace;font-size:0.85em">if/else</code>, bucles, bloques <code style="font-family:monospace;font-size:0.85em">try/catch</code> y los retornos relevantes.</p>
+          <p>El layout automático usa <strong style="color:var(--text-1)">Dagre</strong> (algoritmo Sugiyama de grafos dirigidos acíclicos) para calcular las posiciones de los nodos. El resultado se puede exportar como SVG para incluirlo en documentación técnica.</p>
+          <p style="margin-top:8px;font-size:13px;color:var(--text-2);">Compatible con JS, TS, JSX, TSX y Python. El SVG exportado tiene fondo blanco y nodos con color de contorno por tipo.</p>
         </div>
       </div>
 
@@ -297,6 +309,19 @@
         <span class="lang-pill">Kotlin</span>
         <span class="lang-pill">Ruby</span>
       </div>
+    </section>
+
+    <section style="margin-top: 48px;padding:20px 24px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;">
+      <h2 style="font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em;">Créditos de librerías open-source</h2>
+      <p style="font-size:13px;color:var(--text-2);line-height:1.7;">GraphMyCode se apoya en varias librerías de código abierto cuyos autores merecen reconocimiento:</p>
+      <ul style="margin-top:10px;font-size:13px;color:var(--text-2);line-height:1.9;padding-left:18px;">
+        <li><strong style="color:var(--text-1)">dagre</strong> — Directed graph layout algorithm. MIT License. Copyright © 2013 Chris Pettitt.</li>
+        <li><strong style="color:var(--text-1)">D3.js</strong> — Data-Driven Documents. ISC License. Copyright © 2010–2024 Mike Bostock.</li>
+        <li><strong style="color:var(--text-1)">web-tree-sitter</strong> — Incremental parsing library. MIT License. Copyright © 2018 Max Brunsfeld.</li>
+        <li><strong style="color:var(--text-1)">Sigma.js</strong> — Graph rendering library. MIT License. Copyright © 2023 Sciences-Po médialab &amp; OuestWare.</li>
+        <li><strong style="color:var(--text-1)">Graphology</strong> — Graph data structure. MIT License. Copyright © 2021 Sciences-Po médialab &amp; CIAS.</li>
+        <li><strong style="color:var(--text-1)">HuggingFace Transformers.js</strong> — Run transformers in the browser. Apache 2.0 License.</li>
+      </ul>
     </section>
   </main>
 
