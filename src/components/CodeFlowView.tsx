@@ -261,6 +261,7 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
   const [explorerExpandedPaths, setExplorerExpandedPaths] = useState<Set<string>>(new Set());
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const explorerInitialized = useRef(false);
 
   const handleExplorerToggle = useCallback((path: string) => {
     setExplorerExpandedPaths(prev => {
@@ -274,6 +275,18 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
     () => graph?.nodes.filter(n => n.label === 'File') ?? [],
     [graph],
   );
+
+  // Auto-expande el primer nivel al activarse la vista por primera vez
+  useEffect(() => {
+    if (explorerInitialized.current || fileNodes.length === 0) return;
+    explorerInitialized.current = true;
+    const firstLevel = new Set<string>();
+    for (const node of fileNodes) {
+      const parts = node.properties.filePath.split('/').filter(Boolean);
+      if (parts.length > 1) firstLevel.add(parts[0]);
+    }
+    if (firstLevel.size > 0) setExplorerExpandedPaths(firstLevel);
+  }, [fileNodes]);
 
   useImperativeHandle(ref, () => ({
     zoomIn: () => {
