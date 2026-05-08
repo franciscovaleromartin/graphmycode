@@ -9,7 +9,7 @@ import { useAppState } from '../hooks/useAppState';
 import { useT } from '../lib/i18n';
 import { extractZip } from '../services/zip';
 import { createKnowledgeGraph } from '../core/graph/graph';
-import type { IngestionWorkerApi } from '../workers/ingestion.worker';
+import { getWorkerApi } from '../services/ingestion-worker';
 import type { PipelineProgress } from '../types/pipeline';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -67,22 +67,6 @@ async function fetchGitHubFiles(
     }),
   );
   return entries.filter(Boolean) as { path: string; content: string }[];
-}
-
-// ── Worker singleton ──────────────────────────────────────────────────────────
-
-let workerInstance: Worker | null = null;
-let workerApi: Comlink.Remote<IngestionWorkerApi> | null = null;
-
-function getWorkerApi(): Comlink.Remote<IngestionWorkerApi> {
-  if (!workerApi) {
-    workerInstance = new Worker(
-      new URL('../workers/ingestion.worker.ts', import.meta.url),
-      { type: 'module' },
-    );
-    workerApi = Comlink.wrap<IngestionWorkerApi>(workerInstance);
-  }
-  return workerApi;
 }
 
 // ── GraphAnimation ────────────────────────────────────────────────────────────
@@ -251,6 +235,7 @@ const LandingCards = () => {
     { icon: '🧠', name: t.cardsSemanticName,   bullets: t.cardsSemanticBullets },
     { icon: '🏙️', name: t.cardsDebtName,       bullets: t.cardsDebtBullets },
     { icon: '🔥', name: t.cardsHeatmapName,    bullets: t.cardsHeatmapBullets },
+    { icon: '🔀', name: t.cardsCodeFlowName,   bullets: t.cardsCodeFlowBullets },
   ];
 
   return (

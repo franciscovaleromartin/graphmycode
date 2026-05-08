@@ -899,7 +899,11 @@ const workerApi = {
     }
      
     return { enrichments: enrichmentsRecord, tokensUsed };
-  
+
+  },
+
+  readLocalFile(filePath: string): string {
+    return storedFileContents.get(filePath) ?? '';
   },
 };
 

@@ -19,9 +19,12 @@ import {
   Building2,
   GitBranch,
   Globe,
+  Share2,
+  Download,
 } from '@/lib/lucide-icons';
 import { CityView, type CityViewHandle } from './CityView';
 import { HeatmapView, type HeatmapViewHandle } from './HeatmapView';
+import { CodeFlowView, type CodeFlowViewHandle } from './CodeFlowView';
 import { useSigma } from '../hooks/useSigma';
 import { useAppState } from '../hooks/useAppState';
 import { isProviderConfigured } from '../core/llm/settings-service';
@@ -88,6 +91,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   const prevGraphViewTypeRef = useRef(graphViewType);
   const [isHeatmapLayoutRunning, setIsHeatmapLayoutRunning] = useState(false);
   const [hasHeatmapBeenActivated, setHasHeatmapBeenActivated] = useState(false);
+  const [hasCodeFlowBeenActivated, setHasCodeFlowBeenActivated] = useState(false);
+  const codeFlowRef = useRef<CodeFlowViewHandle>(null);
 
   const effectiveHighlightedNodeIds = useMemo(() => {
     if (!isAIHighlightsEnabled) return highlightedNodeIds;
@@ -360,6 +365,19 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             <GitBranch className="h-3 w-3" />
             Dependency Heatmap
           </button>
+          <div className="w-px bg-border-subtle" />
+          <button
+            onClick={() => { setGraphViewType('codeflow'); setHasCodeFlowBeenActivated(true); }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              graphViewType === 'codeflow'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Flujo de ejecución del archivo seleccionado"
+          >
+            <Share2 className="h-3 w-3" />
+            Code Flow
+          </button>
         </div>
       )}
 
@@ -450,10 +468,24 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         </div>
       )}
 
+      {/* Exportar SVG — control secundario de Code Flow */}
+      {graph && graphViewType === 'codeflow' && (
+        <div className="absolute top-12 right-4 z-20">
+          <button
+            onClick={() => codeFlowRef.current?.exportSvg()}
+            className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary shadow-sm transition-colors hover:border-accent/40 hover:text-accent"
+            title="Exportar flujo como SVG"
+          >
+            <Download className="h-3 w-3" />
+            Exportar SVG
+          </button>
+        </div>
+      )}
+
       {/* Sigma container — oculto (no destruido) en modo semántico */}
       <div
         ref={containerRef}
-        className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' || graphViewType === 'city' || graphViewType === 'heatmap' ? ' invisible pointer-events-none' : ''}`}
+        className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' || graphViewType === 'city' || graphViewType === 'heatmap' || graphViewType === 'codeflow' ? ' invisible pointer-events-none' : ''}`}
       />
 
       {/* Vista semántica 3D — se monta una vez y permanece (invisible cuando no activa) */}
@@ -504,6 +536,15 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         </div>
       )}
 
+      {/* Vista Code Flow — Dagre + D3 */}
+      {hasCodeFlowBeenActivated && graph && (
+        <div
+          className={`absolute bottom-0 right-0 z-10 overflow-hidden transition-all duration-300${graphViewType !== 'codeflow' ? ' invisible pointer-events-none' : ''} top-11 ${isSidebarCollapsed ? 'left-10' : 'left-56'}`}
+        >
+          <CodeFlowView ref={codeFlowRef} />
+        </div>
+      )}
+
       {/* Hovered node tooltip - only show when NOT selected */}
       {hoveredNodeName && !sigmaSelectedNode && (
         <div className="pointer-events-none absolute top-4 left-1/2 z-20 -translate-x-1/2 animate-fade-in rounded-lg border border-border-subtle bg-elevated/95 px-3 py-1.5 backdrop-blur-sm">
@@ -531,21 +572,21 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       {/* Graph Controls - Bottom Right */}
       <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-1">
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomIn() : graphViewType === 'city' ? cityRef.current?.zoomIn() : graphViewType === 'heatmap' ? heatmapRef.current?.zoomIn() : zoomIn()}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomIn() : graphViewType === 'city' ? cityRef.current?.zoomIn() : graphViewType === 'heatmap' ? heatmapRef.current?.zoomIn() : graphViewType === 'codeflow' ? codeFlowRef.current?.zoomIn() : zoomIn()}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom In"
         >
           <ZoomIn className="h-4 w-4" />
         </button>
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomOut() : graphViewType === 'city' ? cityRef.current?.zoomOut() : graphViewType === 'heatmap' ? heatmapRef.current?.zoomOut() : zoomOut()}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomOut() : graphViewType === 'city' ? cityRef.current?.zoomOut() : graphViewType === 'heatmap' ? heatmapRef.current?.zoomOut() : graphViewType === 'codeflow' ? codeFlowRef.current?.zoomOut() : zoomOut()}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom Out"
         >
           <ZoomOut className="h-4 w-4" />
         </button>
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.resetZoom() : graphViewType === 'city' ? cityRef.current?.resetZoom() : graphViewType === 'heatmap' ? heatmapRef.current?.resetZoom() : resetZoom()}
+          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.resetZoom() : graphViewType === 'city' ? cityRef.current?.resetZoom() : graphViewType === 'heatmap' ? heatmapRef.current?.resetZoom() : graphViewType === 'codeflow' ? codeFlowRef.current?.resetZoom() : resetZoom()}
           className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Fit to Screen"
         >
