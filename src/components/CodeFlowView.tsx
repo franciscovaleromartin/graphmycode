@@ -230,7 +230,6 @@ function renderGraph(
         .attr('stroke-width', nodeType === 'error' ? 2 : 1.5);
     }
 
-    const maxChars = nodeType === 'decision' ? 14 : nodeType === 'start' || nodeType === 'end' ? 12 : 20;
     gNode
       .append('text')
       .attr('text-anchor', 'middle')
@@ -239,7 +238,7 @@ function renderGraph(
       .attr('font-size', '11')
       .attr('font-family', 'JetBrains Mono, Fira Code, monospace')
       .attr('pointer-events', 'none')
-      .text(truncate(label, maxChars));
+      .text(label);
   }
 
   const bounds = (container.node() as SVGGElement | null)?.getBBox();
@@ -289,9 +288,54 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
       if (svgRef.current && dagreGraph) renderGraph(svgRef.current, dagreGraph, zoomRef);
     },
     exportSvg: () => {
-      if (!svgRef.current) return;
+      if (!svgRef.current || !dagreGraph) return;
+
+      // 1 — Bounding box completa desde las posiciones dagre
+      const MARGIN = 48;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const id of dagreGraph.nodes() as string[]) {
+        const n = dagreGraph.node(id) as { x: number; y: number; width: number; height: number } | undefined;
+        if (!n) continue;
+        minX = Math.min(minX, n.x - n.width / 2);
+        minY = Math.min(minY, n.y - n.height / 2);
+        maxX = Math.max(maxX, n.x + n.width / 2);
+        maxY = Math.max(maxY, n.y + n.height / 2);
+      }
+      const vbX = minX - MARGIN;
+      const vbY = minY - MARGIN;
+      const vbW = maxX - minX + MARGIN * 2;
+      const vbH = maxY - minY + MARGIN * 2;
+
+      // 2 — Clonar SVG y resetear transformación de pan/zoom
+      const clone = svgRef.current.cloneNode(true) as SVGSVGElement;
+      clone.setAttribute('viewBox', `${vbX} ${vbY} ${vbW} ${vbH}`);
+      clone.setAttribute('width', String(Math.round(vbW)));
+      clone.setAttribute('height', String(Math.round(vbH)));
+      const containerEl = clone.querySelector('.cf-container');
+      if (containerEl) containerEl.removeAttribute('transform');
+
+      // 3 — Fondo blanco
+      const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      bg.setAttribute('x', String(vbX));
+      bg.setAttribute('y', String(vbY));
+      bg.setAttribute('width', String(vbW));
+      bg.setAttribute('height', String(vbH));
+      bg.setAttribute('fill', 'white');
+      clone.insertBefore(bg, clone.firstChild);
+
+      // 4 — Nodos con fondo blanco y aristas más oscuras para fondo claro
+      clone.querySelectorAll<SVGElement>('.cf-shape').forEach(el => {
+        el.setAttribute('fill', 'white');
+      });
+      clone.querySelectorAll<SVGElement>('.cf-edge').forEach(el => {
+        el.setAttribute('stroke', '#555570');
+      });
+      const markerPath = clone.querySelector('#cf-arrow path');
+      if (markerPath) markerPath.setAttribute('fill', '#555570');
+
       const serializer = new XMLSerializer();
-      const svgStr = serializer.serializeToString(svgRef.current);
+      const svgStr =
+        '<?xml version="1.0" encoding="UTF-8"?>\n' + serializer.serializeToString(clone);
       const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -302,7 +346,7 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     },
-  }));
+  }), [dagreGraph, selectedFile]);
 
   const handleFileSelect = useCallback(async (filePath: string) => {
     setSelectedFile(filePath);

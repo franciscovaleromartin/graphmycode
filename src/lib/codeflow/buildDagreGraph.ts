@@ -9,16 +9,31 @@ import { parseJsTs } from './parsers/js';
 import { parsePython } from './parsers/python';
 import type { FlowNodeType } from './types';
 
-const NODE_DIMS: Record<FlowNodeType, { width: number; height: number }> = {
-  function: { width: 180, height: 44 },
-  method:   { width: 170, height: 40 },
-  class:    { width: 190, height: 46 },
-  decision: { width: 150, height: 70 },
-  loop:     { width: 160, height: 44 },
-  error:    { width: 170, height: 44 },
-  start:    { width: 120, height: 36 },
-  end:      { width: 140, height: 36 },
+const NODE_HEIGHTS: Record<FlowNodeType, number> = {
+  function: 44, method: 40, class: 46,
+  decision: 70, loop: 44, error: 44,
+  start: 36, end: 36,
 };
+
+const NODE_MIN_WIDTH: Record<FlowNodeType, number> = {
+  function: 120, method: 110, class: 120,
+  decision: 100, loop: 110, error: 120,
+  start: 80, end: 90,
+};
+
+const NODE_H_PAD: Record<FlowNodeType, number> = {
+  function: 28, method: 28, class: 28,
+  decision: 32, loop: 32, error: 28,
+  start: 24, end: 24,
+};
+
+function nodeWidth(label: string, type: FlowNodeType): number {
+  const CHAR_PX = 7.2; // 11px JetBrains Mono
+  return Math.max(
+    NODE_MIN_WIDTH[type] ?? 120,
+    Math.ceil(label.length * CHAR_PX) + (NODE_H_PAD[type] ?? 28),
+  );
+}
 
 function detectLanguage(filePath: string): SupportedLanguages | null {
   if (filePath.endsWith('.ts') || filePath.endsWith('.tsx')) return SupportedLanguages.TypeScript;
@@ -43,8 +58,12 @@ export async function buildDagreGraph(filePath: string, content: string): Promis
   g.setDefaultEdgeLabel(() => ({}));
 
   for (const node of flow.nodes) {
-    const dims = NODE_DIMS[node.type];
-    g.setNode(node.id, { label: node.label, nodeType: node.type, ...dims });
+    g.setNode(node.id, {
+      label: node.label,
+      nodeType: node.type,
+      width: nodeWidth(node.label, node.type),
+      height: NODE_HEIGHTS[node.type] ?? 44,
+    });
   }
 
   for (const edge of flow.edges) {
