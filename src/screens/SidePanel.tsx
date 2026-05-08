@@ -99,7 +99,7 @@ export const SidePanel = () => {
           {/* Legend — cambia según la vista activa */}
           <section className="mb-5">
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-text-muted">
-              {graphViewType === 'semantic' ? 'Clusters' : graphViewType === 'city' ? 'Technical Debt' : graphViewType === 'heatmap' ? 'Acoplamiento' : t.legendTitle}
+              {graphViewType === 'semantic' ? 'Clusters' : graphViewType === 'city' ? 'Technical Debt' : graphViewType === 'heatmap' ? 'Acoplamiento' : graphViewType === 'codeflow' ? 'Code Flow' : t.legendTitle}
             </p>
             {graphViewType === 'semantic' ? (
               <div className="space-y-1.5">
@@ -219,6 +219,24 @@ export const SidePanel = () => {
                     </span>
                   </div>
                 </div>
+              </div>
+            ) : graphViewType === 'codeflow' ? (
+              <div className="space-y-1.5">
+                {([
+                  { color: '#10b981', label: 'Función' },
+                  { color: '#14b8a6', label: 'Método' },
+                  { color: '#f59e0b', label: 'Clase' },
+                  { color: '#fbbf24', label: 'Decisión (if)' },
+                  { color: '#818cf8', label: 'Bucle (for/while)' },
+                  { color: '#ef4444', label: 'Error (try/catch)' },
+                  { color: '#06b6d4', label: 'Inicio' },
+                  { color: '#5a5a70', label: 'Retorno' },
+                ] as const).map(({ color, label }) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <span className="h-2 w-2 flex-shrink-0 rounded-sm" style={{ backgroundColor: color }} />
+                    <span className="text-xs text-text-secondary">{label}</span>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="space-y-1.5">
