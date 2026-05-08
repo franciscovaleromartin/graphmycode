@@ -267,6 +267,7 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle, CodeFlowViewProps>(
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const explorerInitialized = useRef(false);
+  const savedTransformRef = useRef<d3.ZoomTransform | null>(null);
 
   // Keeps the latest depth accessible inside the stable handleFileSelect callback
   const depthRef = useRef(depth);
@@ -397,6 +398,10 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle, CodeFlowViewProps>(
   useEffect(() => {
     if (!dagreGraph || !svgRef.current) return;
     renderGraph(svgRef.current, dagreGraph, zoomRef);
+    if (savedTransformRef.current && zoomRef.current) {
+      d3.select(svgRef.current).call(zoomRef.current.transform, savedTransformRef.current);
+      savedTransformRef.current = null;
+    }
   }, [dagreGraph]);
 
   const prevDepthRef = useRef(depth);
@@ -404,6 +409,7 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle, CodeFlowViewProps>(
     if (prevDepthRef.current === depth) return;
     prevDepthRef.current = depth;
     if (selectedFile && mode === 'graph') {
+      if (svgRef.current) savedTransformRef.current = d3.zoomTransform(svgRef.current);
       handleFileSelect(selectedFile);
     }
   }, [depth, selectedFile, mode, handleFileSelect]);
