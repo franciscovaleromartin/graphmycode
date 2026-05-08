@@ -92,34 +92,86 @@ function renderGraph(
   svg.call(zoom);
   zoomRef.current = zoom;
 
+  // ── Interaction ──────────────────────────────────────────────────────────────
+  const edgeList = g.edges() as Array<{ v: string; w: string }>;
+  let activeNodeId: string | null = null;
+
+  const DIM_NODE = 0.12;
+  const DIM_EDGE = 0.08;
+  const EDGE_ACTIVE_STROKE = '#7070a8';
+  const EDGE_BASE_STROKE = '#3a3a58';
+
+  function applySelection(clickedId: string | null) {
+    activeNodeId = clickedId;
+
+    if (!clickedId) {
+      container.selectAll<SVGGElement, unknown>('.cf-node').each(function () {
+        const sel = d3.select(this);
+        const type = sel.attr('data-type') as FlowNodeType;
+        sel.style('opacity', 1);
+        sel.select('.cf-shape').attr('stroke-width', type === 'error' ? 2 : 1.5);
+      });
+      container.selectAll<SVGPathElement, unknown>('.cf-edge')
+        .style('opacity', 1)
+        .attr('stroke', EDGE_BASE_STROKE);
+      return;
+    }
+
+    const neighborIds = new Set<string>();
+    const connectedKeys = new Set<string>();
+    for (const e of edgeList) {
+      if (e.v === clickedId || e.w === clickedId) {
+        connectedKeys.add(`${e.v}__${e.w}`);
+        neighborIds.add(e.v === clickedId ? e.w : e.v);
+      }
+    }
+
+    container.selectAll<SVGGElement, unknown>('.cf-node').each(function () {
+      const sel = d3.select(this);
+      const id = sel.attr('data-id');
+      const type = sel.attr('data-type') as FlowNodeType;
+      const isSelected = id === clickedId;
+      const isNeighbor = neighborIds.has(id);
+      sel.style('opacity', isSelected || isNeighbor ? 1 : DIM_NODE);
+      sel.select('.cf-shape').attr('stroke-width', isSelected ? 3 : type === 'error' ? 2 : 1.5);
+    });
+
+    container.selectAll<SVGPathElement, unknown>('.cf-edge').each(function () {
+      const sel = d3.select(this);
+      const key = sel.attr('data-edge');
+      const active = connectedKeys.has(key!);
+      sel.style('opacity', active ? 1 : DIM_EDGE);
+      sel.attr('stroke', active ? EDGE_ACTIVE_STROKE : EDGE_BASE_STROKE);
+    });
+  }
+
+  // Click outside any node resets selection
+  svg.on('click', () => applySelection(null));
+
+  // ── Render edges ─────────────────────────────────────────────────────────────
   const edgeGroup = container.append('g');
-  const edges = g.edges() as Array<{ v: string; w: string }>;
-  for (const e of edges) {
+  for (const e of edgeList) {
     const edge = g.edge(e) as { points: Array<{ x: number; y: number }> };
     if (!edge?.points?.length) continue;
-    const line = d3
-      .line<{ x: number; y: number }>()
-      .x(d => d.x)
-      .y(d => d.y);
+    const line = d3.line<{ x: number; y: number }>().x(d => d.x).y(d => d.y);
     edgeGroup
       .append('path')
+      .attr('class', 'cf-edge')
+      .attr('data-edge', `${e.v}__${e.w}`)
       .attr('d', line(edge.points))
       .attr('fill', 'none')
-      .attr('stroke', '#3a3a58')
+      .attr('stroke', EDGE_BASE_STROKE)
       .attr('stroke-width', 1.5)
       .attr('marker-end', 'url(#cf-arrow)');
   }
 
+  // ── Render nodes ─────────────────────────────────────────────────────────────
   const nodeGroup = container.append('g');
   const nodeIds = g.nodes() as string[];
   for (const nodeId of nodeIds) {
     const n = g.node(nodeId) as {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      label: string;
-      nodeType: FlowNodeType;
+      x: number; y: number; width: number; height: number;
+      label: string; nodeType: FlowNodeType;
     };
     if (!n) continue;
     const { x, y, width: w, height: h, label, nodeType } = n;
@@ -129,19 +181,28 @@ function renderGraph(
 
     const gNode = nodeGroup
       .append('g')
-      .attr('transform', `translate(${x},${y})`);
+      .attr('class', 'cf-node')
+      .attr('data-id', nodeId)
+      .attr('data-type', nodeType)
+      .attr('transform', `translate(${x},${y})`)
+      .style('cursor', 'pointer')
+      .on('click', (event: MouseEvent) => {
+        event.stopPropagation();
+        applySelection(activeNodeId === nodeId ? null : nodeId);
+      });
 
     if (nodeType === 'start' || nodeType === 'end') {
       gNode
         .append('ellipse')
-        .attr('rx', hw)
-        .attr('ry', hh)
+        .attr('class', 'cf-shape')
+        .attr('rx', hw).attr('ry', hh)
         .attr('fill', style.fill)
         .attr('stroke', style.stroke)
         .attr('stroke-width', 1.5);
     } else if (nodeType === 'decision') {
       gNode
         .append('polygon')
+        .attr('class', 'cf-shape')
         .attr('points', `0,${-hh} ${hw},0 0,${hh} ${-hw},0`)
         .attr('fill', style.fill)
         .attr('stroke', style.stroke)
@@ -150,25 +211,23 @@ function renderGraph(
       const cut = 10;
       gNode
         .append('polygon')
-        .attr(
-          'points',
+        .attr('class', 'cf-shape')
+        .attr('points',
           `${-hw + cut},${-hh} ${hw - cut},${-hh} ${hw},0 ${hw - cut},${hh} ${-hw + cut},${hh} ${-hw},0`,
         )
         .attr('fill', style.fill)
         .attr('stroke', style.stroke)
         .attr('stroke-width', 1.5);
     } else {
-      const sw = nodeType === 'error' ? 2 : 1.5;
       gNode
         .append('rect')
-        .attr('x', -hw)
-        .attr('y', -hh)
-        .attr('width', w)
-        .attr('height', h)
+        .attr('class', 'cf-shape')
+        .attr('x', -hw).attr('y', -hh)
+        .attr('width', w).attr('height', h)
         .attr('rx', 6)
         .attr('fill', style.fill)
         .attr('stroke', style.stroke)
-        .attr('stroke-width', sw);
+        .attr('stroke-width', nodeType === 'error' ? 2 : 1.5);
     }
 
     const maxChars = nodeType === 'decision' ? 14 : nodeType === 'start' || nodeType === 'end' ? 12 : 20;
