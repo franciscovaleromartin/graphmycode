@@ -103,6 +103,9 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
     const tooltipRef = useRef<{ node: HeatmapNode; px: number; py: number } | null>(null);
     const hoveredNodeRef = useRef<string | null>(null);
 
+    // Selection state
+    const selectedNodeRef = useRef<string | null>(null);
+
     // ── Build graphology graph from KnowledgeGraph ───────────────────────────
     const buildGraph = useCallback(() => {
       const data = computeHeatmapData(graph);
@@ -252,10 +255,27 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
           .map(n => n.id),
       );
 
+      // Selection: nodos vecinos y aristas conectadas al nodo seleccionado
+      const selected = selectedNodeRef.current;
+      let neighborIds: Set<string> | null = null;
+      let connectedEdgeKeys: Set<string> | null = null;
+      if (selected) {
+        neighborIds = new Set<string>([selected]);
+        connectedEdgeKeys = new Set<string>();
+        for (const e of edgesRef.current) {
+          if (e.source === selected || e.target === selected) {
+            connectedEdgeKeys.add(`${e.source}__${e.target}`);
+            neighborIds.add(e.source === selected ? e.target : e.source);
+          }
+        }
+      }
+
       // Draw edges
       edgesRef.current.forEach(e => {
         if (!g.hasNode(e.source) || !g.hasNode(e.target)) return;
         if (!visibleIds.has(e.source) || !visibleIds.has(e.target)) return;
+        const isConnected = !selected || connectedEdgeKeys!.has(`${e.source}__${e.target}`);
+        ctx.globalAlpha = isConnected ? 1 : 0.06;
         const srcAttr = g.getNodeAttributes(e.source);
         const tgtAttr = g.getNodeAttributes(e.target);
         ctx.beginPath();
@@ -272,12 +292,14 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
         }
         ctx.stroke();
         ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
       });
 
       // Glow para nodos calientes (antes de dibujar el nodo)
       nodesRef.current.forEach(n => {
         if (!g.hasNode(n.id) || !visibleIds.has(n.id)) return;
         if (n.degree < maxDeg * 0.5) return;
+        if (selected && !neighborIds!.has(n.id)) return;
         const attr = g.getNodeAttributes(n.id);
         const r = nodeRadius(n.degree);
         const grd = ctx.createRadialGradient(
@@ -298,15 +320,19 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
         const attr = g.getNodeAttributes(n.id);
         const r = nodeRadius(n.degree);
         const isHovered = hoveredNodeRef.current === n.id;
+        const isSelected = n.id === selected;
+        const isHighlighted = !selected || neighborIds!.has(n.id);
+
+        ctx.globalAlpha = isHighlighted ? 1 : 0.12;
 
         ctx.beginPath();
         ctx.arc(attr.x as number, attr.y as number, isHovered ? r + 2 : r, 0, Math.PI * 2);
         ctx.fillStyle = heatColor(n.normalizedDegree);
         ctx.fill();
 
-        if (isHovered) {
+        if (isHovered || isSelected) {
           ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 1.5;
+          ctx.lineWidth = isSelected ? 2.5 : 1.5;
           ctx.stroke();
         }
 
@@ -319,6 +345,8 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
           ctx.fillText(label, attr.x as number, (attr.y as number) + r + 13);
           ctx.textAlign = 'left';
         }
+
+        ctx.globalAlpha = 1;
       });
 
       ctx.restore();
@@ -416,8 +444,11 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       const { x: wx, y: wy } = screenToWorld(sx, sy);
       const hit = hitTestNode(wx, wy);
       if (hit) {
+        selectedNodeRef.current = selectedNodeRef.current === hit.id ? null : hit.id;
         const graphNode = graph.nodes.find(n => n.id === hit.id);
         if (graphNode) onNodeClick(graphNode);
+      } else {
+        selectedNodeRef.current = null;
       }
     }
 
