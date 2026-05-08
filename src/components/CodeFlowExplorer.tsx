@@ -2,11 +2,22 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { ChevronRight, ChevronDown, Folder, FolderOpen, FileCode } from '@/lib/lucide-icons';
 import { NODE_COLORS } from '../lib/constants';
 import { COMPATIBLE_EXTENSIONS } from '../lib/codeflow/types';
 import type { GraphNode } from 'gitnexus-shared';
+
+const JUNK_SEGMENTS = new Set([
+  '__MACOSX', '.DS_Store', '.localized', 'Thumbs.db', 'desktop.ini',
+  '.Spotlight-V100', '.Trashes', '.fseventsd',
+]);
+
+function isJunkPath(filePath: string): boolean {
+  return filePath.split('/').some(
+    seg => JUNK_SEGMENTS.has(seg) || seg.startsWith('._'),
+  );
+}
 
 interface TreeNode {
   id: string;
@@ -128,26 +139,29 @@ const TreeItem = ({ node, depth, selectedPath, expandedPaths, onToggle, onSelect
 interface CodeFlowExplorerProps {
   files: GraphNode[];
   selectedFilePath: string | null;
+  expandedPaths: Set<string>;
+  onToggle: (path: string) => void;
   onFileSelect: (filePath: string) => void;
 }
 
-export const CodeFlowExplorer = ({ files, selectedFilePath, onFileSelect }: CodeFlowExplorerProps) => {
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
-
+export const CodeFlowExplorer = ({
+  files,
+  selectedFilePath,
+  expandedPaths,
+  onToggle,
+  onFileSelect,
+}: CodeFlowExplorerProps) => {
   const compatibleFiles = useMemo(
-    () => files.filter(n => COMPATIBLE_EXTENSIONS.some(ext => n.properties.filePath.endsWith(ext))),
+    () =>
+      files.filter(
+        n =>
+          COMPATIBLE_EXTENSIONS.some(ext => n.properties.filePath.endsWith(ext)) &&
+          !isJunkPath(n.properties.filePath),
+      ),
     [files],
   );
 
   const tree = useMemo(() => buildTree(compatibleFiles), [compatibleFiles]);
-
-  const toggleExpanded = useCallback((path: string) => {
-    setExpandedPaths(prev => {
-      const next = new Set(prev);
-      next.has(path) ? next.delete(path) : next.add(path);
-      return next;
-    });
-  }, []);
 
   if (compatibleFiles.length === 0) {
     return (
@@ -175,7 +189,7 @@ export const CodeFlowExplorer = ({ files, selectedFilePath, onFileSelect }: Code
             depth={0}
             selectedPath={selectedFilePath}
             expandedPaths={expandedPaths}
-            onToggle={toggleExpanded}
+            onToggle={onToggle}
             onSelect={onFileSelect}
           />
         ))}

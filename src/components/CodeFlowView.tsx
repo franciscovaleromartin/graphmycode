@@ -259,8 +259,17 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [dagreGraph, setDagreGraph] = useState<graphlib.Graph | null>(null);
   const [nodeCount, setNodeCount] = useState(0);
+  const [explorerExpandedPaths, setExplorerExpandedPaths] = useState<Set<string>>(new Set());
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+
+  const handleExplorerToggle = useCallback((path: string) => {
+    setExplorerExpandedPaths(prev => {
+      const next = new Set(prev);
+      next.has(path) ? next.delete(path) : next.add(path);
+      return next;
+    });
+  }, []);
 
   const fileNodes = useMemo(
     () => graph?.nodes.filter(n => n.label === 'File') ?? [],
@@ -367,13 +376,16 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle>((_, ref) => {
 
       {/* Content */}
       <div className="relative flex-1 overflow-hidden">
-        {mode === 'explorer' && (
+        {/* Explorer: siempre montado para preservar expansión de carpetas */}
+        <div className={mode === 'explorer' ? 'h-full' : 'hidden'}>
           <CodeFlowExplorer
             files={fileNodes}
             selectedFilePath={selectedFile}
+            expandedPaths={explorerExpandedPaths}
+            onToggle={handleExplorerToggle}
             onFileSelect={handleFileSelect}
           />
-        )}
+        </div>
 
         {mode === 'graph' && (
           <>
