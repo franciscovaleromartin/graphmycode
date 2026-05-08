@@ -555,10 +555,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             ref={heatmapRef}
             graph={graph}
             isActive={graphViewType === 'heatmap'}
-            onNodeClick={(node) => {
-              setSelectedNode(node);
-              openCodePanel();
-            }}
+            onNodeClick={() => {}}
             onLayoutStateChange={setIsHeatmapLayoutRunning}
           />
         </div>

@@ -549,7 +549,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       <div className="relative flex h-full w-full flex-col">
         {/* Controles flotantes — respetan la sidebar y los botones de zoom */}
         <div
-          className="absolute top-3 z-10 flex gap-2"
+          className="absolute top-12 z-10 flex gap-2"
           style={{ left: isSidebarCollapsed ? 56 : 224 }}
         >
           <button
@@ -559,7 +559,7 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
             ↺ Reorganizar
           </button>
         </div>
-        <div className="absolute top-3 z-10" style={{ right: 52 }}>
+        <div className="absolute top-12 z-10" style={{ right: 52 }}>
           <select
             value={filter}
             onChange={handleFilterChange}
