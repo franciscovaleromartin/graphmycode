@@ -22,6 +22,8 @@ import {
   Share2,
   Download,
   List,
+  Zap,
+  Box,
 } from '@/lib/lucide-icons';
 import { CityView, type CityViewHandle } from './CityView';
 import { HeatmapView, type HeatmapViewHandle } from './HeatmapView';
@@ -95,6 +97,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
   const [hasCodeFlowBeenActivated, setHasCodeFlowBeenActivated] = useState(false);
   const codeFlowRef = useRef<CodeFlowViewHandle>(null);
   const [codeFlowDepth, setCodeFlowDepth] = useState<'high' | 'low'>('high');
+  const [heatmapFilter, setHeatmapFilter] = useState<'all' | 'hot' | 'cold'>('all');
 
   const effectiveHighlightedNodeIds = useMemo(() => {
     if (!isAIHighlightsEnabled) return highlightedNodeIds;
@@ -470,6 +473,52 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         </div>
       )}
 
+      {/* Filtro de módulos — visible en Dependency Heatmap */}
+      {graph && graphViewType === 'heatmap' && (
+        <div
+          className={`absolute top-12 z-20 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm transition-all duration-300 ${isSidebarCollapsed ? 'left-14' : 'left-60'}`}
+        >
+          <button
+            onClick={() => setHeatmapFilter('all')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              heatmapFilter === 'all'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Mostrar todos los módulos"
+          >
+            <Layers className="h-3 w-3" />
+            Todos
+          </button>
+          <div className="w-px bg-border-subtle" />
+          <button
+            onClick={() => setHeatmapFilter('hot')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              heatmapFilter === 'hot'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Solo módulos con alto acoplamiento"
+          >
+            <Zap className="h-3 w-3" />
+            Acoplados
+          </button>
+          <div className="w-px bg-border-subtle" />
+          <button
+            onClick={() => setHeatmapFilter('cold')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              heatmapFilter === 'cold'
+                ? 'bg-elevated text-text-primary'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Solo módulos aislados"
+          >
+            <Box className="h-3 w-3" />
+            Aislados
+          </button>
+        </div>
+      )}
+
       {/* Controles de Code Flow — centrados */}
       {graph && graphViewType === 'codeflow' && (
         <div className="absolute top-12 left-1/2 z-20 -translate-x-1/2 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm">
@@ -556,6 +605,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             graph={graph}
             isActive={graphViewType === 'heatmap'}
             onNodeClick={() => {}}
+            filter={heatmapFilter}
             onLayoutStateChange={setIsHeatmapLayoutRunning}
           />
         </div>
