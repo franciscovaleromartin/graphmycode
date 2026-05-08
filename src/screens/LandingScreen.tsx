@@ -4,6 +4,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Globe, Linkedin } from '@/lib/lucide-icons';
+import * as Comlink from 'comlink';
 import { useAppState } from '../hooks/useAppState';
 import { useT } from '../lib/i18n';
 import { extractZip } from '../services/zip';
