@@ -470,11 +470,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         </div>
       )}
 
-      {/* Toggle Alto / Bajo nivel — visible en Code Flow */}
+      {/* Controles de Code Flow — centrados */}
       {graph && graphViewType === 'codeflow' && (
-        <div
-          className={`absolute top-12 z-20 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm transition-all duration-300 ${isSidebarCollapsed ? 'left-14' : 'left-60'}`}
-        >
+        <div className="absolute top-12 left-1/2 z-20 -translate-x-1/2 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm">
           <button
             onClick={() => setCodeFlowDepth('high')}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -500,15 +498,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             <List className="h-3 w-3" />
             Bajo nivel
           </button>
-        </div>
-      )}
-
-      {/* Exportar SVG — control secundario de Code Flow */}
-      {graph && graphViewType === 'codeflow' && (
-        <div className="absolute top-12 right-4 z-20">
+          <div className="w-px bg-border-subtle" />
           <button
             onClick={() => codeFlowRef.current?.exportSvg()}
-            className="flex items-center gap-1.5 rounded-lg border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary shadow-sm transition-colors hover:border-accent/40 hover:text-accent"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-hover hover:text-text-secondary"
             title="Exportar flujo como SVG"
           >
             <Download className="h-3 w-3" />
