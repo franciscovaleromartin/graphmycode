@@ -492,10 +492,10 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       });
     };
 
-    // ── Auto-play: arrancar layout cada vez que la vista se activa ───────────
+    // ── Auto-play: al activar la vista, reinicia posiciones desde cero ───────
     useEffect(() => {
       if (isActive) {
-        randomizePositions();
+        buildGraph();
         layoutFrameCountRef.current = 0;
         isRunningRef.current = true;
         onLayoutStateChange?.(true);
@@ -534,27 +534,8 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       },
     }));
 
-    const handleReorganize = () => {
-      randomizePositions();
-      layoutFrameCountRef.current = 0;
-      isRunningRef.current = true;
-      onLayoutStateChange?.(true);
-    };
-
     return (
       <div className="relative flex h-full w-full flex-col">
-        {/* Controles flotantes — respetan la sidebar y los botones de zoom */}
-        <div
-          className="absolute top-12 z-10 flex gap-2"
-          style={{ left: isSidebarCollapsed ? 56 : 224 }}
-        >
-          <button
-            onClick={handleReorganize}
-            className="rounded border border-border-default bg-bg-surface px-2 py-1 text-xs text-text-secondary hover:text-text-primary"
-          >
-            ↺ Reorganizar
-          </button>
-        </div>
         {/* Canvas */}
         <canvas
           ref={canvasRef}
