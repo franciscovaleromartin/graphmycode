@@ -203,6 +203,16 @@
 
       <div class="case-card">
         <div class="case-header">
+          <div class="case-icon">⚡</div>
+          <h2>Dar contexto a tu agente de IA</h2>
+        </div>
+        <p>Cuando trabajas con agentes de IA — Claude, Cursor, Copilot, o tus propios scripts con LangChain o la API de Anthropic — el mayor obstáculo es darles contexto relevante del proyecto. GraphMyCode resuelve esto con un botón: <span class="highlight">⬇ Export Project Context</span>.</p>
+        <p>El fichero <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">project-context.md</span></code> generado incluye los nodos más conectados del proyecto, la estructura de carpetas, las dependencias externas detectadas y los grupos de código identificados automáticamente. Está pensado para pegarse directamente en un <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">CLAUDE.md</code> o como system prompt de cualquier agente.</p>
+        <p>Cuando GraphMyCode detecta que el propio proyecto analizado <em>es</em> un agente de IA — por sus imports (<code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">anthropic</code>, <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">openai</code>, <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">langchain</code>…), la presencia de archivos de configuración como <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">CLAUDE.md</code> o <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">AGENTS.md</code>, o funciones de orquestación — aparece el badge <span class="highlight">⚡ Agent Mode Detected</span> en la barra lateral y el fichero exportado incluye una nota adicional indicándolo.</p>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
           <div class="case-icon">🔎</div>
           <h2>Hacer consultas Cypher sobre tu código</h2>
         </div>

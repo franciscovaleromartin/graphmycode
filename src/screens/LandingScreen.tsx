@@ -294,6 +294,46 @@ const LandingCards = () => {
         </div>
       </div>
 
+      {/* ── Export / Agent Mode card ── */}
+      <div style={{
+        borderRadius: '14px', border: '1px solid #1e293b',
+        background: '#0c111d', padding: '18px 20px', position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', top: '-30px', right: '-30px',
+          width: '110px', height: '110px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(245,158,11,.13) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{
+          width: '32px', height: '32px', borderRadius: '9px', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', fontSize: '14px', marginBottom: '12px',
+          background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)',
+        }}>⬇</div>
+        <span style={{
+          display: 'inline-flex', fontSize: '9px', fontWeight: 700, letterSpacing: '.1em',
+          textTransform: 'uppercase', padding: '3px 9px', borderRadius: '6px', marginBottom: '8px',
+          background: 'rgba(245,158,11,.08)', color: '#f59e0b',
+          border: '1px solid rgba(245,158,11,.18)',
+        }}>
+          {t.cardsExportTag}
+        </span>
+        <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px', lineHeight: 1.35 }}>
+          {t.cardsExportTitle}
+        </p>
+        <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.6, marginBottom: '10px' }}>
+          {t.cardsExportBody}
+        </p>
+        <p style={{
+          fontSize: '10px', lineHeight: 1.5, color: '#f59e0b',
+          background: 'rgba(245,158,11,.06)',
+          border: '1px solid rgba(245,158,11,.15)',
+          borderRadius: '7px', padding: '6px 9px',
+        }}>
+          {t.cardsExportAgentBadge}
+        </p>
+      </div>
+
       {/* ── Pair row ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
 

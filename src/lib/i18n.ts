@@ -88,6 +88,10 @@ const translations = {
     cardsCypherTitle: 'Consulta tu código con Cypher',
     cardsCypherBody: 'El grafo estructural es compatible con Neo4j. Escribe queries Cypher para encontrar patrones, dependencias circulares o cualquier relación entre nodos de tu código.',
     cardsCypherExample: 'MATCH (a)-[:IMPORTS]->(b)-[:IMPORTS]->(a) RETURN a, b',
+    cardsExportTag: '⚡ Exportar',
+    cardsExportTitle: 'Exporta el contexto de tu proyecto',
+    cardsExportBody: 'Un clic genera project-context.md con los nodos más conectados, la estructura de carpetas, las dependencias externas y los grupos de código detectados — listo para pegarlo en CLAUDE.md o pasárselo a tu agente de IA.',
+    cardsExportAgentBadge: 'Si GraphMyCode detecta patrones de agente de IA (imports de Anthropic, OpenAI, LangChain, archivos CLAUDE.md…), aparece el badge ⚡ Agent Mode Detected en la barra lateral.',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',
@@ -220,6 +224,10 @@ const translations = {
     cardsCypherTitle: 'Query your code with Cypher',
     cardsCypherBody: 'The structural graph is Neo4j-compatible. Write Cypher queries to find patterns, circular dependencies, or any relationship between nodes in your codebase.',
     cardsCypherExample: 'MATCH (a)-[:IMPORTS]->(b)-[:IMPORTS]->(a) RETURN a, b',
+    cardsExportTag: '⚡ Export',
+    cardsExportTitle: 'Export your project context',
+    cardsExportBody: 'One click generates project-context.md with the most connected nodes, folder structure, external dependencies and detected code communities — ready to paste into CLAUDE.md or hand off to your AI agent.',
+    cardsExportAgentBadge: 'When GraphMyCode detects AI agent patterns (Anthropic, OpenAI, LangChain imports, CLAUDE.md files…), it shows the ⚡ Agent Mode Detected badge in the sidebar.',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',
