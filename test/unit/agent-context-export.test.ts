@@ -78,6 +78,26 @@ describe('buildAgentContext', () => {
     expect(content).toContain('No communities detected.');
   });
 
+  it('does not include agent line when isAgent=false (default)', () => {
+    const g = createKnowledgeGraph();
+    const content = buildAgentContext(g, 'p', {});
+    expect(content).not.toContain('Agent patterns detected');
+  });
+
+  it('includes agent line in header when isAgent=true', () => {
+    const g = createKnowledgeGraph();
+    const content = buildAgentContext(g, 'p', {}, true);
+    expect(content).toContain('> ⚡ Agent patterns detected');
+  });
+
+  it('agent line appears before Context Prompt section', () => {
+    const g = createKnowledgeGraph();
+    const content = buildAgentContext(g, 'p', {}, true);
+    expect(content.indexOf('Agent patterns detected')).toBeLessThan(
+      content.indexOf('## Context Prompt'),
+    );
+  });
+
   it('lists community nodes when present', () => {
     const g = createKnowledgeGraph();
     g.addNode({

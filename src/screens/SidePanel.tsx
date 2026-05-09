@@ -49,7 +49,7 @@ export const SidePanel = () => {
 
   const handleExportAgentContext = () => {
     if (!graph) return;
-    exportAgentContext(graph, projectName, externalDeps);
+    exportAgentContext(graph, projectName, externalDeps, agentDetection.isAgent);
   };
 
   return (
@@ -266,27 +266,27 @@ export const SidePanel = () => {
             )}
           </section>
 
-          {/* Agent Mode panel — only shown when agent code is detected */}
-          {agentDetection.isAgent && (
-            <>
-              <hr className="mb-4 border-border-subtle" />
-              <section className="mb-4">
+          {/* Export section — always visible; badge only when agent patterns detected */}
+          <hr className="mb-4 border-border-subtle" />
+          <section className="mb-4">
+            {agentDetection.isAgent && (
+              <>
                 <div className="mb-2 flex items-center gap-1.5 rounded-md border border-secondary/30 bg-secondary/10 px-2.5 py-1.5">
                   <span className="text-sm">⚡</span>
                   <span className="text-xs font-semibold text-secondary">Agent Mode Detected</span>
                 </div>
                 <p className="mb-3 text-xs text-text-muted">
-                  AI agent code detected. Export context for your agent.
+                  AI agent patterns detected in this project.
                 </p>
-                <button
-                  onClick={handleExportAgentContext}
-                  className="w-full rounded-lg border border-secondary/30 bg-secondary/10 px-3 py-2 text-xs text-secondary transition-colors hover:bg-secondary/20"
-                >
-                  ⬇ Export Agent Context
-                </button>
-              </section>
-            </>
-          )}
+              </>
+            )}
+            <button
+              onClick={handleExportAgentContext}
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-xs text-text-secondary transition-colors hover:border-accent/40 hover:text-accent"
+            >
+              ⬇ Export Project Context
+            </button>
+          </section>
 
           {/* Reset button */}
           <div className="mt-auto">

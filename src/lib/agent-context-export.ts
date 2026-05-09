@@ -9,13 +9,14 @@ export function exportAgentContext(
   graph: KnowledgeGraph,
   projectName: string,
   externalDeps: Record<string, string[]>,
+  isAgent = false,
 ): void {
-  const content = buildAgentContext(graph, projectName, externalDeps);
+  const content = buildAgentContext(graph, projectName, externalDeps, isAgent);
   const blob = new Blob([content], { type: 'text/markdown' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'agent-context.md';
+  a.download = 'project-context.md';
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -24,6 +25,7 @@ export function buildAgentContext(
   graph: KnowledgeGraph,
   projectName: string,
   externalDeps: Record<string, string[]>,
+  isAgent = false,
 ): string {
   const date = new Date().toISOString().slice(0, 10);
 
@@ -124,7 +126,7 @@ export function buildAgentContext(
   return [
     `# GraphMyCode — Agent Context Export`,
     `Generated: ${date} | Project: ${projectName}`,
-    '',
+    ...(isAgent ? ['> ⚡ Agent patterns detected', ''] : ['']),
     `## Context Prompt`,
     '',
     contextPrompt,
