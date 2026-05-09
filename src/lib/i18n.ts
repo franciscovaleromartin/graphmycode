@@ -91,7 +91,7 @@ const translations = {
     cardsExportTag: '⚡ Exportar',
     cardsExportTitle: 'Exporta el contexto de tu proyecto',
     cardsExportBody: 'Un clic genera project-context.md con los nodos más conectados, la estructura de carpetas, las dependencias externas y los grupos de código detectados — listo para pegarlo en CLAUDE.md o pasárselo a tu agente de IA.',
-    cardsExportAgentBadge: 'Si GraphMyCode detecta patrones de agente de IA (imports de Anthropic, OpenAI, LangChain, archivos CLAUDE.md…), aparece el badge ⚡ Agent Mode Detected en la barra lateral.',
+    cardsExportBenefit: 'La ventaja principal es reducir tokens y mejorar la calidad de respuesta del agente. Con el .md en CLAUDE.md, el agente arranca sabiendo qué archivos son más importantes, qué hace cada capa, qué stack usa y cuáles son los entry points clave.',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',
@@ -227,7 +227,7 @@ const translations = {
     cardsExportTag: '⚡ Export',
     cardsExportTitle: 'Export your project context',
     cardsExportBody: 'One click generates project-context.md with the most connected nodes, folder structure, external dependencies and detected code communities — ready to paste into CLAUDE.md or hand off to your AI agent.',
-    cardsExportAgentBadge: 'When GraphMyCode detects AI agent patterns (Anthropic, OpenAI, LangChain imports, CLAUDE.md files…), it shows the ⚡ Agent Mode Detected badge in the sidebar.',
+    cardsExportBenefit: 'The main advantage: fewer tokens, better agent responses. With the .md in CLAUDE.md, your agent knows from message one which files matter most, what each layer does, the stack in use and the key entry points.',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',

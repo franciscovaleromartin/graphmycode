@@ -324,13 +324,8 @@ const LandingCards = () => {
         <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.6, marginBottom: '10px' }}>
           {t.cardsExportBody}
         </p>
-        <p style={{
-          fontSize: '10px', lineHeight: 1.5, color: '#f59e0b',
-          background: 'rgba(245,158,11,.06)',
-          border: '1px solid rgba(245,158,11,.15)',
-          borderRadius: '7px', padding: '6px 9px',
-        }}>
-          {t.cardsExportAgentBadge}
+        <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.6 }}>
+          {t.cardsExportBenefit}
         </p>
       </div>
 

@@ -299,6 +299,18 @@
           <p>El fichero contiene cinco secciones: un resumen narrativo compacto de los puntos de entrada más conectados (pensado para pegarse en un <code>CLAUDE.md</code> o como system prompt), la estructura de directorios con recuento de archivos por carpeta, los diez nodos con más conexiones, las dependencias externas detectadas (npm o PyPI, sin ruido de stdlib) y los grupos de código identificados por el algoritmo de comunidades Leiden.</p>
           <p><strong style="color:var(--text-1)">Detección automática de agentes de IA.</strong> Antes de generar el export, GraphMyCode analiza el grafo en busca de señales que indiquen que el proyecto analizado <em>es</em> un agente de IA: imports de frameworks como <code>anthropic</code>, <code>openai</code>, <code>langchain</code>, <code>pydantic_ai</code> o <code>@anthropic-ai/sdk</code>; presencia de archivos de configuración como <code>CLAUDE.md</code>, <code>AGENTS.md</code> o <code>.mcp.json</code>; y funciones de orquestación o patrones de subagente. Si la confianza supera el umbral y al menos dos categorías distintas de señales están presentes, aparece el badge <strong style="color:var(--amber)">⚡ Agent Mode Detected</strong> en la barra lateral y el fichero exportado incluye la nota correspondiente en su cabecera.</p>
           <p>El análisis de detección es puramente local — solo regex y conteo sobre el grafo ya construido — y tarda menos de 200 ms independientemente del tamaño del proyecto.</p>
+          <p><strong style="color:var(--text-1)">La ventaja principal es reducir tokens y mejorar la calidad de respuesta del agente.</strong> Sin el export, cuando Claude Code arranca en tu proyecto hace una de estas dos cosas:</p>
+          <ul style="margin:10px 0 10px 20px;font-size:14px;color:var(--text-2);line-height:1.8;list-style:disc;">
+            <li>Lee archivos uno a uno hasta entender la arquitectura → lento y caro en tokens</li>
+            <li>Te pregunta "¿qué hace este proyecto?" → tú pierdes tiempo explicando</li>
+          </ul>
+          <p>Con el <code>.md</code> pegado en <code>CLAUDE.md</code>, el agente arranca sabiendo:</p>
+          <ul style="margin:10px 0 0 20px;font-size:14px;color:var(--text-2);line-height:1.8;list-style:disc;">
+            <li>Cuáles son los archivos más importantes (<code>app.py</code>, <code>database.py</code>…)</li>
+            <li>Qué hace cada capa (Backend, Components, Hooks…)</li>
+            <li>Qué stack usa</li>
+            <li>Cuáles son los entry points clave</li>
+          </ul>
         </div>
       </div>
 
