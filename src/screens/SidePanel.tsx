@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
+import { useMemo } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import { NODE_COLORS } from '../lib/constants';
 import type { NodeLabel } from 'gitnexus-shared';
 import { useT } from '../lib/i18n';
+import { detectAgentCode } from '../lib/agent-detection';
+import { exportAgentContext } from '../lib/agent-context-export';
 
 // Labels to show in legend (most useful ones)
 const LEGEND_LABELS: NodeLabel[] = [
@@ -16,7 +19,7 @@ export const SidePanel = () => {
   const {
     graph, setViewMode, setGraph, projectName,
     isSidebarCollapsed: collapsed, setSidebarCollapsed: setCollapsed,
-    graphViewType, semanticClusterData,
+    graphViewType, semanticClusterData, externalDeps,
   } = useAppState();
   const t = useT();
 
@@ -37,6 +40,16 @@ export const SidePanel = () => {
   const handleReset = () => {
     setGraph(null);
     setViewMode('onboarding');
+  };
+
+  const agentDetection = useMemo(() => {
+    if (!graph) return { isAgent: false, confidence: 0 };
+    return detectAgentCode(graph, externalDeps);
+  }, [graph, externalDeps]);
+
+  const handleExportAgentContext = () => {
+    if (!graph) return;
+    exportAgentContext(graph, projectName, externalDeps);
   };
 
   return (
@@ -252,6 +265,28 @@ export const SidePanel = () => {
               </div>
             )}
           </section>
+
+          {/* Agent Mode panel — only shown when agent code is detected */}
+          {agentDetection.isAgent && (
+            <>
+              <hr className="mb-4 border-border-subtle" />
+              <section className="mb-4">
+                <div className="mb-2 flex items-center gap-1.5 rounded-md border border-secondary/30 bg-secondary/10 px-2.5 py-1.5">
+                  <span className="text-sm">⚡</span>
+                  <span className="text-xs font-semibold text-secondary">Agent Mode Detected</span>
+                </div>
+                <p className="mb-3 text-xs text-text-muted">
+                  AI agent code detected. Export context for your agent.
+                </p>
+                <button
+                  onClick={handleExportAgentContext}
+                  className="w-full rounded-lg border border-secondary/30 bg-secondary/10 px-3 py-2 text-xs text-secondary transition-colors hover:bg-secondary/20"
+                >
+                  ⬇ Export Agent Context
+                </button>
+              </section>
+            </>
+          )}
 
           {/* Reset button */}
           <div className="mt-auto">
