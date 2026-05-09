@@ -5,6 +5,19 @@
 import type { KnowledgeGraph } from '../core/graph/types';
 import { isSystemFile } from './system-file-filter';
 
+const PYTHON_STDLIB = new Set([
+  'os', 'sys', 're', 'json', 'io', 'time', 'threading', 'logging',
+  'collections', 'functools', 'typing', 'pathlib', 'subprocess', 'signal',
+  'struct', 'uuid', 'secrets', 'shutil', 'tempfile', 'datetime', 'traceback',
+  'contextlib', 'ipaddress', 'socket', 'base64', 'urllib', 'urllib.parse',
+  'abc', 'ast', 'asyncio', 'copy', 'csv', 'dataclasses', 'decimal', 'enum',
+  'hashlib', 'hmac', 'http', 'inspect', 'itertools', 'math', 'operator',
+  'os.path', 'pickle', 'queue', 'random', 'sqlite3', 'ssl', 'stat', 'string',
+  'textwrap', 'types', 'unittest', 'warnings', 'weakref', 'zipfile', 'zlib',
+  'platform', 'argparse', 'glob', 'heapq', 'html', 'importlib', 'keyword',
+  'multiprocessing', 'pprint', 'getpass',
+]);
+
 export function exportAgentContext(
   graph: KnowledgeGraph,
   projectName: string,
@@ -68,22 +81,17 @@ export function buildAgentContext(
   }
   const topDirs = [...dirCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
 
-  // External deps (deduplicated, system files already excluded via cleanDeps)
-  const allDeps = [...new Set(Object.values(cleanDeps).flat())].sort();
+  // External deps (deduplicated, stdlib filtered, system files excluded)
+  const allDeps = [
+    ...new Set(
+      Object.values(cleanDeps)
+        .flat()
+        .filter((pkg) => !PYTHON_STDLIB.has(pkg)),
+    ),
+  ].sort();
 
-  // Stats (clean nodes only)
-  const fileCount = cleanNodes.filter((n) => n.label === 'File').length;
-  const fnCount = cleanNodes.filter(
-    (n) => n.label === 'Function' || n.label === 'Method',
-  ).length;
-  const classCount = cleanNodes.filter((n) => n.label === 'Class').length;
-
-  // Context Prompt (compact, deterministic)
-  const archLayers = topDirs
-    .slice(0, 3)
-    .map(([d]) => d)
-    .join(', ');
-  const topStack = allDeps.slice(0, 8).join(', ') || 'unknown';
+  // Context Prompt — compact narrative for pasting into CLAUDE.md
+  // Omits data already present in other sections (structure, deps, communities)
   const topEntries = keyNodes
     .slice(0, 5)
     .map(
@@ -92,35 +100,44 @@ export function buildAgentContext(
     )
     .join('; ');
 
-  const contextPrompt = [
-    `Project: ${projectName}`,
-    `Stack: ${topStack}`,
-    `Size: ${fileCount} files, ${fnCount} functions/methods, ${classCount} classes, ${graph.relationshipCount} edges`,
-    archLayers ? `Architecture layers: ${archLayers}` : '',
-    topEntries ? `Key entry points: ${topEntries}` : '',
-  ]
-    .filter(Boolean)
-    .join('\n');
+  const contextPrompt = topEntries
+    ? `${projectName} — most-connected entry points: ${topEntries}.`
+    : `${projectName} — no symbols with connections detected.`;
 
   // Project structure
   const structureLines =
     topDirs.map(([dir, count]) => `  ${dir}/  (${count} files)`).join('\n') ||
     '  (no files detected)';
 
-  // Key nodes table
+  // Key nodes table — File nodes omit the redundant filename column
   const keyNodesLines =
     keyNodes
       .map(({ node, degree }, i) => {
+        const name = node.properties.name ?? node.id;
+        if (node.label === 'File') {
+          return `${i + 1}. ${name} | File | ${degree} connections`;
+        }
         const file = (node.properties.filePath ?? '').split('/').pop() ?? '';
-        return `${i + 1}. ${node.properties.name ?? node.id} | ${node.label} | ${file} | ${degree} connections`;
+        return `${i + 1}. ${name} | ${node.label} | ${file} | ${degree} connections`;
       })
       .join('\n') || '(no nodes)';
 
-  // Communities
+  // Communities — deduplicate by name, group Cluster_N as "Uncategorized"
   const communities = cleanNodes.filter((n) => n.label === 'Community');
+  const CLUSTER_RE = /^Cluster_\d+$/;
+  const communityTotals = new Map<string, number>();
+  for (const c of communities) {
+    const raw = c.properties.name ?? c.properties.heuristicLabel ?? c.id;
+    const name = CLUSTER_RE.test(raw) ? 'Uncategorized' : raw;
+    const count = (c.properties.symbolCount as number | undefined) ?? 1;
+    communityTotals.set(name, (communityTotals.get(name) ?? 0) + count);
+  }
   const communitiesLines =
-    communities.length > 0
-      ? communities.map((c) => `- ${c.properties.name ?? c.id}`).join('\n')
+    communityTotals.size > 0
+      ? [...communityTotals.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .map(([name, count]) => `- ${name} (${count} nodes)`)
+          .join('\n')
       : 'No communities detected.';
 
   return [
