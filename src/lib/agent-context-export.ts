@@ -3,6 +3,7 @@
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
 import type { KnowledgeGraph } from '../core/graph/types';
+import { isSystemFile } from './system-file-filter';
 
 export function exportAgentContext(
   graph: KnowledgeGraph,
@@ -26,7 +27,18 @@ export function buildAgentContext(
 ): string {
   const date = new Date().toISOString().slice(0, 10);
 
-  // Degree map
+  // Global filter: exclude all OS/editor artifact nodes before any analysis
+  const systemNodeIds = new Set<string>(
+    graph.nodes
+      .filter((n) => isSystemFile(n.properties.filePath ?? n.properties.name ?? ''))
+      .map((n) => n.id),
+  );
+  const cleanNodes = graph.nodes.filter((n) => !systemNodeIds.has(n.id));
+  const cleanDeps = Object.fromEntries(
+    Object.entries(externalDeps).filter(([nodeId]) => !systemNodeIds.has(nodeId)),
+  );
+
+  // Degree map (clean relationships only)
   const degreeMap = new Map<string, number>();
   for (const rel of graph.relationships) {
     degreeMap.set(rel.sourceId, (degreeMap.get(rel.sourceId) ?? 0) + 1);
@@ -35,7 +47,7 @@ export function buildAgentContext(
 
   // Top 10 nodes by degree (skip Community/Process/Folder meta-nodes)
   const SKIP_LABELS = new Set(['Community', 'Process', 'Folder']);
-  const keyNodes = graph.nodes
+  const keyNodes = cleanNodes
     .filter((n) => !SKIP_LABELS.has(n.label as string))
     .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
     .sort((a, b) => b.degree - a.degree)
@@ -43,7 +55,7 @@ export function buildAgentContext(
 
   // Directory structure (files only)
   const dirCounts = new Map<string, number>();
-  for (const node of graph.nodes) {
+  for (const node of cleanNodes) {
     if (node.label !== 'File') continue;
     const parts = (node.properties.filePath ?? '').split('/').filter(Boolean);
     if (parts.length >= 2) {
@@ -54,15 +66,15 @@ export function buildAgentContext(
   }
   const topDirs = [...dirCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
 
-  // External deps (deduplicated)
-  const allDeps = [...new Set(Object.values(externalDeps).flat())].sort();
+  // External deps (deduplicated, system files already excluded via cleanDeps)
+  const allDeps = [...new Set(Object.values(cleanDeps).flat())].sort();
 
-  // Stats
-  const fileCount = graph.nodes.filter((n) => n.label === 'File').length;
-  const fnCount = graph.nodes.filter(
+  // Stats (clean nodes only)
+  const fileCount = cleanNodes.filter((n) => n.label === 'File').length;
+  const fnCount = cleanNodes.filter(
     (n) => n.label === 'Function' || n.label === 'Method',
   ).length;
-  const classCount = graph.nodes.filter((n) => n.label === 'Class').length;
+  const classCount = cleanNodes.filter((n) => n.label === 'Class').length;
 
   // Context Prompt (compact, deterministic)
   const archLayers = topDirs
@@ -103,7 +115,7 @@ export function buildAgentContext(
       .join('\n') || '(no nodes)';
 
   // Communities
-  const communities = graph.nodes.filter((n) => n.label === 'Community');
+  const communities = cleanNodes.filter((n) => n.label === 'Community');
   const communitiesLines =
     communities.length > 0
       ? communities.map((c) => `- ${c.properties.name ?? c.id}`).join('\n')

@@ -88,4 +88,41 @@ describe('buildAgentContext', () => {
     const content = buildAgentContext(g, 'p', {});
     expect(content).toContain('Orchestration');
   });
+
+  // ── System file filtering ─────────────────────────────────────────────────
+  it('excludes __MACOSX/ nodes from key nodes and stats', () => {
+    const g = createKnowledgeGraph();
+    const real = createFileNode('agent.py', 'src/agent.py');
+    const mac = createFileNode('agent.py', '__MACOSX/src/agent.py');
+    g.addNode(real);
+    g.addNode(mac);
+    const content = buildAgentContext(g, 'p', {});
+    // Only 1 real file should appear in stats
+    expect(content).toContain('1 files');
+  });
+
+  it('excludes __MACOSX/ deps from Main Dependencies', () => {
+    const g = createKnowledgeGraph();
+    const real = createFileNode('agent.py', 'src/agent.py');
+    const mac = createFileNode('agent.py', '__MACOSX/src/agent.py');
+    g.addNode(real);
+    g.addNode(mac);
+    const content = buildAgentContext(g, 'p', {
+      [real.id]: ['anthropic'],
+      [mac.id]: ['openai'], // should be excluded
+    });
+    const depsSection = content.split('## Main Dependencies')[1].split('##')[0];
+    expect(depsSection).toContain('anthropic');
+    expect(depsSection).not.toContain('openai');
+  });
+
+  it('excludes .DS_Store and .vscode/ nodes from project structure', () => {
+    const g = createKnowledgeGraph();
+    g.addNode(createFileNode('settings.json', '.vscode/settings.json'));
+    g.addNode(createFileNode('.DS_Store', 'src/.DS_Store'));
+    g.addNode(createFileNode('agent.py', 'src/agent.py'));
+    const content = buildAgentContext(g, 'p', {});
+    // Only 1 clean file
+    expect(content).toContain('1 files');
+  });
 });

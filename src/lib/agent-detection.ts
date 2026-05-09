@@ -3,6 +3,7 @@
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
 import type { KnowledgeGraph } from '../core/graph/types';
+import { isSystemFile } from './system-file-filter';
 
 export interface AgentDetectionResult {
   isAgent: boolean;
@@ -29,85 +30,93 @@ const SUBAGENT_PATTERNS = [
   'subagent', 'sub_agent', 'multi_agent', 'orchestrat', 'spawn',
 ];
 
-// Paths that should never contribute to detection (macOS zip artifacts, etc.)
-const isResidualPath = (filePath: string): boolean => {
-  const p = filePath.replace(/\\/g, '/');
-  return (
-    p.includes('__MACOSX/') ||
-    p.startsWith('__MACOSX') ||
-    p.includes('/.DS_Store') ||
-    p.endsWith('/.DS_Store') ||
-    p === '.DS_Store' ||
-    /\/\._/.test(p) ||
-    p.startsWith('._')
-  );
-};
+// Frontend-only frameworks that, without agent signals, indicate a plain UI project
+const FRONTEND_FRAMEWORKS = new Set([
+  'react', 'vue', 'svelte', 'next', 'angular',
+]);
+
+// isAgent requires confidence >= this threshold AND >= 2 distinct signal categories
+const CONFIDENCE_THRESHOLD = 0.55;
 
 export function detectAgentCode(
   graph: KnowledgeGraph,
   externalDeps: Record<string, string[]>,
 ): AgentDetectionResult {
-  let confidence = 0;
-
-  // Build set of residual node IDs to skip in all signals
-  const residualNodeIds = new Set<string>(
+  // Build set of system/OS artifact node IDs to ignore in all signals
+  const systemNodeIds = new Set<string>(
     graph.nodes
-      .filter((n) => isResidualPath(n.properties.filePath ?? n.properties.name ?? ''))
+      .filter((n) => isSystemFile(n.properties.filePath ?? n.properties.name ?? ''))
       .map((n) => n.id),
   );
 
-  // 1. AI framework imports (alto: +0.35 first, +0.10 each additional)
-  // Skip entries whose fileNodeId belongs to a residual path
+  // ── Category A: AI framework imports (+0.35 first, +0.10 each additional) ──
   const foundFrameworks = new Set<string>();
+  let hasFrontendOnly = false;
+
   for (const [nodeId, pkgs] of Object.entries(externalDeps)) {
-    if (residualNodeIds.has(nodeId)) continue;
+    if (systemNodeIds.has(nodeId)) continue;
     for (const pkg of pkgs) {
       if (AI_FRAMEWORKS.has(pkg)) foundFrameworks.add(pkg);
+      if (FRONTEND_FRAMEWORKS.has(pkg)) hasFrontendOnly = true;
     }
   }
-  if (foundFrameworks.size > 0) {
-    confidence += 0.35 + (foundFrameworks.size - 1) * 0.10;
-  }
 
-  // 2. Agent config files (alto: +0.30 per file)
+  const categoryAScore =
+    foundFrameworks.size > 0
+      ? 0.35 + (foundFrameworks.size - 1) * 0.10
+      : 0;
+
+  // ── Category B: Agent config files (+0.30 per file) ──────────────────────
+  let categoryBScore = 0;
   for (const node of graph.nodes) {
     if (node.label !== 'File') continue;
-    if (residualNodeIds.has(node.id)) continue;
+    if (systemNodeIds.has(node.id)) continue;
     const basename = (node.properties.filePath ?? node.properties.name ?? '')
       .split('/')
       .pop() ?? '';
     if (AGENT_CONFIG_FILES.has(basename)) {
-      confidence += 0.30;
+      categoryBScore += 0.30;
     }
   }
 
-  // 3. Agent function/method names (medio: +0.12 each, max 0.25)
-  let functionScore = 0;
+  // ── Category C: Agent function/method names (+0.12 each, max 0.25) ───────
+  let categoryCScore = 0;
   for (const node of graph.nodes) {
     if (node.label !== 'Function' && node.label !== 'Method') continue;
-    if (residualNodeIds.has(node.id)) continue;
+    if (systemNodeIds.has(node.id)) continue;
     const name = (node.properties.name ?? '').toLowerCase();
     if (AGENT_FUNCTION_PATTERNS.some((p) => name.includes(p))) {
-      functionScore = Math.min(functionScore + 0.12, 0.25);
+      categoryCScore = Math.min(categoryCScore + 0.12, 0.25);
     }
   }
-  confidence += functionScore;
 
-  // 4. Subagent patterns in names/paths (alto: +0.20 each, max 0.30)
-  let subagentScore = 0;
+  // ── Category D: Subagent patterns in names/paths (+0.20 each, max 0.30) ──
+  let categoryDScore = 0;
   for (const node of graph.nodes) {
-    if (residualNodeIds.has(node.id)) continue;
+    if (systemNodeIds.has(node.id)) continue;
     const name = (node.properties.name ?? '').toLowerCase();
     const path = (node.properties.filePath ?? '').toLowerCase();
     const text = `${name} ${path}`;
     if (SUBAGENT_PATTERNS.some((p) => text.includes(p))) {
-      subagentScore = Math.min(subagentScore + 0.20, 0.30);
+      categoryDScore = Math.min(categoryDScore + 0.20, 0.30);
     }
   }
-  confidence += subagentScore;
+
+  // ── Sum and count distinct fired categories ───────────────────────────────
+  const scores = [categoryAScore, categoryBScore, categoryCScore, categoryDScore];
+  let confidence = scores.reduce((sum, s) => sum + s, 0);
+  const categoriesFired = scores.filter((s) => s > 0).length;
+
+  // ── Frontend discount: pure UI project without orchestration signals ───────
+  // If the project uses frontend frameworks but has no agent config files
+  // and no orchestration functions, subtract 0.20 (likely a false positive).
+  const hasAgentConfigOrOrchestration = categoryBScore > 0 || categoryCScore > 0;
+  if (hasFrontendOnly && !hasAgentConfigOrOrchestration) {
+    confidence = Math.max(0, confidence - 0.20);
+  }
 
   return {
-    isAgent: confidence >= 0.35,
+    isAgent: confidence >= CONFIDENCE_THRESHOLD && categoriesFired >= 2,
     confidence: Math.min(confidence, 1.0),
   };
 }
