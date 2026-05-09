@@ -29,15 +29,38 @@ const SUBAGENT_PATTERNS = [
   'subagent', 'sub_agent', 'multi_agent', 'orchestrat', 'spawn',
 ];
 
+// Paths that should never contribute to detection (macOS zip artifacts, etc.)
+const isResidualPath = (filePath: string): boolean => {
+  const p = filePath.replace(/\\/g, '/');
+  return (
+    p.includes('__MACOSX/') ||
+    p.startsWith('__MACOSX') ||
+    p.includes('/.DS_Store') ||
+    p.endsWith('/.DS_Store') ||
+    p === '.DS_Store' ||
+    /\/\._/.test(p) ||
+    p.startsWith('._')
+  );
+};
+
 export function detectAgentCode(
   graph: KnowledgeGraph,
   externalDeps: Record<string, string[]>,
 ): AgentDetectionResult {
   let confidence = 0;
 
+  // Build set of residual node IDs to skip in all signals
+  const residualNodeIds = new Set<string>(
+    graph.nodes
+      .filter((n) => isResidualPath(n.properties.filePath ?? n.properties.name ?? ''))
+      .map((n) => n.id),
+  );
+
   // 1. AI framework imports (alto: +0.35 first, +0.10 each additional)
+  // Skip entries whose fileNodeId belongs to a residual path
   const foundFrameworks = new Set<string>();
-  for (const pkgs of Object.values(externalDeps)) {
+  for (const [nodeId, pkgs] of Object.entries(externalDeps)) {
+    if (residualNodeIds.has(nodeId)) continue;
     for (const pkg of pkgs) {
       if (AI_FRAMEWORKS.has(pkg)) foundFrameworks.add(pkg);
     }
@@ -49,6 +72,7 @@ export function detectAgentCode(
   // 2. Agent config files (alto: +0.30 per file)
   for (const node of graph.nodes) {
     if (node.label !== 'File') continue;
+    if (residualNodeIds.has(node.id)) continue;
     const basename = (node.properties.filePath ?? node.properties.name ?? '')
       .split('/')
       .pop() ?? '';
@@ -61,6 +85,7 @@ export function detectAgentCode(
   let functionScore = 0;
   for (const node of graph.nodes) {
     if (node.label !== 'Function' && node.label !== 'Method') continue;
+    if (residualNodeIds.has(node.id)) continue;
     const name = (node.properties.name ?? '').toLowerCase();
     if (AGENT_FUNCTION_PATTERNS.some((p) => name.includes(p))) {
       functionScore = Math.min(functionScore + 0.12, 0.25);
@@ -71,6 +96,7 @@ export function detectAgentCode(
   // 4. Subagent patterns in names/paths (alto: +0.20 each, max 0.30)
   let subagentScore = 0;
   for (const node of graph.nodes) {
+    if (residualNodeIds.has(node.id)) continue;
     const name = (node.properties.name ?? '').toLowerCase();
     const path = (node.properties.filePath ?? '').toLowerCase();
     const text = `${name} ${path}`;

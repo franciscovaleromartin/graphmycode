@@ -105,4 +105,41 @@ describe('detectAgentCode', () => {
     expect(result.isAgent).toBe(false);
     expect(result.confidence).toBe(0);
   });
+
+  it('ignores __MACOSX/ files for config detection', () => {
+    const g = createKnowledgeGraph();
+    // CLAUDE.md under __MACOSX should not count
+    g.addNode(createFileNode('CLAUDE.md', '__MACOSX/project/CLAUDE.md'));
+    const result = detectAgentCode(g, {});
+    expect(result.confidence).toBe(0);
+    expect(result.isAgent).toBe(false);
+  });
+
+  it('ignores __MACOSX/ files for import detection', () => {
+    const g = createKnowledgeGraph();
+    const macNode = createFileNode('agent.py', '__MACOSX/src/agent.py');
+    g.addNode(macNode);
+    const result = detectAgentCode(g, { [macNode.id]: ['anthropic'] });
+    expect(result.confidence).toBe(0);
+    expect(result.isAgent).toBe(false);
+  });
+
+  it('ignores .DS_Store nodes', () => {
+    const g = createKnowledgeGraph();
+    g.addNode(createFileNode('.DS_Store', 'src/.DS_Store'));
+    // A function whose filePath is residual should not score
+    g.addNode(createFunctionNode('run_agent', 'src/.DS_Store'));
+    const result = detectAgentCode(g, {});
+    expect(result.confidence).toBe(0);
+  });
+
+  it('real CLAUDE.md (not under __MACOSX) still scores', () => {
+    const g = createKnowledgeGraph();
+    g.addNode(createFileNode('CLAUDE.md', 'CLAUDE.md'));
+    // __MACOSX copy should not double-count
+    g.addNode(createFileNode('CLAUDE.md', '__MACOSX/CLAUDE.md'));
+    const result = detectAgentCode(g, {});
+    // Only the real one counts: 0.30
+    expect(result.confidence).toBeCloseTo(0.30, 5);
+  });
 });
