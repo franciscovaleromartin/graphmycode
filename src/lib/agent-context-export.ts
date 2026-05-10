@@ -5,6 +5,21 @@
 import type { KnowledgeGraph } from '../core/graph/types';
 import { isSystemFile } from './system-file-filter';
 
+// ── Types ────────────────────────────────────────────────────────────────────
+
+type GraphNode = KnowledgeGraph['nodes'][number];
+
+interface BaseData {
+  cleanNodes: GraphNode[];
+  cleanDeps: Record<string, string[]>;
+  degreeMap: Map<string, number>;
+  nodeById: Map<string, GraphNode>;
+  communityMembers: Map<string, GraphNode[]>;
+  nodeToCommunity: Map<string, string>;
+}
+
+// ── Constants ────────────────────────────────────────────────────────────────
+
 const PYTHON_STDLIB = new Set([
   'os', 'sys', 're', 'json', 'io', 'time', 'threading', 'logging',
   'collections', 'functools', 'typing', 'pathlib', 'subprocess', 'signal',
@@ -18,150 +33,731 @@ const PYTHON_STDLIB = new Set([
   'multiprocessing', 'pprint', 'getpass',
 ]);
 
-export function exportAgentContext(
-  graph: KnowledgeGraph,
-  projectName: string,
-  externalDeps: Record<string, string[]>,
-  isAgent = false,
-): void {
-  const content = buildAgentContext(graph, projectName, externalDeps, isAgent);
+const FRAMEWORK_PACKAGES: Record<string, string> = {
+  react: 'React', next: 'Next.js', vue: 'Vue', svelte: 'Svelte', nuxt: 'Nuxt',
+  '@angular/core': 'Angular', vite: 'Vite', astro: 'Astro',
+  flask: 'Flask', fastapi: 'FastAPI', django: 'Django', starlette: 'Starlette',
+  express: 'Express', fastify: 'Fastify', hono: 'Hono',
+  '@nestjs/core': 'NestJS', koa: 'Koa',
+  'actix-web': 'Actix', axum: 'Axum', rocket: 'Rocket',
+  gin: 'Gin', fiber: 'Fiber',
+};
+
+const SKIP_SYMBOL_LABELS = new Set([
+  'Community', 'Process', 'Folder', 'Package', 'Project', 'Module', 'Import',
+]);
+
+const CLUSTER_RE = /^Cluster_\d+$/;
+
+const ENTRY_FILENAMES: Record<string, string> = {
+  'main.py': 'Python entry', 'app.py': 'Flask/FastAPI app', 'server.py': 'HTTP server',
+  'cli.py': 'CLI handler', 'wsgi.py': 'WSGI gateway', 'asgi.py': 'ASGI gateway',
+  'index.ts': 'module entry', 'index.js': 'module entry',
+  'main.ts': 'TS entry', 'server.ts': 'HTTP server', 'server.js': 'HTTP server',
+  'main.go': 'Go entry', 'main.rs': 'Rust entry',
+};
+
+const DOC_BASENAMES: Record<string, string> = {
+  'architecture.md': 'Architecture', 'ARCHITECTURE.md': 'Architecture',
+  'glossary.md': 'Glossary', 'GLOSSARY.md': 'Glossary',
+  'CONTRIBUTING.md': 'Contributing', 'ADR.md': 'ADR',
+  'DECISIONS.md': 'Decisions', 'API.md': 'API docs',
+};
+
+const DANGEROUS_PATHS: Array<[string, string]> = [
+  ['migrations/', 'run migrations via CLI, do not hand-edit'],
+  ['generated/', 'regenerate via build pipeline instead'],
+  ['dist/', 'run build command instead'],
+  ['build/', 'run build command instead'],
+];
+
+const TOOL_PREFIXES = ['execute_', 'call_', 'invoke_', 'search_', 'read_', 'write_', 'fetch_', 'query_', 'list_'];
+const ORCHESTRATOR_PATTERNS = ['dispatch', 'orchestrat', 'spawn', 'invoke_agent', 'run_agent'];
+const WORKER_PATTERNS = ['execute_tool', 'run_tool', 'handle_task', 'process_task'];
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function triggerDownload(content: string, filename: string): void {
   const blob = new Blob([content], { type: 'text/markdown' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'project-context.md';
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-export function buildAgentContext(
-  graph: KnowledgeGraph,
-  projectName: string,
-  externalDeps: Record<string, string[]>,
-  isAgent = false,
-): string {
-  const date = new Date().toISOString().slice(0, 10);
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
 
-  // Global filter: exclude all OS/editor artifact nodes before any analysis
+function getLang(filePath: string, nodeLang?: string): string {
+  if (nodeLang) return nodeLang.toLowerCase();
+  const ext = filePath.split('.').pop()?.toLowerCase() ?? '';
+  const extMap: Record<string, string> = {
+    py: 'python', ts: 'typescript', tsx: 'typescript', js: 'javascript', jsx: 'javascript',
+    go: 'go', rs: 'rust', java: 'java', cs: 'csharp', rb: 'ruby',
+    php: 'php', kt: 'kotlin', swift: 'swift', dart: 'dart', c: 'c', cpp: 'cpp',
+  };
+  return extMap[ext] ?? 'javascript';
+}
+
+// ── Base data extraction ─────────────────────────────────────────────────────
+
+function buildBase(graph: KnowledgeGraph, externalDeps: Record<string, string[]>): BaseData {
   const systemNodeIds = new Set<string>(
     graph.nodes
       .filter((n) => isSystemFile(n.properties.filePath ?? n.properties.name ?? ''))
       .map((n) => n.id),
   );
+
   const cleanNodes = graph.nodes.filter((n) => !systemNodeIds.has(n.id));
   const cleanDeps = Object.fromEntries(
-    Object.entries(externalDeps).filter(([nodeId]) => !systemNodeIds.has(nodeId)),
+    Object.entries(externalDeps).filter(([id]) => !systemNodeIds.has(id)),
   );
 
-  // Degree map (clean relationships only)
   const degreeMap = new Map<string, number>();
   for (const rel of graph.relationships) {
     degreeMap.set(rel.sourceId, (degreeMap.get(rel.sourceId) ?? 0) + 1);
     degreeMap.set(rel.targetId, (degreeMap.get(rel.targetId) ?? 0) + 1);
   }
 
-  // Top 10 nodes by degree (skip Community/Process/Folder meta-nodes)
-  const SKIP_LABELS = new Set(['Community', 'Process', 'Folder']);
-  const keyNodes = cleanNodes
-    .filter((n) => !SKIP_LABELS.has(n.label as string))
+  const nodeById = new Map<string, GraphNode>(graph.nodes.map((n) => [n.id, n]));
+
+  const communityMembers = new Map<string, GraphNode[]>();
+  const nodeToCommunity = new Map<string, string>();
+
+  for (const rel of graph.relationships) {
+    if (rel.type !== 'MEMBER_OF') continue;
+    if (systemNodeIds.has(rel.sourceId) || systemNodeIds.has(rel.targetId)) continue;
+    if (!communityMembers.has(rel.targetId)) communityMembers.set(rel.targetId, []);
+    const member = nodeById.get(rel.sourceId);
+    if (member) {
+      communityMembers.get(rel.targetId)!.push(member);
+      nodeToCommunity.set(rel.sourceId, rel.targetId);
+    }
+  }
+
+  return { cleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity };
+}
+
+// ── Stack detection ───────────────────────────────────────────────────────────
+
+function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]>) {
+  const langCounts = new Map<string, number>();
+  const fileNames = new Set<string>();
+
+  for (const n of cleanNodes) {
+    if (n.label !== 'File') continue;
+    const lang = n.properties.language as string | undefined;
+    if (lang) langCounts.set(lang, (langCounts.get(lang) ?? 0) + 1);
+    const base = (n.properties.filePath ?? '').split('/').pop() ?? '';
+    if (base) fileNames.add(base);
+  }
+
+  const primaryLang = [...langCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
+
+  const allPkgs = new Set(Object.values(cleanDeps).flat().map((p) => p.toLowerCase()));
+
+  const frameworks: string[] = [];
+  for (const [pkg, name] of Object.entries(FRAMEWORK_PACKAGES)) {
+    if (allPkgs.has(pkg.toLowerCase())) frameworks.push(name);
+  }
+
+  let pkgManager = '';
+  if (fileNames.has('pnpm-lock.yaml') || fileNames.has('pnpm-lock.yml')) pkgManager = 'pnpm';
+  else if (fileNames.has('yarn.lock')) pkgManager = 'yarn';
+  else if (fileNames.has('bun.lockb') || fileNames.has('bun.lock')) pkgManager = 'bun';
+  else if (fileNames.has('package.json')) pkgManager = 'npm';
+  else if (fileNames.has('pyproject.toml')) pkgManager = 'uv';
+  else if (fileNames.has('requirements.txt')) pkgManager = 'pip';
+  else if (fileNames.has('Cargo.toml')) pkgManager = 'cargo';
+  else if (fileNames.has('go.mod')) pkgManager = 'go';
+  else if (fileNames.has('Gemfile')) pkgManager = 'bundler';
+
+  let runtime = '';
+  if (frameworks.some((f) => ['React', 'Vue', 'Svelte', 'Angular'].includes(f))) runtime = 'browser';
+  else if (frameworks.some((f) => ['Next.js', 'Nuxt'].includes(f))) runtime = 'browser + server';
+  else if (frameworks.some((f) => ['Flask', 'FastAPI', 'Django', 'Express', 'Fastify', 'Hono', 'NestJS'].includes(f))) runtime = 'server';
+  else if (['go', 'rust'].includes(primaryLang)) runtime = 'server';
+  else if (allPkgs.has('aws-lambda-powertools') || allPkgs.has('@aws-sdk/client-lambda')) runtime = 'lambda';
+
+  const stackParts = [primaryLang, frameworks.slice(0, 2).join(' + '), pkgManager, runtime].filter(Boolean);
+
+  return { primaryLang, frameworks, pkgManager, runtime, fileNames, allPkgs, stackLine: stackParts.join(' • ') };
+}
+
+// ── Commands ──────────────────────────────────────────────────────────────────
+
+function inferCommands(pkgManager: string, primaryLang: string): Record<string, string> {
+  if (['npm', 'pnpm', 'yarn', 'bun'].includes(pkgManager)) {
+    const run = pkgManager === 'npm' ? 'npm run' : `${pkgManager} run`;
+    const install = pkgManager === 'npm' ? 'npm install' : `${pkgManager} install`;
+    return { install, dev: `${run} dev`, test: `${run} test`, lint: `${run} lint`, build: `${run} build` };
+  }
+  if (primaryLang === 'python' || pkgManager === 'pip' || pkgManager === 'uv') {
+    const install = pkgManager === 'uv' ? 'uv sync' : 'pip install -r requirements.txt';
+    return { install, dev: 'python -m <entry>', test: 'pytest', lint: 'ruff check .', build: '# n/a' };
+  }
+  if (pkgManager === 'cargo') {
+    return { install: '# implicit', dev: 'cargo run', test: 'cargo test', lint: 'cargo clippy', build: 'cargo build --release' };
+  }
+  if (pkgManager === 'go') {
+    return { install: 'go mod download', dev: 'go run .', test: 'go test ./...', lint: 'golangci-lint run', build: 'go build -o bin/app .' };
+  }
+  return { install: '# see manifest', dev: '# see manifest', test: '# see manifest', lint: '# see manifest', build: '# see manifest' };
+}
+
+// ── Entry Points ──────────────────────────────────────────────────────────────
+
+function findEntryPoints(cleanNodes: GraphNode[], graph: KnowledgeGraph) {
+  const entries: Array<{ path: string; role: string }> = [];
+  const seen = new Set<string>();
+
+  const entryIds = new Set<string>(
+    graph.relationships.filter((r) => r.type === 'ENTRY_POINT_OF').map((r) => r.sourceId),
+  );
+
+  for (const n of cleanNodes) {
+    const path = n.properties.filePath ?? n.properties.name ?? '';
+    if (seen.has(path) || !path) continue;
+
+    if (n.label === 'Route') {
+      entries.push({ path, role: `HTTP route: ${n.properties.name ?? ''}` });
+      seen.add(path);
+      continue;
+    }
+
+    if (entryIds.has(n.id)) {
+      const reason = n.properties.entryPointReason as string | undefined;
+      entries.push({ path, role: reason ?? 'entry point' });
+      seen.add(path);
+    }
+  }
+
+  if (entries.length === 0) {
+    for (const n of cleanNodes) {
+      if (n.label !== 'File') continue;
+      const base = (n.properties.filePath ?? '').split('/').pop() ?? '';
+      const path = n.properties.filePath ?? base;
+      if (ENTRY_FILENAMES[base] && !seen.has(path)) {
+        entries.push({ path, role: ENTRY_FILENAMES[base] });
+        seen.add(path);
+      }
+    }
+  }
+
+  return entries.slice(0, 5);
+}
+
+// ── Module Map ────────────────────────────────────────────────────────────────
+
+function buildModuleMap(
+  cleanNodes: GraphNode[],
+  degreeMap: Map<string, number>,
+  communityMembers: Map<string, GraphNode[]>,
+): string {
+  const communities = cleanNodes.filter((n) => n.label === 'Community');
+  if (communities.length === 0) return '';
+
+  const SYMBOL_PREFERRED = new Set(['Class', 'Interface', 'Function', 'Method', 'Struct', 'Trait', 'Enum']);
+
+  const rows: Array<{ label: string; count: number; purpose: string; keyFile: string }> = [];
+
+  for (const comm of communities) {
+    const rawName = (comm.properties.name ?? comm.properties.heuristicLabel ?? comm.id) as string;
+    if (CLUSTER_RE.test(rawName)) continue;
+
+    const members = communityMembers.get(comm.id) ?? [];
+    const symbolCount = (comm.properties.symbolCount as number | undefined) ?? members.length;
+    if (symbolCount === 0 && members.length === 0) continue;
+
+    // Prefer named symbols (Class/Function/etc.) over File nodes for auto-label
+    const topSymbol = members
+      .filter((n) => SYMBOL_PREFERRED.has(n.label))
+      .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
+      .sort((a, b) => b.degree - a.degree)[0];
+
+    const topMember = topSymbol ?? members
+      .filter((n) => n.label !== 'Community' && n.label !== 'File')
+      .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
+      .sort((a, b) => b.degree - a.degree)[0];
+
+    const label = topMember?.node.properties.name ?? rawName;
+
+    const keyFileNode = members
+      .filter((n) => n.label === 'File')
+      .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
+      .sort((a, b) => b.degree - a.degree)[0]?.node;
+
+    const keyFile = keyFileNode?.properties.filePath ?? '';
+
+    const purpose =
+      (comm.properties.description as string | undefined) ??
+      (Array.isArray(comm.properties.keywords)
+        ? (comm.properties.keywords as string[]).slice(0, 4).join(', ')
+        : '');
+
+    rows.push({ label, count: symbolCount, purpose, keyFile });
+  }
+
+  rows.sort((a, b) => b.count - a.count);
+  const top = rows.slice(0, 6);
+  const rest = rows.slice(6);
+
+  if (rest.length > 0) {
+    top.push({ label: 'Other', count: rest.reduce((s, r) => s + r.count, 0), purpose: '', keyFile: '' });
+  }
+
+  return top
+    .map(({ label, count, purpose, keyFile }) => {
+      let line = `- **${label}** (${count} symbols)`;
+      if (purpose) line += ` — ${purpose}`;
+      if (keyFile) line += `; key file \`${keyFile}\``;
+      return line;
+    })
+    .join('\n');
+}
+
+// ── Key Symbols ───────────────────────────────────────────────────────────────
+
+function renderSig(node: GraphNode, lang: string): string {
+  const name = (node.properties.name ?? node.id) as string;
+  const rawRet = node.properties.returnType as string | undefined;
+  const ret = rawRet && rawRet !== 'undefined' ? rawRet : undefined;
+  const isAsync = node.properties.isAsync as boolean | undefined;
+  const label = node.label;
+  const async_ = isAsync ? 'async ' : '';
+
+  if (lang === 'python') {
+    if (label === 'Class') return `class ${name}: ...`;
+    if (label === 'Function' || label === 'Method') {
+      return `  ${async_}def ${name}(...)${ret ? ` -> ${ret}` : ''}: ...`;
+    }
+  } else if (lang === 'go') {
+    if (label === 'Function' || label === 'Method') return `func ${name}(...)${ret ? ` ${ret}` : ''} { ... }`;
+    if (label === 'Interface') return `type ${name} interface { ... }`;
+    if (label === 'Struct') return `type ${name} struct { ... }`;
+  } else if (lang === 'rust') {
+    if (label === 'Function' || label === 'Method') return `fn ${name}(...)${ret ? ` -> ${ret}` : ''} { ... }`;
+    if (label === 'Struct') return `struct ${name} { ... }`;
+    if (label === 'Trait') return `trait ${name} { ... }`;
+  } else if (lang === 'java' || lang === 'kotlin') {
+    if (label === 'Class') return `class ${name} { ... }`;
+    if (label === 'Function' || label === 'Method') return `  ${ret ?? 'void'} ${name}(...) { ... }`;
+    if (label === 'Interface') return `interface ${name} { ... }`;
+  } else {
+    // TypeScript / JavaScript / default
+    if (label === 'Class') return `class ${name} { ... }`;
+    if (label === 'Interface') return `interface ${name} { ... }`;
+    if (label === 'TypeAlias' || label === 'Type') return `type ${name} = ...`;
+    if (label === 'Enum') return `enum ${name} { ... }`;
+    if (label === 'Function') return `  ${async_}function ${name}(...)${ret ? `: ${ret}` : ''} { ... }`;
+    if (label === 'Method') return `  ${async_}${name}(...)${ret ? `: ${ret}` : ''} { ... }`;
+  }
+
+  return `  ${name}: ...`;
+}
+
+function buildKeySymbols(cleanNodes: GraphNode[], degreeMap: Map<string, number>, maxNodes = 12): string {
+  const top = cleanNodes
+    .filter((n) => !SKIP_SYMBOL_LABELS.has(n.label))
+    .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
+    .sort((a, b) => b.degree - a.degree)
+    .slice(0, maxNodes);
+
+  if (top.length === 0) return '(no symbols detected)';
+
+  const byFile = new Map<string, typeof top>();
+  for (const entry of top) {
+    const fp = entry.node.properties.filePath ?? '(unknown)';
+    if (!byFile.has(fp)) byFile.set(fp, []);
+    byFile.get(fp)!.push(entry);
+  }
+
+  const lines: string[] = [];
+  for (const [fp, entries] of byFile) {
+    lines.push(`\`${fp}\`:`);
+    for (const { node } of entries) {
+      const lang = getLang(fp, node.properties.language as string | undefined);
+      lines.push(renderSig(node, lang));
+    }
+  }
+
+  return lines.join('\n');
+}
+
+// ── Critical Edges ────────────────────────────────────────────────────────────
+
+function buildCriticalEdges(graph: KnowledgeGraph, nodeById: Map<string, GraphNode>): string[] {
+  const callers = new Map<string, Set<string>>();
+  for (const rel of graph.relationships) {
+    if (rel.type !== 'CALLS') continue;
+    if (!callers.has(rel.targetId)) callers.set(rel.targetId, new Set());
+    callers.get(rel.targetId)!.add(rel.sourceId);
+  }
+
+  return [...callers.entries()]
+    .sort((a, b) => b[1].size - a[1].size)
+    .slice(0, 5)
+    .map(([targetId, callerSet]) => {
+      const target = nodeById.get(targetId);
+      const name = (target?.properties.name ?? targetId) as string;
+      const file = (target?.properties.filePath ?? '').split('/').pop()?.replace(/\.(ts|tsx|js|jsx|py|go|rs)$/, '') ?? '';
+
+      const callerDirs = new Set(
+        [...callerSet]
+          .map((cid) => {
+            const path = nodeById.get(cid)?.properties.filePath as string | undefined ?? '';
+            return path.split('/').slice(0, -1).join('/') || path;
+          })
+          .filter(Boolean),
+      );
+
+      const context = callerDirs.size === 1
+        ? `across \`${[...callerDirs][0]}/*\``
+        : `across ${callerDirs.size} modules`;
+
+      return `- \`${file ? `${file}.` : ''}${name}\` ← ${callerSet.size} callers ${context}`;
+    });
+}
+
+// ── Bridge Files ──────────────────────────────────────────────────────────────
+
+function buildBridgeFiles(
+  cleanNodes: GraphNode[],
+  graph: KnowledgeGraph,
+  degreeMap: Map<string, number>,
+  nodeToCommunity: Map<string, string>,
+): string[] {
+  const commNames = new Map<string, string>();
+  for (const n of cleanNodes) {
+    if (n.label !== 'Community') continue;
+    const name = (n.properties.name ?? n.properties.heuristicLabel ?? n.id) as string;
+    commNames.set(n.id, CLUSTER_RE.test(name) ? 'Uncategorized' : name);
+  }
+
+  const neighbors = new Map<string, Set<string>>();
+  for (const rel of graph.relationships) {
+    if (!neighbors.has(rel.sourceId)) neighbors.set(rel.sourceId, new Set());
+    if (!neighbors.has(rel.targetId)) neighbors.set(rel.targetId, new Set());
+    neighbors.get(rel.sourceId)!.add(rel.targetId);
+    neighbors.get(rel.targetId)!.add(rel.sourceId);
+  }
+
+  const bridges: Array<{ path: string; degree: number; commA: string; commB: string }> = [];
+
+  for (const node of cleanNodes) {
+    if (node.label !== 'File') continue;
+    const degree = degreeMap.get(node.id) ?? 0;
+    if (degree < 2) continue;
+
+    const neighborComms = new Set<string>();
+    for (const nid of neighbors.get(node.id) ?? []) {
+      const commId = nodeToCommunity.get(nid);
+      if (commId) neighborComms.add(commId);
+    }
+
+    if (neighborComms.size >= 2) {
+      const [cA, cB] = [...neighborComms];
+      bridges.push({
+        path: node.properties.filePath ?? node.id,
+        degree,
+        commA: commNames.get(cA) ?? cA,
+        commB: commNames.get(cB) ?? cB,
+      });
+    }
+  }
+
+  return bridges
+    .sort((a, b) => b.degree - a.degree)
+    .slice(0, 3)
+    .map(({ path, commA, commB }) => `- \`${path}\` — connects ${commA} ↔ ${commB}`);
+}
+
+// ── Boundaries ────────────────────────────────────────────────────────────────
+
+function detectBoundaries(cleanNodes: GraphNode[]): string[] {
+  const found = new Set<string>();
+  const lines: string[] = [];
+  let hasDotEnv = false;
+
+  for (const n of cleanNodes) {
+    if (n.label !== 'File' && n.label !== 'Folder') continue;
+    const path = n.properties.filePath ?? '';
+    const base = path.split('/').pop() ?? '';
+
+    if (!hasDotEnv && (base.startsWith('.env') || base.endsWith('.env'))) {
+      hasDotEnv = true;
+      lines.push('- Never commit `*.env` files');
+    }
+
+    for (const [pattern, advice] of DANGEROUS_PATHS) {
+      if (!found.has(pattern) && path.includes(pattern)) {
+        found.add(pattern);
+        lines.push(`- Never edit \`${pattern}\`; ${advice}`);
+      }
+    }
+  }
+
+  lines.push('- Ask before adding dependencies or running destructive commands');
+  return lines;
+}
+
+// ── Pointers ──────────────────────────────────────────────────────────────────
+
+function detectPointers(cleanNodes: GraphNode[]): string[] {
+  const seen = new Set<string>();
+  const lines: string[] = [];
+
+  for (const n of cleanNodes) {
+    if (n.label !== 'File') continue;
+    const path = n.properties.filePath ?? '';
+    const base = path.split('/').pop() ?? '';
+    if (DOC_BASENAMES[base] && !seen.has(base)) {
+      seen.add(base);
+      lines.push(`- ${DOC_BASENAMES[base]}: \`${path}\``);
+    }
+  }
+
+  return lines;
+}
+
+// ── CLAUDE.md builder ─────────────────────────────────────────────────────────
+
+function assembleClaude(parts: Record<string, string>): string {
+  return [
+    '<!-- graphmycode:generated-start -->',
+    parts.header,
+    parts.stack,
+    parts.commands,
+    parts.entries,
+    parts.moduleMap,
+    parts.keySymbols,
+    parts.criticalEdges,
+    parts.bridgeFiles,
+    parts.conventions,
+    parts.boundaries,
+    parts.pointers,
+    '<!-- graphmycode:generated-end -->',
+  ].filter(Boolean).join('\n\n');
+}
+
+function buildClaudeMd(
+  graph: KnowledgeGraph,
+  projectName: string,
+  base: BaseData,
+): string {
+  const { cleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity } = base;
+
+  const stack = detectStack(cleanNodes, cleanDeps);
+  const commands = inferCommands(stack.pkgManager, stack.primaryLang);
+  const entries = findEntryPoints(cleanNodes, graph);
+  const moduleMapContent = buildModuleMap(cleanNodes, degreeMap, communityMembers);
+  let keySymbolsContent = buildKeySymbols(cleanNodes, degreeMap, 12);
+  let criticalEdgeLines = buildCriticalEdges(graph, nodeById);
+  let bridgeFileLines = buildBridgeFiles(cleanNodes, graph, degreeMap, nodeToCommunity);
+  const boundaryLines = detectBoundaries(cleanNodes);
+  const pointerLines = detectPointers(cleanNodes);
+
+  const projectNode = cleanNodes.find((n) => n.label === 'Project');
+  const purpose =
+    (projectNode?.properties.description as string | undefined) ||
+    (stack.frameworks[0]
+      ? `A ${stack.frameworks.slice(0, 2).join(' + ')} ${stack.primaryLang || 'application'}.`
+      : stack.primaryLang
+        ? `A ${stack.primaryLang} project.`
+        : 'A software project.');
+
+  const parts: Record<string, string> = {
+    header: `# ${projectName}\n> ${purpose}`,
+    stack: `## Stack\n- ${stack.stackLine || '(not detected)'}`,
+    commands: [
+      '## Commands',
+      `- install: \`${commands.install}\``,
+      `- dev:     \`${commands.dev}\``,
+      `- test:    \`${commands.test}\``,
+      `- lint:    \`${commands.lint}\``,
+      `- build:   \`${commands.build}\``,
+    ].join('\n'),
+    entries: entries.length
+      ? `## Entry Points\n${entries.map((e) => `- \`${e.path}\` — ${e.role}`).join('\n')}`
+      : '',
+    moduleMap: moduleMapContent ? `## Module Map\n${moduleMapContent}` : '',
+    keySymbols: `## Key Symbols  (signatures only — no implementations)\n${keySymbolsContent}`,
+    criticalEdges: criticalEdgeLines.length
+      ? `## Critical Edges  (top 5 call relationships)\n${criticalEdgeLines.join('\n')}`
+      : '',
+    bridgeFiles: bridgeFileLines.length
+      ? `## Bridge Files  (high degree across communities — edit carefully)\n${bridgeFileLines.join('\n')}`
+      : '',
+    conventions: '## Conventions  (not enforced by linters)\n<!-- add project-specific conventions here -->',
+    boundaries: `## Boundaries  (DO NOT)\n${boundaryLines.join('\n')}`,
+    pointers: pointerLines.length ? `## Pointers  (read on demand, do not embed)\n${pointerLines.join('\n')}` : '',
+  };
+
+  let content = assembleClaude(parts);
+
+  // Enforce 1,800-token ceiling: trim in spec-prescribed order
+  if (estimateTokens(content) > 1800) {
+    parts.criticalEdges = '';
+    content = assembleClaude(parts);
+  }
+  if (estimateTokens(content) > 1800) {
+    parts.bridgeFiles = '';
+    content = assembleClaude(parts);
+  }
+  if (estimateTokens(content) > 1800) {
+    keySymbolsContent = buildKeySymbols(cleanNodes, degreeMap, 8);
+    parts.keySymbols = `## Key Symbols  (signatures only — no implementations)\n${keySymbolsContent}`;
+    content = assembleClaude(parts);
+  }
+
+  return content;
+}
+
+// ── AGENTS.md builder ─────────────────────────────────────────────────────────
+
+function buildAgentsMd(
+  graph: KnowledgeGraph,
+  projectName: string,
+  base: BaseData,
+): string {
+  const { cleanNodes, cleanDeps, degreeMap } = base;
+
+  // Agent type inference
+  let agentType: 'orchestrator' | 'worker' | 'tool-only' = 'tool-only';
+  for (const n of cleanNodes) {
+    if (n.label !== 'Function' && n.label !== 'Method') continue;
+    const name = (n.properties.name ?? '').toLowerCase();
+    if (ORCHESTRATOR_PATTERNS.some((p) => name.includes(p))) { agentType = 'orchestrator'; break; }
+    if (WORKER_PATTERNS.some((p) => name.includes(p))) agentType = 'worker';
+  }
+
+  // Default model from deps
+  const allPkgs = new Set(Object.values(cleanDeps).flat().map((p) => p.toLowerCase()));
+  let defaultModel = 'claude-sonnet-4-6';
+  if (allPkgs.has('openai') || allPkgs.has('@openai/openai')) defaultModel = 'gpt-4o';
+  else if (allPkgs.has('google-generativeai') || allPkgs.has('google-genai')) defaultModel = 'gemini-2.0-flash';
+  else if (allPkgs.has('groq')) defaultModel = 'llama-3.3-70b-versatile';
+
+  // System prompt file
+  const systemPromptNode = cleanNodes.find((n) => {
+    const path = (n.properties.filePath ?? n.properties.name ?? '').toLowerCase();
+    return path.includes('system_prompt') || path.endsWith('system.md') || path.includes('prompt.txt');
+  });
+  const systemPromptPath = systemPromptNode?.properties.filePath as string | undefined ?? '(not detected)';
+
+  // Tool nodes
+  const tools = cleanNodes
+    .filter(
+      (n) =>
+        (n.label === 'Function' || n.label === 'Method' || n.label === 'Tool') &&
+        TOOL_PREFIXES.some((p) => (n.properties.name ?? '').toLowerCase().startsWith(p)),
+    )
     .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
     .sort((a, b) => b.degree - a.degree)
     .slice(0, 10);
 
-  // Directory structure (files only)
-  const dirCounts = new Map<string, number>();
-  for (const node of cleanNodes) {
-    if (node.label !== 'File') continue;
-    const parts = (node.properties.filePath ?? '').split('/').filter(Boolean);
-    if (parts.length >= 2) {
-      const dir =
-        parts[0] === 'src' && parts.length >= 3 ? `src/${parts[1]}` : parts[0];
-      dirCounts.set(dir, (dirCounts.get(dir) ?? 0) + 1);
+  // Subagent nodes
+  const SUBAGENT_PATTERNS = ['subagent', 'sub_agent', 'worker_agent', 'child_agent'];
+  const subagentNodes = cleanNodes
+    .filter((n) => {
+      const name = (n.properties.name ?? '').toLowerCase();
+      const path = (n.properties.filePath ?? '').toLowerCase();
+      return SUBAGENT_PATTERNS.some((p) => name.includes(p) || path.includes(p));
+    })
+    .slice(0, 5);
+
+  // Permission signals
+  const hasWriteOps = cleanNodes.some((n) => {
+    const name = (n.properties.name ?? '').toLowerCase();
+    return name.includes('write_') || name.includes('delete_') || name.includes('remove_') || name.includes('update_');
+  });
+  const hasExternalCalls = [...allPkgs].some((p) =>
+    ['requests', 'httpx', 'axios', 'aiohttp', 'node-fetch', 'got'].includes(p),
+  );
+
+  const knownFailures = [
+    hasExternalCalls ? '  - External API unavailability or rate limiting' : '',
+    hasWriteOps ? '  - Partial write failures leaving inconsistent state' : '',
+    '  - Malformed input causing silent incorrect output',
+  ].filter(Boolean);
+
+  const lines: string[] = [
+    '<!-- graphmycode:generated-start -->',
+    `# ${projectName} — Agent Specification`,
+    '',
+    '## Agent Card',
+    `- **Type**: ${agentType}`,
+    `- **Default model**: ${defaultModel}`,
+    `- **System prompt**: \`${systemPromptPath}\``,
+    '- **Trigger**: "(fill in — describe when this agent should be invoked)"',
+    '- **Input**: (describe expected input schema)',
+    '- **Output**: (describe output format)',
+    '- **Known failure modes**:',
+    ...knownFailures,
+  ];
+
+  if (tools.length > 0) {
+    lines.push('', '## Tools');
+    for (const { node } of tools) {
+      const name = node.properties.name ?? node.id;
+      const file = (node.properties.filePath ?? '').split('/').pop() ?? '';
+      lines.push(`- \`${name}(...)\` — (one-line purpose); defined in \`${file}\``);
     }
   }
-  const topDirs = [...dirCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
 
-  // External deps (deduplicated, stdlib filtered, system files excluded)
-  const allDeps = [
-    ...new Set(
-      Object.values(cleanDeps)
-        .flat()
-        .filter((pkg) => !PYTHON_STDLIB.has(pkg)),
-    ),
-  ].sort();
-
-  // Context Prompt — compact narrative for pasting into CLAUDE.md
-  // Omits data already present in other sections (structure, deps, communities)
-  const topEntries = keyNodes
-    .slice(0, 5)
-    .map(
-      ({ node, degree }) =>
-        `${node.properties.name ?? node.id} (${node.label}, ${degree} connections)`,
-    )
-    .join('; ');
-
-  const contextPrompt = topEntries
-    ? `${projectName} — most-connected entry points: ${topEntries}.`
-    : `${projectName} — no symbols with connections detected.`;
-
-  // Project structure
-  const structureLines =
-    topDirs.map(([dir, count]) => `  ${dir}/  (${count} files)`).join('\n') ||
-    '  (no files detected)';
-
-  // Key nodes table — File nodes omit the redundant filename column
-  const keyNodesLines =
-    keyNodes
-      .map(({ node, degree }, i) => {
-        const name = node.properties.name ?? node.id;
-        if (node.label === 'File') {
-          return `${i + 1}. ${name} | File | ${degree} connections`;
-        }
-        const file = (node.properties.filePath ?? '').split('/').pop() ?? '';
-        return `${i + 1}. ${name} | ${node.label} | ${file} | ${degree} connections`;
-      })
-      .join('\n') || '(no nodes)';
-
-  // Communities — deduplicate by name, group Cluster_N as "Uncategorized"
-  const communities = cleanNodes.filter((n) => n.label === 'Community');
-  const CLUSTER_RE = /^Cluster_\d+$/;
-  const communityTotals = new Map<string, number>();
-  for (const c of communities) {
-    const raw = c.properties.name ?? c.properties.heuristicLabel ?? c.id;
-    const name = CLUSTER_RE.test(raw) ? 'Uncategorized' : raw;
-    const count = (c.properties.symbolCount as number | undefined) ?? 1;
-    communityTotals.set(name, (communityTotals.get(name) ?? 0) + count);
+  if (subagentNodes.length > 0) {
+    lines.push('', '## Subagents');
+    lines.push('| Name | When called | Returns |');
+    lines.push('|------|-------------|---------|');
+    for (const n of subagentNodes) {
+      lines.push(`| \`${n.properties.name ?? n.id}\` | (fill in) | (fill in) |`);
+    }
   }
-  const communitiesLines =
-    communityTotals.size > 0
-      ? [...communityTotals.entries()]
-          .sort((a, b) => b[1] - a[1])
-          .map(([name, count]) => `- ${name} (${count} nodes)`)
-          .join('\n')
-      : 'No communities detected.';
 
-  return [
-    `# GraphMyCode — Agent Context Export`,
-    `Generated: ${date} | Project: ${projectName}`,
-    ...(isAgent ? ['> ⚡ Agent patterns detected', ''] : ['']),
-    `## Context Prompt`,
+  const requiresConfirmation = [
+    hasWriteOps ? 'file writes, deletes' : '',
+    hasExternalCalls ? 'external API calls' : '',
+    'dependency installs, destructive commands',
+  ].filter(Boolean).join(', ');
+
+  lines.push(
     '',
-    contextPrompt,
+    '## Permissions',
+    '- Auto-allowed: read, search, single-file inspection',
+    `- Requires confirmation: ${requiresConfirmation}`,
     '',
-    `## Project Structure`,
-    '',
-    structureLines,
-    '',
-    `## Key Nodes`,
-    '',
-    keyNodesLines,
-    '',
-    `## Main Dependencies`,
-    '',
-    allDeps.length > 0 ? allDeps.join('\n') : '(none detected)',
-    '',
-    `## Detected Communities`,
-    '',
-    communitiesLines,
-  ].join('\n');
+    '<!-- graphmycode:generated-end -->',
+  );
+
+  return lines.join('\n');
+}
+
+// ── Public API ───────────────────────────────────────────────────────────────
+
+export function exportAgentContext(
+  graph: KnowledgeGraph,
+  projectName: string,
+  externalDeps: Record<string, string[]>,
+  isAgent = false,
+): void {
+  const base = buildBase(graph, externalDeps);
+  triggerDownload(buildClaudeMd(graph, projectName, base), 'CLAUDE.md');
+  if (isAgent) {
+    triggerDownload(buildAgentsMd(graph, projectName, base), 'AGENTS.md');
+  }
+}
+
+/** @deprecated use exportAgentContext */
+export function buildAgentContext(
+  graph: KnowledgeGraph,
+  projectName: string,
+  externalDeps: Record<string, string[]>,
+  isAgent = false,
+): string {
+  const base = buildBase(graph, externalDeps);
+  void isAgent;
+  return buildClaudeMd(graph, projectName, base);
 }
