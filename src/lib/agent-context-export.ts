@@ -336,39 +336,39 @@ function findEntryPoints(cleanNodes: GraphNode[], graph: KnowledgeGraph) {
 const SYMBOL_PREFERRED = new Set(['Class', 'Interface', 'Function', 'Method', 'Struct', 'Trait', 'Enum']);
 const INTERNAL_ID_RE = /^[a-f0-9]{8,}-|^comm_\d+$|^node_\d+$|^cluster_\d+$/i;
 
-// Returns the human-readable display label for each community ID.
-// Mirrors the auto-label logic used in Module Map so Bridge Files shows identical labels.
+// Returns a deduplicated display label for each community ID.
+// Communities are sorted by symbolCount desc so the largest keeps the clean name;
+// duplicates get a ·2, ·3 suffix. Used identically by Module Map and Bridge Files.
 function buildCommunityLabelMap(
   cleanNodes: GraphNode[],
-  degreeMap: Map<string, number>,
+  _degreeMap: Map<string, number>,
   communityMembers: Map<string, GraphNode[]>,
 ): Map<string, string> {
-  const labels = new Map<string, string>();
+  // Collect and sort by symbolCount desc so the biggest community wins the clean name
+  const entries = cleanNodes
+    .filter((n) => n.label === 'Community')
+    .map((n) => ({
+      id: n.id,
+      rawName: (n.properties.name ?? n.properties.heuristicLabel ?? n.id) as string,
+      symbolCount: (n.properties.symbolCount as number | undefined)
+        ?? (communityMembers.get(n.id)?.length ?? 0),
+    }))
+    .sort((a, b) => b.symbolCount - a.symbolCount);
 
-  for (const comm of cleanNodes.filter((n) => n.label === 'Community')) {
-    const rawName = (comm.properties.name ?? comm.properties.heuristicLabel ?? comm.id) as string;
-    const members = communityMembers.get(comm.id) ?? [];
+  const nameCount = new Map<string, number>(); // base name → times seen so far
+  const labels = new Map<string, string>();    // communityId → final label
 
-    const topSymbol = members
-      .filter((n) => SYMBOL_PREFERRED.has(n.label))
-      .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
-      .sort((a, b) => b.degree - a.degree)[0];
-
-    const topMember = topSymbol ?? members
-      .filter((n) => n.label !== 'Community' && n.label !== 'File')
-      .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
-      .sort((a, b) => b.degree - a.degree)[0];
-
-    let label = rawName;
-
-    // Never expose internal IDs or Cluster_N patterns
-    if (CLUSTER_RE.test(label) || INTERNAL_ID_RE.test(label)) {
-      label = rawName && !CLUSTER_RE.test(rawName) && !INTERNAL_ID_RE.test(rawName)
+  for (const { id, rawName } of entries) {
+    // Sanitize: replace internal IDs / Cluster_N with 'Uncategorized'
+    const base =
+      rawName && !CLUSTER_RE.test(rawName) && !INTERNAL_ID_RE.test(rawName)
         ? rawName
         : 'Uncategorized';
-    }
 
-    labels.set(comm.id, label);
+    const seen = nameCount.get(base) ?? 0;
+    nameCount.set(base, seen + 1);
+
+    labels.set(id, seen === 0 ? base : `${base}·${seen + 1}`);
   }
 
   return labels;
