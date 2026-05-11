@@ -432,16 +432,24 @@ function buildCommunityLabelMap(
     .sort((a, b) => b.symbolCount - a.symbolCount);
 
   const TEST_COMMUNITY_RE = /^tests?$|^spec$|^fixtures?$|^__tests__$/i;
+  // Noise communities (examples, demos, raw data…) are merged into "Other"
+  const NOISE_COMMUNITY_RE = /^raw$|^examples?$|^demos?$|^samples?$|^worked$/i;
 
   const nameCount = new Map<string, number>(); // base name → times seen so far
   const labels = new Map<string, string>();    // communityId → final label
   let testSymbolTotal = 0;
 
   for (const { id, rawName, symbolCount } of entries) {
-    // Test communities: collapse all into a single aggregated entry
+    // Test communities: collapse into "Tests" entry at bottom of Module Map
     if (TEST_COMMUNITY_RE.test(rawName)) {
       testSymbolTotal += symbolCount;
       labels.set(id, '__test__');
+      continue;
+    }
+
+    // Noise communities: add to Other bucket in Module Map
+    if (NOISE_COMMUNITY_RE.test(rawName)) {
+      labels.set(id, '__other__');
       continue;
     }
 
@@ -479,6 +487,7 @@ function buildModuleMap(
   const rows: Array<{ label: string; count: number; purpose: string; keyFile: string }> = [];
 
   let testTotal = 0;
+  let noiseTotal = 0;
 
   for (const comm of communities) {
     const label = communityLabelMap.get(comm.id);
@@ -491,6 +500,12 @@ function buildModuleMap(
     // Aggregate test communities — one entry appended at the end
     if (label === '__test__') {
       testTotal += symbolCount;
+      continue;
+    }
+
+    // Aggregate noise communities (examples/demo/raw/worked) into Other
+    if (label === '__other__') {
+      noiseTotal += symbolCount;
       continue;
     }
 
@@ -514,8 +529,9 @@ function buildModuleMap(
   const top = rows.slice(0, 6);
   const rest = rows.slice(6);
 
-  if (rest.length > 0) {
-    top.push({ label: 'Other', count: rest.reduce((s, r) => s + r.count, 0), purpose: '', keyFile: '' });
+  const otherCount = rest.reduce((s, r) => s + r.count, 0) + noiseTotal;
+  if (otherCount > 0) {
+    top.push({ label: 'Other', count: otherCount, purpose: '', keyFile: '' });
   }
 
   // Single "Tests" entry always at the end, after Other
@@ -793,6 +809,18 @@ function inferPurposeSignals(
     if (hasAI) domain = 'AI';
   }
 
+  // ── Code tooling / graph analysis ────────────────────────────────────────
+  if (!domain) {
+    const hasGraphSignal = hits(/\b(cluster|community|node|edge|graph|adjacen|degree|centrality)\b/i, 3);
+    const hasCodeSignal  = hits(/\b(parse|ast|tree|syntax|token|grammar|visitor|walker)\b/i, 3);
+    const hasBuildSignal = hits(/\b(build_from|generate|export|to_html|to_wiki|render|serialize)\b/i, 2);
+
+    if (hasGraphSignal && hasCodeSignal) domain = 'code graph analysis';
+    else if (hasGraphSignal)            domain = 'knowledge graph';
+    else if (hasCodeSignal && hasBuildSignal) domain = 'code analysis and generation';
+    else if (hasCodeSignal)             domain = 'code analysis';
+  }
+
   // ── Generic domains — each requires ≥3 matching function names ────────────
   if (!domain) {
     if      (hits(/galler|photo|album|thumbnail|carousel/i, 3))                  domain = 'photo gallery';
@@ -926,11 +954,19 @@ function buildClaudeMd(
   if (!purpose) {
     const signals = inferPurposeSignals(cleanNodes, stack.allPkgs);
 
+    // Language display names (proper capitalization for purpose line)
+    const LANG_DISPLAY: Record<string, string> = {
+      python: 'Python', typescript: 'TypeScript', javascript: 'JavaScript',
+      java: 'Java', go: 'Go', rust: 'Rust', csharp: 'C#', cpp: 'C++',
+      c: 'C', ruby: 'Ruby', php: 'PHP', kotlin: 'Kotlin', swift: 'Swift', dart: 'Dart',
+    };
+    const langDisplay = LANG_DISPLAY[stack.primaryLang] ?? stack.primaryLang;
+
     // Build a short stack prefix for the purpose line
     const stackPrefix = stack.isFullstack
-      ? [stack.pyBackend[0] ?? stack.primaryLang, stack.jsFrontend[0] ?? stack.jsServer[0] ?? '']
+      ? [stack.pyBackend[0] ?? langDisplay, stack.jsFrontend[0] ?? stack.jsServer[0] ?? '']
           .filter(Boolean).join(' + ')
-      : (stack.frameworks.slice(0, 2).join(' + ') || stack.primaryLang);
+      : (stack.frameworks.slice(0, 2).join(' + ') || langDisplay);
 
     if (signals) {
       const withItems = [
@@ -945,7 +981,7 @@ function buildClaudeMd(
         ? `${stackPrefix} ${domainPart}application${withClause}`
         : `${domainPart}application${withClause}`;
     } else if (stack.isFullstack) {
-      const backendFw = stack.pyBackend[0] ?? stack.primaryLang;
+      const backendFw = stack.pyBackend[0] ?? langDisplay;
       const frontendFw = stack.jsFrontend[0] ?? stack.jsServer[0] ?? '';
       purpose = frontendFw
         ? `Fullstack ${backendFw} + ${frontendFw} application`
@@ -953,7 +989,7 @@ function buildClaudeMd(
     } else if (stack.frameworks.length > 0) {
       purpose = `A ${stack.frameworks.slice(0, 2).join(' + ')} application.`;
     } else if (stack.primaryLang) {
-      purpose = `A ${stack.primaryLang} project.`;
+      purpose = `A ${langDisplay} project.`;
     } else {
       purpose = 'A software project.';
     }
