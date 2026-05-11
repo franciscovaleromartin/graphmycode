@@ -438,7 +438,7 @@ function buildCommunityLabelMap(
     }))
     .sort((a, b) => b.symbolCount - a.symbolCount);
 
-  const TEST_COMMUNITY_RE = /^tests?$|^spec$|^fixtures?$|^__tests__$/i;
+  const TEST_COMMUNITY_RE = /^tests?$|^spec$|^fixtures?$|^__tests__$|^benchmarks?$|^perf$/i;
   // Noise communities (examples, demos, raw data…) are merged into "Other"
   const NOISE_COMMUNITY_RE = /^raw$|^examples?$|^demos?$|^samples?$|^worked$/i;
 
@@ -712,6 +712,7 @@ function buildBridgeFiles(
 
   for (const node of cleanNodes) {
     if (node.label !== 'File') continue;
+    if (isTestNode(node)) continue;   // skip test/benchmark/example files regardless of communities
     const degree = degreeMap.get(node.id) ?? 0;
     if (degree < 2) continue;
 
@@ -802,11 +803,13 @@ function inferPurposeSignals(
 
   // ── Agent memory ─────────────────────────────────────────────────────────
   if (!domain) {
-    const hasMemorySignal = hits(/\b(memory|recall|remember|forget|retention|memorize)\b/i, 2);
+    const hasMemorySignal = hits(/\b(memory|recall|remember|forget|retention|memorize)\b/i, 1);
     if (hasMemorySignal) {
       domain = 'agent memory system';
-      const hasMCP = depHas(/\bmcp\b|model.?context.?protocol/) || hits(/\bmcp\b/i, 1);
-      const hasEmbedding = depHas(/embed|sentence.?transform|openai.*embed/) || hits(/\bembed/i, 2);
+      // MCP: captures @modelcontextprotocol/sdk, mcp-server, fastmcp, etc.
+      const hasMCP = depHas(/mcp|modelcontextprotocol|fastmcp/) || hits(/\bmcp\b/i, 1);
+      // Embedding: sentence-transformers, openai embeddings, fastembed, etc.
+      const hasEmbedding = depHas(/embed|sentence.?transform|fastembed/) || hits(/\bembed/i, 1);
       if (hasMCP) components.push('MCP support');
       if (hasEmbedding) components.push('embedding support');
     }
