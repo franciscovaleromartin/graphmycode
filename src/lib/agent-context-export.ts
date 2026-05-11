@@ -57,7 +57,7 @@ const FILE_EXT_RE = /\.(py|js|jsx|ts|tsx|vue|go|rs|java|cs|rb|php|kt|swift|dart|
 
 // Matches test/spec/fixture/example paths and filenames — excluded from Key Symbols,
 // Module Map and Critical Edges (but NOT from Bridge Files).
-const TEST_PATH_RE = /(?:^|\/)(tests?|__tests__|spec|fixtures?|worked|examples?|demos?|samples?)(?:\/|$)/i;
+const TEST_PATH_RE = /(?:^|\/)(tests?|__tests__|spec|fixtures?|worked|examples?|demos?|samples?|benchmarks?|perf|performance)(?:\/|$)/i;
 const TEST_FILE_RE = /(?:^|[\\/])(test_[^/]+|[^/]+_test|[^/]+\.(?:test|spec)\.[jt]sx?)$/i;
 
 function isTestNode(node: { properties: { filePath?: string; name?: string } }): boolean {
@@ -725,11 +725,13 @@ function buildBridgeFiles(
 
     if (neighborCommIds.size < 2) continue;
 
-    // Map community IDs to display labels — same filter as Module Map:
-    // skip undefined (orphan/singleton comm IDs) and 'Uncategorized' (Cluster_N)
+    // Map community IDs to display labels — same filter as Module Map.
+    // Also exclude test/noise sentinels so benchmark/test communities
+    // don't appear as one side of a bridge.
+    const BRIDGE_SKIP = new Set(['Uncategorized', '__test__', '__other__']);
     const resolvedLabels = [...neighborCommIds]
       .map((id) => communityLabelMap.get(id))
-      .filter((l): l is string => !!l && l !== 'Uncategorized');
+      .filter((l): l is string => !!l && !BRIDGE_SKIP.has(l));
 
     // Compare BASE names (strip ·N suffix) so Backend ↔ Backend·2 is not a bridge.
     // A real bridge connects functionally distinct communities (Backend ↔ Components).
@@ -797,6 +799,18 @@ function inferPurposeSignals(
   if (hasChroma)   components.push('Chroma vector store');
   if (hasQdrant)   components.push('Qdrant vector search');
   if (hasRAGNames || hasPinecone || hasWeaviate || hasChroma || hasQdrant) domain = 'RAG';
+
+  // ── Agent memory ─────────────────────────────────────────────────────────
+  if (!domain) {
+    const hasMemorySignal = hits(/\b(memory|recall|remember|forget|retention|memorize)\b/i, 2);
+    if (hasMemorySignal) {
+      domain = 'agent memory system';
+      const hasMCP = depHas(/\bmcp\b|model.?context.?protocol/) || hits(/\bmcp\b/i, 1);
+      const hasEmbedding = depHas(/embed|sentence.?transform|openai.*embed/) || hits(/\bembed/i, 2);
+      if (hasMCP) components.push('MCP support');
+      if (hasEmbedding) components.push('embedding support');
+    }
+  }
 
   // ── Audio / TTS ───────────────────────────────────────────────────────────
   if (hits(/elevenlabs|tts|\bspeech\b|audio_gen/i, 1) || depHas(/elevenlabs/)) {
