@@ -57,7 +57,7 @@ const FILE_EXT_RE = /\.(py|js|jsx|ts|tsx|vue|go|rs|java|cs|rb|php|kt|swift|dart|
 
 // Matches test/spec/fixture/example paths and filenames — excluded from Key Symbols,
 // Module Map and Critical Edges (but NOT from Bridge Files).
-const TEST_PATH_RE = /\/(tests?|__tests__|spec|fixtures?|worked|examples?|demo)\//i;
+const TEST_PATH_RE = /(?:^|\/)(tests?|__tests__|spec|fixtures?|worked|examples?|demos?|samples?)(?:\/|$)/i;
 const TEST_FILE_RE = /(?:^|[\\/])(test_[^/]+|[^/]+_test|[^/]+\.(?:test|spec)\.[jt]sx?)$/i;
 
 function isTestNode(node: { properties: { filePath?: string; name?: string } }): boolean {
@@ -432,12 +432,8 @@ function buildCommunityLabelMap(
     labels.set(id, seen === 0 ? rawName : `${rawName}·${seen + 1}`);
   }
 
-  // Replace __test__ sentinel with the aggregated label (or drop if empty)
-  if (testSymbolTotal > 0) {
-    for (const [id, lbl] of labels) {
-      if (lbl === '__test__') labels.set(id, `Tests (${testSymbolTotal} symbols)`);
-    }
-  } else {
+  // __test__ sentinel is resolved in buildModuleMap; drop to Uncategorized for Bridge Files
+  if (testSymbolTotal === 0) {
     for (const [id, lbl] of labels) {
       if (lbl === '__test__') labels.set(id, 'Uncategorized');
     }
@@ -457,6 +453,8 @@ function buildModuleMap(
 
   const rows: Array<{ label: string; count: number; purpose: string; keyFile: string }> = [];
 
+  let testTotal = 0;
+
   for (const comm of communities) {
     const label = communityLabelMap.get(comm.id);
     if (!label || label === 'Uncategorized') continue;
@@ -464,6 +462,12 @@ function buildModuleMap(
     const members = communityMembers.get(comm.id) ?? [];
     const symbolCount = (comm.properties.symbolCount as number | undefined) ?? members.length;
     if (symbolCount === 0 && members.length === 0) continue;
+
+    // Aggregate test communities — one entry appended at the end
+    if (label === '__test__') {
+      testTotal += symbolCount;
+      continue;
+    }
 
     const keyFileNode = members
       .filter((n) => n.label === 'File')
@@ -487,6 +491,11 @@ function buildModuleMap(
 
   if (rest.length > 0) {
     top.push({ label: 'Other', count: rest.reduce((s, r) => s + r.count, 0), purpose: '', keyFile: '' });
+  }
+
+  // Single "Tests" entry always at the end, after Other
+  if (testTotal > 0) {
+    top.push({ label: 'Tests', count: testTotal, purpose: '', keyFile: '' });
   }
 
   return top
