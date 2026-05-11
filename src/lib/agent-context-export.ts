@@ -359,7 +359,7 @@ function buildCommunityLabelMap(
       .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
       .sort((a, b) => b.degree - a.degree)[0];
 
-    let label = (topMember?.node.properties.name ?? rawName) as string;
+    let label = rawName;
 
     // Never expose internal IDs or Cluster_N patterns
     if (CLUSTER_RE.test(label) || INTERNAL_ID_RE.test(label)) {
