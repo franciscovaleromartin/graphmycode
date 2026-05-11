@@ -632,9 +632,9 @@ interface DomainSignal {
   extras: string[]; // e.g. ['with Pinecone vector search', 'and ElevenLabs audio generation']
 }
 
+// "chat" is intentionally absent — it requires strict dep + frequency check (see inferDomain)
 const DOMAIN_PATTERNS: Array<[RegExp, string]> = [
   [/galler|photo|album|imagen|media|upload|thumbnail|carousel/i, 'photo gallery and media management'],
-  [/chat|message|notif|inbox|thread|conversation/i, 'chat and messaging'],
   [/dashboard|metric|analytic|report|chart|stat|kpi|trend/i, 'analytics dashboard'],
   [/ecomm|product|cart|order|checkout|inventory|shop|catalog/i, 'e-commerce'],
   [/blog|post|article|publish|comment|editor|markdown/i, 'content management'],
@@ -643,15 +643,19 @@ const DOMAIN_PATTERNS: Array<[RegExp, string]> = [
   [/video|stream|player|playlist|episode/i, 'video streaming'],
 ];
 
+// Chat: requires real-time messaging deps AND multiple distinct chat function names
+const CHAT_DEP_RE = /flask.socketio|socket\.io|twilio|sendgrid|pusher/i;
+const CHAT_NAME_RE = /\b(chat|message|inbox|thread|conversation|dm)\b/i;
+
 const AUTH_PATTERN = /\b(auth|login|logout|signup|signin|permission|role|session|token|jwt|password|credential)\b/i;
 
-// Dependency-based extras: package name patterns → display string
+// Dependency-based extras: substring match so "elevenlabs-api", "elevenlabs-sdk", etc. all match
 const DEP_EXTRAS: Array<[RegExp, string]> = [
-  [/^pinecone(-client)?$/, 'with Pinecone vector search'],
-  [/^elevenlabs(-sdk)?$/, 'and ElevenLabs audio generation'],
-  [/^weaviate(-client)?$/, 'with Weaviate vector search'],
-  [/^qdrant(-client)?$/, 'with Qdrant vector search'],
-  [/^chroma(db)?$/, 'with Chroma vector store'],
+  [/pinecone/, 'with Pinecone vector search'],
+  [/elevenlabs/, 'and ElevenLabs audio generation'],
+  [/weaviate/, 'with Weaviate vector search'],
+  [/qdrant/, 'with Qdrant vector search'],
+  [/chroma/, 'with Chroma vector store'],
 ];
 
 function inferDomain(
@@ -671,6 +675,14 @@ function inferDomain(
     if ([...allDeps].some((dep) => pattern.test(dep.toLowerCase()))) {
       extras.push(label);
     }
+  }
+
+  // Chat: only signal if real-time messaging deps present AND ≥3 distinct chat function names.
+  // A single "chat_endpoint" in a RAG app must not trigger this domain.
+  const chatDepsPresent = [...allDeps].some((d) => CHAT_DEP_RE.test(d));
+  const chatNameCount = symbols.filter((n) => CHAT_NAME_RE.test(n.properties.name ?? '')).length;
+  if (chatDepsPresent && chatNameCount >= 3) {
+    return { domain: 'chat and messaging', hasAuth: AUTH_PATTERN.test(nameCorpus), extras };
   }
 
   for (const [pattern, domain] of DOMAIN_PATTERNS) {
