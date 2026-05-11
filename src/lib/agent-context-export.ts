@@ -172,11 +172,20 @@ function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]
   const langCounts = new Map<string, number>();
   const fileNames = new Set<string>();
 
+  // Extension → language fallback (GitHub URL input never sets properties.language)
+  const EXT_LANG: Record<string, string> = {
+    py: 'python', ts: 'typescript', tsx: 'typescript', js: 'javascript', jsx: 'javascript',
+    go: 'go', rs: 'rust', java: 'java', cs: 'csharp', rb: 'ruby',
+    php: 'php', kt: 'kotlin', swift: 'swift', c: 'c', cpp: 'cpp',
+  };
+
   for (const n of cleanNodes) {
     if (n.label !== 'File') continue;
-    const lang = n.properties.language as string | undefined;
+    const filePath = n.properties.filePath ?? '';
+    const ext = filePath.split('.').pop()?.toLowerCase() ?? '';
+    const lang = (n.properties.language as string | undefined) ?? EXT_LANG[ext];
     if (lang) langCounts.set(lang, (langCounts.get(lang) ?? 0) + 1);
-    const base = (n.properties.filePath ?? '').split('/').pop() ?? '';
+    const base = filePath.split('/').pop() ?? '';
     if (base) fileNames.add(base);
   }
 
@@ -194,7 +203,7 @@ function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]
   const jsServer = frameworks.filter((f) => JS_SERVER_FW.has(f));
   const isFullstack = pyBackend.length > 0 && (jsFrontend.length > 0 || jsServer.length > 0);
 
-  // Package managers — detect Python and JS independently for fullstack
+  // Package managers — detect from config files first (ZIP input)
   let pyPkgManager = '';
   if (fileNames.has('pyproject.toml')) pyPkgManager = 'pyproject';
   else if (fileNames.has('setup.py') || fileNames.has('setup.cfg')) pyPkgManager = 'pip';
@@ -205,6 +214,21 @@ function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]
   else if (fileNames.has('yarn.lock')) jsPkgManager = 'yarn';
   else if (fileNames.has('bun.lockb') || fileNames.has('bun.lock')) jsPkgManager = 'bun';
   else if (fileNames.has('package.json')) jsPkgManager = 'npm';
+
+  // Fallback from externalDeps — GitHub URL input never downloads config files
+  const PYTHON_DEP_SIGNAL = new Set([
+    'flask', 'fastapi', 'django', 'starlette', 'pytest', 'click', 'typer',
+    'anthropic', 'openai', 'langchain', 'numpy', 'pandas', 'requests',
+    'aiohttp', 'pydantic', 'sqlalchemy', 'celery', 'boto3', 'httpx',
+  ]);
+  const JS_DEP_SIGNAL = new Set([
+    'react', 'vue', 'svelte', 'next', 'nuxt', 'astro', 'vite',
+    'express', 'fastify', 'hono', '@nestjs/core', 'koa',
+    'axios', 'zod', 'prisma', 'drizzle-orm',
+  ]);
+
+  if (!pyPkgManager && [...allPkgs].some((p) => PYTHON_DEP_SIGNAL.has(p))) pyPkgManager = 'pip';
+  if (!jsPkgManager && [...allPkgs].some((p) => JS_DEP_SIGNAL.has(p))) jsPkgManager = 'npm';
 
   let pkgManager: string;
   if (isFullstack) {
@@ -233,8 +257,9 @@ function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]
   } else if (pyBackend.length > 0 || jsServer.length > 0) {
     runtime = 'server';
   } else if (primaryLang === 'python' && !jsPkgManager) {
-    // Pure Python with no JS: server if wsgi/asgi detected, otherwise CLI
-    runtime = (fileNames.has('wsgi.py') || fileNames.has('asgi.py')) ? 'server' : 'CLI';
+    // Pure Python: server if web framework or wsgi/asgi detected, otherwise CLI
+    const hasWsgiFiles = fileNames.has('wsgi.py') || fileNames.has('asgi.py');
+    runtime = (hasWsgiFiles || pyBackend.length > 0) ? 'server' : 'CLI';
   } else if (['go', 'rust'].includes(primaryLang)) {
     runtime = 'server';
   } else if (allPkgs.has('aws-lambda-powertools') || allPkgs.has('@aws-sdk/client-lambda')) {
