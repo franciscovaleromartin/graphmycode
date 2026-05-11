@@ -157,7 +157,7 @@ export const processImports = async (
     if (!queryStr) continue;
 
     // 2. ALWAYS load the language before querying (parser is stateful)
-    await loadLanguage(language, file.path);
+    if (!await loadLanguage(language, file.path)) continue;
 
     // 3. Get AST (Try Cache First)
     let tree: import("web-tree-sitter").Tree | null | undefined = astCache.get(file.path);

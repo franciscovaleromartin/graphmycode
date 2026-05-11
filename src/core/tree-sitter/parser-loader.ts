@@ -11,6 +11,8 @@ let parser: ParserInstance | null = null;
 
 // Cache the compiled Language objects to avoid fetching/compiling twice
 const languageCache = new Map<string, ParserLanguage>();
+// Track grammars that failed to load (wrong dylink ABI) so we don't retry on every file
+const failedWasmPaths = new Set<string>();
 
 export const loadParser = async (): Promise<ParserInstance> => {
     if (parser) return parser;
@@ -55,29 +57,34 @@ const getWasmPath = (language: SupportedLanguages, filePath?: string): string =>
     return languageFileMap[language];
 };
 
-export const loadLanguage = async (language: SupportedLanguages, filePath?: string): Promise<void> => {
+// Returns true if the language was loaded successfully, false if the grammar is
+// unavailable (wrong ABI / missing file). Callers should skip the file on false.
+export const loadLanguage = async (language: SupportedLanguages, filePath?: string): Promise<boolean> => {
     if (!parser) await loadParser();
     const wasmPath = getWasmPath(language, filePath);
-    
-    if (languageCache.has(wasmPath)) {
-        parser!.setLanguage(languageCache.get(wasmPath)!);
-        return;
-    }
 
     if (!wasmPath) {
-        console.error(`❌ [Parser] No WASM path configured for language: ${language}`);
-        throw new Error(`Unsupported language: ${language}`);
+        return false;
     }
-    
+
+    if (failedWasmPaths.has(wasmPath)) {
+        return false;
+    }
+
+    if (languageCache.has(wasmPath)) {
+        parser!.setLanguage(languageCache.get(wasmPath)!);
+        return true;
+    }
+
     try {
         const loadedLanguage = await ParserLanguage.load(wasmPath);
         languageCache.set(wasmPath, loadedLanguage);
         parser!.setLanguage(loadedLanguage);
+        return true;
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`❌ [Parser] Failed to load WASM grammar for ${language}`);
-        console.error(`   WASM Path: ${wasmPath}`);
-        console.error(`   Error: ${errorMessage}`);
-        throw new Error(`Failed to load grammar for ${language}: ${errorMessage}`);
+        console.warn(`⚠️ [Parser] Grammar unavailable for ${language} (${errorMessage}) — skipping ${language} files`);
+        failedWasmPaths.add(wasmPath);
+        return false;
     }
 }

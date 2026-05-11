@@ -40,7 +40,7 @@ export const processHeritage = async (
     if (!queryStr) continue;
 
     // 2. Load the language
-    await loadLanguage(language, file.path);
+    if (!await loadLanguage(language, file.path)) continue;
 
     // 3. Get AST
     let tree: import("web-tree-sitter").Tree | null | undefined = astCache.get(file.path);
