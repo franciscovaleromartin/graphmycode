@@ -275,7 +275,13 @@ function inferCommands(
 
   if (primaryLang === 'python' || pyPkgManager) {
     const install = pyPkgManager === 'uv' ? 'uv sync' : 'pip install -r requirements.txt';
-    return { install, dev: 'python -m <entry>', test: 'pytest', lint: 'ruff check .', build: '# n/a' };
+    let dev = '# check project docs';
+    if (fileNames.has('wsgi.py')) dev = 'python wsgi.py';
+    else if (fileNames.has('asgi.py')) dev = 'python asgi.py';
+    else if (fileNames.has('app.py')) dev = 'flask run';
+    else if (fileNames.has('main.py')) dev = 'python main.py';
+    else if (fileNames.has('server.py')) dev = 'python server.py';
+    return { install, dev, test: 'pytest', lint: 'ruff check .', build: '# n/a' };
   }
 
   if (stack.pkgManager === 'cargo') {
@@ -623,6 +629,7 @@ function buildBridgeFiles(
 interface DomainSignal {
   domain: string;
   hasAuth: boolean;
+  extras: string[]; // e.g. ['with Pinecone vector search', 'and ElevenLabs audio generation']
 }
 
 const DOMAIN_PATTERNS: Array<[RegExp, string]> = [
@@ -638,7 +645,19 @@ const DOMAIN_PATTERNS: Array<[RegExp, string]> = [
 
 const AUTH_PATTERN = /\b(auth|login|logout|signup|signin|permission|role|session|token|jwt|password|credential)\b/i;
 
-function inferDomain(cleanNodes: GraphNode[]): DomainSignal | undefined {
+// Dependency-based extras: package name patterns → display string
+const DEP_EXTRAS: Array<[RegExp, string]> = [
+  [/^pinecone(-client)?$/, 'with Pinecone vector search'],
+  [/^elevenlabs(-sdk)?$/, 'and ElevenLabs audio generation'],
+  [/^weaviate(-client)?$/, 'with Weaviate vector search'],
+  [/^qdrant(-client)?$/, 'with Qdrant vector search'],
+  [/^chroma(db)?$/, 'with Chroma vector store'],
+];
+
+function inferDomain(
+  cleanNodes: GraphNode[],
+  allDeps: Set<string> = new Set(),
+): DomainSignal | undefined {
   const symbols = cleanNodes.filter(
     (n) => n.label === 'Function' || n.label === 'Class' || n.label === 'Method',
   );
@@ -646,15 +665,28 @@ function inferDomain(cleanNodes: GraphNode[]): DomainSignal | undefined {
 
   const nameCorpus = symbols.map((n) => n.properties.name ?? '').join(' ');
 
+  // Collect dependency-driven extras
+  const extras: string[] = [];
+  for (const [pattern, label] of DEP_EXTRAS) {
+    if ([...allDeps].some((dep) => pattern.test(dep.toLowerCase()))) {
+      extras.push(label);
+    }
+  }
+
   for (const [pattern, domain] of DOMAIN_PATTERNS) {
     if (pattern.test(nameCorpus)) {
-      return { domain, hasAuth: AUTH_PATTERN.test(nameCorpus) };
+      return { domain, hasAuth: AUTH_PATTERN.test(nameCorpus), extras };
     }
+  }
+
+  // RAG / vector search detected via deps even without node-name signal
+  if (extras.length > 0) {
+    return { domain: 'RAG', hasAuth: AUTH_PATTERN.test(nameCorpus), extras };
   }
 
   // Auth-only signal (no other domain detected)
   if (AUTH_PATTERN.test(nameCorpus)) {
-    return { domain: 'user management', hasAuth: true };
+    return { domain: 'user management', hasAuth: true, extras: [] };
   }
 
   return undefined;
@@ -769,7 +801,7 @@ function buildClaudeMd(
   const projectNode = cleanNodes.find((n) => n.label === 'Project');
   let purpose = projectNode?.properties.description as string | undefined;
   if (!purpose) {
-    const domainSignal = inferDomain(cleanNodes);
+    const domainSignal = inferDomain(cleanNodes, stack.allPkgs);
     const hasWebsockets = stack.allPkgs.has('flask-socketio') || stack.allPkgs.has('socket.io-client')
       || stack.allPkgs.has('socketio') || stack.allPkgs.has('websockets');
 
@@ -783,9 +815,11 @@ function buildClaudeMd(
       const authSuffix = domainSignal.hasAuth ? ' with authentication' : '';
       const wsOverride = hasWebsockets && domainSignal.domain !== 'chat and messaging'
         ? 'real-time ' : '';
+      const extrasSuffix = domainSignal.extras.length > 0
+        ? ' ' + domainSignal.extras.join(' ') : '';
       purpose = stackPrefix
-        ? `${stackPrefix} ${wsOverride}${domainSignal.domain} application${authSuffix}`
-        : `${wsOverride}${domainSignal.domain} application${authSuffix}`;
+        ? `${stackPrefix} ${wsOverride}${domainSignal.domain} application${authSuffix}${extrasSuffix}`
+        : `${wsOverride}${domainSignal.domain} application${authSuffix}${extrasSuffix}`;
     } else if (stack.isFullstack) {
       const backendFw = stack.pyBackend[0] ?? stack.primaryLang;
       const frontendFw = stack.jsFrontend[0] ?? stack.jsServer[0] ?? '';
