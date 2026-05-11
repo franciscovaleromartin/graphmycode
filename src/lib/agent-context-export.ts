@@ -17,6 +17,7 @@ interface BaseData {
   nodeById: Map<string, GraphNode>;
   communityMembers: Map<string, GraphNode[]>;
   nodeToCommunity: Map<string, string>;
+  testNodeIds: Set<string>;     // all node IDs from test files, for Critical Edges filtering
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -158,7 +159,11 @@ function buildBase(graph: KnowledgeGraph, externalDeps: Record<string, string[]>
     }
   }
 
-  return { cleanNodes, allCleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity };
+  const testNodeIds = new Set<string>(
+    graph.nodes.filter((n) => isTestNode(n)).map((n) => n.id),
+  );
+
+  return { cleanNodes, allCleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity, testNodeIds };
 }
 
 // ── Stack detection ───────────────────────────────────────────────────────────
@@ -238,15 +243,26 @@ function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]
     runtime = '';
   }
 
+  // Map internal tokens to display names
+  const pkgManagerDisplay: Record<string, string> = {
+    pyproject: 'pip', pip: 'pip', uv: 'uv',
+    npm: 'npm', yarn: 'yarn', pnpm: 'pnpm', bun: 'bun',
+    cargo: 'cargo', go: 'go', bundler: 'bundler',
+  };
+  const displayPm = pkgManager
+    .split(' + ')
+    .map((p) => pkgManagerDisplay[p] ?? p)
+    .join(' + ');
+
   let stackLine: string;
   if (isFullstack) {
     const backendStr = `Python/${pyBackend[0]}`;
     const frontendStr = (jsFrontend[0] ?? jsServer[0]) ?? '';
-    stackLine = [backendStr + (frontendStr ? ` + ${frontendStr}` : ''), pkgManager, runtime]
+    stackLine = [backendStr + (frontendStr ? ` + ${frontendStr}` : ''), displayPm, runtime]
       .filter(Boolean).join(' • ');
   } else {
     const fwStr = frameworks.slice(0, 2).join(' + ');
-    stackLine = [primaryLang, fwStr, pkgManager, runtime].filter(Boolean).join(' • ');
+    stackLine = [primaryLang, fwStr, displayPm, runtime].filter(Boolean).join(' • ');
   }
 
   return {
@@ -390,14 +406,22 @@ function buildCommunityLabelMap(
     }))
     .sort((a, b) => b.symbolCount - a.symbolCount);
 
+  const TEST_COMMUNITY_RE = /^tests?$|^spec$|^fixtures?$|^__tests__$/i;
+
   const nameCount = new Map<string, number>(); // base name → times seen so far
   const labels = new Map<string, string>();    // communityId → final label
+  let testSymbolTotal = 0;
 
-  for (const { id, rawName } of entries) {
+  for (const { id, rawName, symbolCount } of entries) {
+    // Test communities: collapse all into a single aggregated entry
+    if (TEST_COMMUNITY_RE.test(rawName)) {
+      testSymbolTotal += symbolCount;
+      labels.set(id, '__test__');
+      continue;
+    }
+
     // Unnamed / Cluster_N communities all collapse to 'Uncategorized' — no suffix.
-    // Named communities with duplicates get ·2, ·3 etc.
     const isNamed = rawName && !CLUSTER_RE.test(rawName) && !INTERNAL_ID_RE.test(rawName);
-
     if (!isNamed) {
       labels.set(id, 'Uncategorized');
       continue;
@@ -406,6 +430,17 @@ function buildCommunityLabelMap(
     const seen = nameCount.get(rawName) ?? 0;
     nameCount.set(rawName, seen + 1);
     labels.set(id, seen === 0 ? rawName : `${rawName}·${seen + 1}`);
+  }
+
+  // Replace __test__ sentinel with the aggregated label (or drop if empty)
+  if (testSymbolTotal > 0) {
+    for (const [id, lbl] of labels) {
+      if (lbl === '__test__') labels.set(id, `Tests (${testSymbolTotal} symbols)`);
+    }
+  } else {
+    for (const [id, lbl] of labels) {
+      if (lbl === '__test__') labels.set(id, 'Uncategorized');
+    }
   }
 
   return labels;
@@ -534,10 +569,15 @@ function buildKeySymbols(cleanNodes: GraphNode[], degreeMap: Map<string, number>
 
 // ── Critical Edges ────────────────────────────────────────────────────────────
 
-function buildCriticalEdges(graph: KnowledgeGraph, nodeById: Map<string, GraphNode>): string[] {
+function buildCriticalEdges(
+  graph: KnowledgeGraph,
+  nodeById: Map<string, GraphNode>,
+  testNodeIds: Set<string>,
+): string[] {
   const callers = new Map<string, Set<string>>();
   for (const rel of graph.relationships) {
     if (rel.type !== 'CALLS') continue;
+    if (testNodeIds.has(rel.sourceId) || testNodeIds.has(rel.targetId)) continue;
     if (!callers.has(rel.targetId)) callers.set(rel.targetId, new Set());
     callers.get(rel.targetId)!.add(rel.sourceId);
   }
@@ -813,7 +853,7 @@ function buildClaudeMd(
   projectName: string,
   base: BaseData,
 ): string {
-  const { cleanNodes, allCleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity } = base;
+  const { cleanNodes, allCleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity, testNodeIds } = base;
 
   const stack = detectStack(cleanNodes, cleanDeps);
   const commands = inferCommands(stack);
@@ -841,7 +881,7 @@ function buildClaudeMd(
   const entries = findEntryPoints(cleanNodes, graph);
   const moduleMapContent = buildModuleMap(cleanNodes, degreeMap, communityMembers, communityLabelMap);
   let keySymbolsContent = buildKeySymbols(cleanNodes, degreeMap, 12);
-  let criticalEdgeLines = buildCriticalEdges(graph, nodeById);
+  let criticalEdgeLines = buildCriticalEdges(graph, nodeById, testNodeIds);
   let bridgeFileLines = buildBridgeFiles(allCleanNodes, graph, degreeMap, nodeToCommunity, visibleLabelMap);
   const boundaryLines = detectBoundaries(cleanNodes);
   const pointerLines = detectPointers(cleanNodes);
