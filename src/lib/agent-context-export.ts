@@ -359,16 +359,18 @@ function buildCommunityLabelMap(
   const labels = new Map<string, string>();    // communityId → final label
 
   for (const { id, rawName } of entries) {
-    // Sanitize: replace internal IDs / Cluster_N with 'Uncategorized'
-    const base =
-      rawName && !CLUSTER_RE.test(rawName) && !INTERNAL_ID_RE.test(rawName)
-        ? rawName
-        : 'Uncategorized';
+    // Unnamed / Cluster_N communities all collapse to 'Uncategorized' — no suffix.
+    // Named communities with duplicates get ·2, ·3 etc.
+    const isNamed = rawName && !CLUSTER_RE.test(rawName) && !INTERNAL_ID_RE.test(rawName);
 
-    const seen = nameCount.get(base) ?? 0;
-    nameCount.set(base, seen + 1);
+    if (!isNamed) {
+      labels.set(id, 'Uncategorized');
+      continue;
+    }
 
-    labels.set(id, seen === 0 ? base : `${base}·${seen + 1}`);
+    const seen = nameCount.get(rawName) ?? 0;
+    nameCount.set(rawName, seen + 1);
+    labels.set(id, seen === 0 ? rawName : `${rawName}·${seen + 1}`);
   }
 
   return labels;
@@ -591,10 +593,11 @@ function buildBridgeFiles(
 
     if (neighborCommIds.size < 2) continue;
 
-    // Map community IDs to the same display labels Module Map uses
+    // Map community IDs to display labels — same filter as Module Map:
+    // skip undefined (orphan/singleton comm IDs) and 'Uncategorized' (Cluster_N)
     const resolvedLabels = [...neighborCommIds]
       .map((id) => communityLabelMap.get(id))
-      .filter((l): l is string => !!l);
+      .filter((l): l is string => !!l && l !== 'Uncategorized');
 
     const uniqueLabels = [...new Set(resolvedLabels)];
     if (uniqueLabels.length < 2) continue;
