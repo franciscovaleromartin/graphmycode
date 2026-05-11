@@ -788,21 +788,19 @@ function inferPurposeSignals(
   let domain: string | undefined;
   const components: string[] = [];
 
-  // ── Vector DBs / RAG — names take priority, deps as fallback ─────────────
+  // ── Vector DBs — always detected as components regardless of domain ───────
   const hasPinecone = hits(/pinecone/i, 1) || depHas(/pinecone/);
   const hasWeaviate = hits(/weaviate/i, 1) || depHas(/weaviate/);
   const hasChroma   = hits(/\bchroma\b/i, 1) || depHas(/chroma/);
   const hasQdrant   = hits(/qdrant/i, 1) || depHas(/qdrant/);
-  const hasRAGNames = hits(/\b(rag|retriev|embed|chunk|ingest)\b/i, 2);
 
   if (hasPinecone) components.push('Pinecone vector search');
   if (hasWeaviate) components.push('Weaviate vector search');
   if (hasChroma)   components.push('Chroma vector store');
   if (hasQdrant)   components.push('Qdrant vector search');
-  if (hasRAGNames || hasPinecone || hasWeaviate || hasChroma || hasQdrant) domain = 'RAG';
 
-  // ── Agent memory ─────────────────────────────────────────────────────────
-  if (!domain) {
+  // ── Agent memory — checked FIRST: wins over RAG when memory functions exist ─
+  {
     const hasMemorySignal = hits(/\b(memory|recall|remember|forget|retention|memorize)\b/i, 1);
     if (hasMemorySignal) {
       domain = 'agent memory system';
@@ -813,6 +811,12 @@ function inferPurposeSignals(
       if (hasMCP) components.push('MCP support');
       if (hasEmbedding) components.push('embedding support');
     }
+  }
+
+  // ── RAG — only domain if no memory signal claimed it already ─────────────
+  if (!domain) {
+    const hasRAGNames = hits(/\b(rag|retriev|embed|chunk|ingest)\b/i, 2);
+    if (hasRAGNames || hasPinecone || hasWeaviate || hasChroma || hasQdrant) domain = 'RAG';
   }
 
   // ── Audio / TTS ───────────────────────────────────────────────────────────
