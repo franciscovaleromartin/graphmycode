@@ -693,11 +693,31 @@ function buildClaudeMd(
   const stack = detectStack(cleanNodes, cleanDeps);
   const commands = inferCommands(stack);
   const communityLabelMap = buildCommunityLabelMap(cleanNodes, degreeMap, communityMembers);
+
+  // Restrict Bridge Files to only the top 6 communities visible in Module Map.
+  // communityLabelMap covers ALL 17+ communities; communities that fall into "Other"
+  // have valid labels in the map but are not shown — Bridge Files must not use them.
+  const visibleLabelMap: Map<string, string> = new Map(
+    cleanNodes
+      .filter((n) => n.label === 'Community')
+      .map((n) => ({
+        id: n.id,
+        label: communityLabelMap.get(n.id),
+        symbolCount: (n.properties.symbolCount as number | undefined)
+          ?? (communityMembers.get(n.id)?.length ?? 0),
+      }))
+      .filter((e): e is { id: string; label: string; symbolCount: number } =>
+        !!e.label && e.label !== 'Uncategorized')
+      .sort((a, b) => b.symbolCount - a.symbolCount)
+      .slice(0, 6)
+      .map((e) => [e.id, e.label]),
+  );
+
   const entries = findEntryPoints(cleanNodes, graph);
   const moduleMapContent = buildModuleMap(cleanNodes, degreeMap, communityMembers, communityLabelMap);
   let keySymbolsContent = buildKeySymbols(cleanNodes, degreeMap, 12);
   let criticalEdgeLines = buildCriticalEdges(graph, nodeById);
-  let bridgeFileLines = buildBridgeFiles(cleanNodes, graph, degreeMap, nodeToCommunity, communityLabelMap);
+  let bridgeFileLines = buildBridgeFiles(cleanNodes, graph, degreeMap, nodeToCommunity, visibleLabelMap);
   const boundaryLines = detectBoundaries(cleanNodes);
   const pointerLines = detectPointers(cleanNodes);
 
