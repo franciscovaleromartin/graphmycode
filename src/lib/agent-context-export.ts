@@ -618,6 +618,48 @@ function buildBridgeFiles(
     .map(({ path, labelA, labelB }) => `- \`${path}\` — connects ${labelA} ↔ ${labelB}`);
 }
 
+// ── Domain inference ─────────────────────────────────────────────────────────
+
+interface DomainSignal {
+  domain: string;
+  hasAuth: boolean;
+}
+
+const DOMAIN_PATTERNS: Array<[RegExp, string]> = [
+  [/galler|photo|album|imagen|media|upload|thumbnail|carousel/i, 'photo gallery and media management'],
+  [/chat|message|notif|inbox|thread|conversation/i, 'chat and messaging'],
+  [/dashboard|metric|analytic|report|chart|stat|kpi|trend/i, 'analytics dashboard'],
+  [/ecomm|product|cart|order|checkout|inventory|shop|catalog/i, 'e-commerce'],
+  [/blog|post|article|publish|comment|editor|markdown/i, 'content management'],
+  [/task|todo|sprint|kanban|board|ticket/i, 'project management'],
+  [/map|location|geo|marker|route|coordinate/i, 'mapping and location'],
+  [/video|stream|player|playlist|episode/i, 'video streaming'],
+];
+
+const AUTH_PATTERN = /\b(auth|login|logout|signup|signin|permission|role|session|token|jwt|password|credential)\b/i;
+
+function inferDomain(cleanNodes: GraphNode[]): DomainSignal | undefined {
+  const symbols = cleanNodes.filter(
+    (n) => n.label === 'Function' || n.label === 'Class' || n.label === 'Method',
+  );
+  if (symbols.length < 10) return undefined;
+
+  const nameCorpus = symbols.map((n) => n.properties.name ?? '').join(' ');
+
+  for (const [pattern, domain] of DOMAIN_PATTERNS) {
+    if (pattern.test(nameCorpus)) {
+      return { domain, hasAuth: AUTH_PATTERN.test(nameCorpus) };
+    }
+  }
+
+  // Auth-only signal (no other domain detected)
+  if (AUTH_PATTERN.test(nameCorpus)) {
+    return { domain: 'user management', hasAuth: true };
+  }
+
+  return undefined;
+}
+
 // ── Boundaries ────────────────────────────────────────────────────────────────
 
 function detectBoundaries(cleanNodes: GraphNode[]): string[] {
@@ -723,13 +765,28 @@ function buildClaudeMd(
   const boundaryLines = detectBoundaries(cleanNodes);
   const pointerLines = detectPointers(cleanNodes);
 
-  // Purpose: prefer explicit description, then infer from stack
+  // Purpose: explicit description → domain inference from node names → stack fallback
   const projectNode = cleanNodes.find((n) => n.label === 'Project');
   let purpose = projectNode?.properties.description as string | undefined;
   if (!purpose) {
+    const domainSignal = inferDomain(cleanNodes);
     const hasWebsockets = stack.allPkgs.has('flask-socketio') || stack.allPkgs.has('socket.io-client')
       || stack.allPkgs.has('socketio') || stack.allPkgs.has('websockets');
-    if (stack.isFullstack) {
+
+    // Build a short stack prefix for the purpose line
+    const stackPrefix = stack.isFullstack
+      ? [stack.pyBackend[0] ?? stack.primaryLang, stack.jsFrontend[0] ?? stack.jsServer[0] ?? '']
+          .filter(Boolean).join(' + ')
+      : (stack.frameworks.slice(0, 2).join(' + ') || stack.primaryLang);
+
+    if (domainSignal) {
+      const authSuffix = domainSignal.hasAuth ? ' with authentication' : '';
+      const wsOverride = hasWebsockets && domainSignal.domain !== 'chat and messaging'
+        ? 'real-time ' : '';
+      purpose = stackPrefix
+        ? `${stackPrefix} ${wsOverride}${domainSignal.domain} application${authSuffix}`
+        : `${wsOverride}${domainSignal.domain} application${authSuffix}`;
+    } else if (stack.isFullstack) {
       const backendFw = stack.pyBackend[0] ?? stack.primaryLang;
       const frontendFw = stack.jsFrontend[0] ?? stack.jsServer[0] ?? '';
       purpose = hasWebsockets && frontendFw
@@ -738,7 +795,7 @@ function buildClaudeMd(
           ? `Fullstack ${backendFw} + ${frontendFw} application`
           : `${backendFw} application`;
     } else if (stack.frameworks.length > 0) {
-      purpose = `A ${stack.frameworks.slice(0, 2).join(' + ')} ${stack.primaryLang || 'application'}.`;
+      purpose = `A ${stack.frameworks.slice(0, 2).join(' + ')} application.`;
     } else if (stack.primaryLang) {
       purpose = `A ${stack.primaryLang} project.`;
     } else {
