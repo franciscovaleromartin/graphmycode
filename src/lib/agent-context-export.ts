@@ -624,84 +624,88 @@ function buildBridgeFiles(
     .map(({ path, labelA, labelB }) => `- \`${path}\` — connects ${labelA} ↔ ${labelB}`);
 }
 
-// ── Domain inference ─────────────────────────────────────────────────────────
+// ── Purpose inference ────────────────────────────────────────────────────────
 
-interface DomainSignal {
-  domain: string;
+interface PurposeSignals {
+  domain: string | undefined;   // primary domain ("RAG", "AI", "e-commerce"…)
+  components: string[];         // named tech to list after "with … and …"
   hasAuth: boolean;
-  extras: string[]; // e.g. ['with Pinecone vector search', 'and ElevenLabs audio generation']
 }
 
-// "chat" is intentionally absent — it requires strict dep + frequency check (see inferDomain)
-const DOMAIN_PATTERNS: Array<[RegExp, string]> = [
-  [/galler|photo|album|imagen|media|upload|thumbnail|carousel/i, 'photo gallery and media management'],
-  [/dashboard|metric|analytic|report|chart|stat|kpi|trend/i, 'analytics dashboard'],
-  [/ecomm|product|cart|order|checkout|inventory|shop|catalog/i, 'e-commerce'],
-  [/blog|post|article|publish|comment|editor|markdown/i, 'content management'],
-  [/task|todo|sprint|kanban|board|ticket/i, 'project management'],
-  [/map|location|geo|marker|route|coordinate/i, 'mapping and location'],
-  [/video|stream|player|playlist|episode/i, 'video streaming'],
-];
-
-// Chat: requires real-time messaging deps AND multiple distinct chat function names
 const CHAT_DEP_RE = /flask.socketio|socket\.io|twilio|sendgrid|pusher/i;
-const CHAT_NAME_RE = /\b(chat|message|inbox|thread|conversation|dm)\b/i;
-
 const AUTH_PATTERN = /\b(auth|login|logout|signup|signin|permission|role|session|token|jwt|password|credential)\b/i;
 
-// Dependency-based extras: substring match so "elevenlabs-api", "elevenlabs-sdk", etc. all match
-const DEP_EXTRAS: Array<[RegExp, string]> = [
-  [/pinecone/, 'with Pinecone vector search'],
-  [/elevenlabs/, 'and ElevenLabs audio generation'],
-  [/weaviate/, 'with Weaviate vector search'],
-  [/qdrant/, 'with Qdrant vector search'],
-  [/chroma/, 'with Chroma vector store'],
-];
-
-function inferDomain(
+function inferPurposeSignals(
   cleanNodes: GraphNode[],
   allDeps: Set<string> = new Set(),
-): DomainSignal | undefined {
+): PurposeSignals | undefined {
   const symbols = cleanNodes.filter(
     (n) => n.label === 'Function' || n.label === 'Class' || n.label === 'Method',
   );
   if (symbols.length < 10) return undefined;
 
-  const nameCorpus = symbols.map((n) => n.properties.name ?? '').join(' ');
-
-  // Collect dependency-driven extras
-  const extras: string[] = [];
-  for (const [pattern, label] of DEP_EXTRAS) {
-    if ([...allDeps].some((dep) => pattern.test(dep.toLowerCase()))) {
-      extras.push(label);
+  // Returns true when ≥minCount symbol names match re
+  const hits = (re: RegExp, min = 2): boolean => {
+    let n = 0;
+    for (const s of symbols) {
+      if (re.test(s.properties.name ?? '') && ++n >= min) return true;
     }
+    return false;
+  };
+  const depHas = (re: RegExp): boolean =>
+    [...allDeps].some((d) => re.test(d.toLowerCase()));
+
+  let domain: string | undefined;
+  const components: string[] = [];
+
+  // ── Vector DBs / RAG — names take priority, deps as fallback ─────────────
+  const hasPinecone = hits(/pinecone/i, 1) || depHas(/pinecone/);
+  const hasWeaviate = hits(/weaviate/i, 1) || depHas(/weaviate/);
+  const hasChroma   = hits(/\bchroma\b/i, 1) || depHas(/chroma/);
+  const hasQdrant   = hits(/qdrant/i, 1) || depHas(/qdrant/);
+  const hasRAGNames = hits(/\b(rag|retriev|embed|chunk|ingest)\b/i, 2);
+
+  if (hasPinecone) components.push('Pinecone vector search');
+  if (hasWeaviate) components.push('Weaviate vector search');
+  if (hasChroma)   components.push('Chroma vector store');
+  if (hasQdrant)   components.push('Qdrant vector search');
+  if (hasRAGNames || hasPinecone || hasWeaviate || hasChroma || hasQdrant) domain = 'RAG';
+
+  // ── Audio / TTS ───────────────────────────────────────────────────────────
+  if (hits(/elevenlabs|tts|\bspeech\b|audio_gen/i, 1) || depHas(/elevenlabs/)) {
+    components.push('ElevenLabs audio generation');
   }
 
-  // Chat: only signal if real-time messaging deps present AND ≥3 distinct chat function names.
-  // A single "chat_endpoint" in a RAG app must not trigger this domain.
-  const chatDepsPresent = [...allDeps].some((d) => CHAT_DEP_RE.test(d));
-  const chatNameCount = symbols.filter((n) => CHAT_NAME_RE.test(n.properties.name ?? '')).length;
-  if (chatDepsPresent && chatNameCount >= 3) {
-    return { domain: 'chat and messaging', hasAuth: AUTH_PATTERN.test(nameCorpus), extras };
+  // ── Payments ──────────────────────────────────────────────────────────────
+  if (hits(/\b(stripe|payment|checkout|billing|subscription)\b/i, 2) || depHas(/stripe/)) {
+    components.push('Stripe payments');
   }
 
-  for (const [pattern, domain] of DOMAIN_PATTERNS) {
-    if (pattern.test(nameCorpus)) {
-      return { domain, hasAuth: AUTH_PATTERN.test(nameCorpus), extras };
-    }
+  // ── AI / LLM (domain only — component implied by RAG if that's already set) ──
+  if (!domain) {
+    const hasAI =
+      hits(/\b(openai|anthropic|claude|gpt|llm|completion|generate_text)\b/i, 2)
+      || depHas(/openai|anthropic|groq|mistral|cohere/);
+    if (hasAI) domain = 'AI';
   }
 
-  // RAG / vector search detected via deps even without node-name signal
-  if (extras.length > 0) {
-    return { domain: 'RAG', hasAuth: AUTH_PATTERN.test(nameCorpus), extras };
+  // ── Generic domains — each requires ≥3 matching function names ────────────
+  if (!domain) {
+    if      (hits(/galler|photo|album|thumbnail|carousel/i, 3))                  domain = 'photo gallery';
+    else if (hits(/ecomm|product|cart|order|inventory|shop|catalog/i, 3))        domain = 'e-commerce';
+    else if (hits(/blog|post|article|publish|comment|markdown/i, 3))             domain = 'content management';
+    else if (hits(/task|todo|sprint|kanban|board|ticket/i, 3))                   domain = 'project management';
+    else if (hits(/dashboard|metric|analytic|report|chart|stat|kpi/i, 3))        domain = 'analytics dashboard';
+    else if (hits(/map|location|geo|marker|route|coordinate/i, 3))               domain = 'mapping';
+    else if (hits(/video|stream|player|playlist|episode/i, 3))                   domain = 'video streaming';
+    else if (depHas(CHAT_DEP_RE) && hits(/\b(chat|message|inbox|thread|conversation|dm)\b/i, 3))
+      domain = 'chat';
   }
 
-  // Auth-only signal (no other domain detected)
-  if (AUTH_PATTERN.test(nameCorpus)) {
-    return { domain: 'user management', hasAuth: true, extras: [] };
-  }
+  const hasAuth = AUTH_PATTERN.test(symbols.map((n) => n.properties.name ?? '').join(' '));
 
-  return undefined;
+  if (!domain && components.length === 0 && !hasAuth) return undefined;
+  return { domain, components, hasAuth };
 }
 
 // ── Boundaries ────────────────────────────────────────────────────────────────
@@ -813,9 +817,7 @@ function buildClaudeMd(
   const projectNode = cleanNodes.find((n) => n.label === 'Project');
   let purpose = projectNode?.properties.description as string | undefined;
   if (!purpose) {
-    const domainSignal = inferDomain(cleanNodes, stack.allPkgs);
-    const hasWebsockets = stack.allPkgs.has('flask-socketio') || stack.allPkgs.has('socket.io-client')
-      || stack.allPkgs.has('socketio') || stack.allPkgs.has('websockets');
+    const signals = inferPurposeSignals(cleanNodes, stack.allPkgs);
 
     // Build a short stack prefix for the purpose line
     const stackPrefix = stack.isFullstack
@@ -823,23 +825,24 @@ function buildClaudeMd(
           .filter(Boolean).join(' + ')
       : (stack.frameworks.slice(0, 2).join(' + ') || stack.primaryLang);
 
-    if (domainSignal) {
-      const authSuffix = domainSignal.hasAuth ? ' with authentication' : '';
-      const wsOverride = hasWebsockets && domainSignal.domain !== 'chat and messaging'
-        ? 'real-time ' : '';
-      const extrasSuffix = domainSignal.extras.length > 0
-        ? ' ' + domainSignal.extras.join(' ') : '';
+    if (signals) {
+      const withItems = [
+        ...signals.components,
+        signals.hasAuth ? 'authentication' : '',
+      ].filter(Boolean);
+      const withClause = withItems.length > 0
+        ? ` with ${withItems[0]}${withItems.slice(1).map((c) => ` and ${c}`).join('')}`
+        : '';
+      const domainPart = signals.domain ? `${signals.domain} ` : '';
       purpose = stackPrefix
-        ? `${stackPrefix} ${wsOverride}${domainSignal.domain} application${authSuffix}${extrasSuffix}`
-        : `${wsOverride}${domainSignal.domain} application${authSuffix}${extrasSuffix}`;
+        ? `${stackPrefix} ${domainPart}application${withClause}`
+        : `${domainPart}application${withClause}`;
     } else if (stack.isFullstack) {
       const backendFw = stack.pyBackend[0] ?? stack.primaryLang;
       const frontendFw = stack.jsFrontend[0] ?? stack.jsServer[0] ?? '';
-      purpose = hasWebsockets && frontendFw
-        ? `Fullstack real-time application with ${backendFw} backend and ${frontendFw} frontend`
-        : frontendFw
-          ? `Fullstack ${backendFw} + ${frontendFw} application`
-          : `${backendFw} application`;
+      purpose = frontendFw
+        ? `Fullstack ${backendFw} + ${frontendFw} application`
+        : `${backendFw} application`;
     } else if (stack.frameworks.length > 0) {
       purpose = `A ${stack.frameworks.slice(0, 2).join(' + ')} application.`;
     } else if (stack.primaryLang) {
