@@ -10,7 +10,8 @@ import { isSystemFile } from './system-file-filter';
 type GraphNode = KnowledgeGraph['nodes'][number];
 
 interface BaseData {
-  cleanNodes: GraphNode[];
+  cleanNodes: GraphNode[];      // excludes test/spec/fixture files
+  allCleanNodes: GraphNode[];   // includes test files (used only by Bridge Files)
   cleanDeps: Record<string, string[]>;
   degreeMap: Map<string, number>;
   nodeById: Map<string, GraphNode>;
@@ -52,6 +53,16 @@ const SKIP_SYMBOL_LABELS = new Set([
 ]);
 
 const FILE_EXT_RE = /\.(py|js|jsx|ts|tsx|vue|go|rs|java|cs|rb|php|kt|swift|dart|c|cpp|h|hpp)$/i;
+
+// Matches test/spec/fixture/example paths and filenames — excluded from Key Symbols,
+// Module Map and Critical Edges (but NOT from Bridge Files).
+const TEST_PATH_RE = /\/(tests?|__tests__|spec|fixtures?|worked|examples?|demo)\//i;
+const TEST_FILE_RE = /(?:^|[\\/])(test_[^/]+|[^/]+_test|[^/]+\.(?:test|spec)\.[jt]sx?)$/i;
+
+function isTestNode(node: { properties: { filePath?: string; name?: string } }): boolean {
+  const path = node.properties.filePath ?? node.properties.name ?? '';
+  return TEST_PATH_RE.test(path) || TEST_FILE_RE.test(path);
+}
 
 const CLUSTER_RE = /^Cluster_\d+$/;
 
@@ -117,7 +128,10 @@ function buildBase(graph: KnowledgeGraph, externalDeps: Record<string, string[]>
       .map((n) => n.id),
   );
 
-  const cleanNodes = graph.nodes.filter((n) => !systemNodeIds.has(n.id));
+  // allCleanNodes is used for Bridge Files (tests can be bridges too).
+  // cleanNodes excludes test/spec/fixture files for all other analyses.
+  const allCleanNodes = graph.nodes.filter((n) => !systemNodeIds.has(n.id));
+  const cleanNodes = allCleanNodes.filter((n) => !isTestNode(n));
   const cleanDeps = Object.fromEntries(
     Object.entries(externalDeps).filter(([id]) => !systemNodeIds.has(id)),
   );
@@ -144,7 +158,7 @@ function buildBase(graph: KnowledgeGraph, externalDeps: Record<string, string[]>
     }
   }
 
-  return { cleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity };
+  return { cleanNodes, allCleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity };
 }
 
 // ── Stack detection ───────────────────────────────────────────────────────────
@@ -177,7 +191,8 @@ function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]
 
   // Package managers — detect Python and JS independently for fullstack
   let pyPkgManager = '';
-  if (fileNames.has('pyproject.toml')) pyPkgManager = 'uv';
+  if (fileNames.has('pyproject.toml')) pyPkgManager = 'pyproject';
+  else if (fileNames.has('setup.py') || fileNames.has('setup.cfg')) pyPkgManager = 'pip';
   else if (fileNames.has('requirements.txt')) pyPkgManager = 'pip';
 
   let jsPkgManager = '';
@@ -212,6 +227,9 @@ function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]
     runtime = 'browser';
   } else if (pyBackend.length > 0 || jsServer.length > 0) {
     runtime = 'server';
+  } else if (primaryLang === 'python' && !jsPkgManager) {
+    // Pure Python with no JS: server if wsgi/asgi detected, otherwise CLI
+    runtime = (fileNames.has('wsgi.py') || fileNames.has('asgi.py')) ? 'server' : 'CLI';
   } else if (['go', 'rust'].includes(primaryLang)) {
     runtime = 'server';
   } else if (allPkgs.has('aws-lambda-powertools') || allPkgs.has('@aws-sdk/client-lambda')) {
@@ -274,14 +292,25 @@ function inferCommands(
   }
 
   if (primaryLang === 'python' || pyPkgManager) {
-    const install = pyPkgManager === 'uv' ? 'uv sync' : 'pip install -r requirements.txt';
+    let install: string;
+    let build: string;
+    if (pyPkgManager === 'pyproject') {
+      install = 'pip install -e .';
+      build = 'python -m build';
+    } else if (pyPkgManager === 'uv') {
+      install = 'uv sync';
+      build = '# n/a';
+    } else {
+      install = 'pip install -r requirements.txt';
+      build = '# n/a';
+    }
     let dev = '# check project docs';
     if (fileNames.has('wsgi.py')) dev = 'python wsgi.py';
     else if (fileNames.has('asgi.py')) dev = 'python asgi.py';
     else if (fileNames.has('app.py')) dev = 'flask run';
     else if (fileNames.has('main.py')) dev = 'python main.py';
     else if (fileNames.has('server.py')) dev = 'python server.py';
-    return { install, dev, test: 'pytest', lint: 'ruff check .', build: '# n/a' };
+    return { install, dev, test: 'pytest', lint: 'ruff check .', build };
   }
 
   if (stack.pkgManager === 'cargo') {
@@ -634,6 +663,7 @@ interface PurposeSignals {
 
 const CHAT_DEP_RE = /flask.socketio|socket\.io|twilio|sendgrid|pusher/i;
 const AUTH_PATTERN = /\b(auth|login|logout|signup|signin|permission|role|session|token|jwt|password|credential)\b/i;
+const AUTH_DEP_RE = /flask.login|flask.security|authlib|python.jose|passlib|bcrypt|passport|next.auth|@auth\/|clerk|supabase.auth|lucia/i;
 
 function inferPurposeSignals(
   cleanNodes: GraphNode[],
@@ -702,7 +732,10 @@ function inferPurposeSignals(
       domain = 'chat';
   }
 
-  const hasAuth = AUTH_PATTERN.test(symbols.map((n) => n.properties.name ?? '').join(' '));
+  // Auth: requires auth dep OR ≥3 matching function names — a single "auth" node is not enough
+  const authDep = [...allDeps].some((d) => AUTH_DEP_RE.test(d.toLowerCase()));
+  const authNameCount = symbols.filter((n) => AUTH_PATTERN.test(n.properties.name ?? '')).length;
+  const hasAuth = authDep || authNameCount >= 3;
 
   if (!domain && components.length === 0 && !hasAuth) return undefined;
   return { domain, components, hasAuth };
@@ -780,7 +813,7 @@ function buildClaudeMd(
   projectName: string,
   base: BaseData,
 ): string {
-  const { cleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity } = base;
+  const { cleanNodes, allCleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity } = base;
 
   const stack = detectStack(cleanNodes, cleanDeps);
   const commands = inferCommands(stack);
@@ -809,7 +842,7 @@ function buildClaudeMd(
   const moduleMapContent = buildModuleMap(cleanNodes, degreeMap, communityMembers, communityLabelMap);
   let keySymbolsContent = buildKeySymbols(cleanNodes, degreeMap, 12);
   let criticalEdgeLines = buildCriticalEdges(graph, nodeById);
-  let bridgeFileLines = buildBridgeFiles(cleanNodes, graph, degreeMap, nodeToCommunity, visibleLabelMap);
+  let bridgeFileLines = buildBridgeFiles(allCleanNodes, graph, degreeMap, nodeToCommunity, visibleLabelMap);
   const boundaryLines = detectBoundaries(cleanNodes);
   const pointerLines = detectPointers(cleanNodes);
 
