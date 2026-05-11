@@ -43,9 +43,15 @@ const FRAMEWORK_PACKAGES: Record<string, string> = {
   gin: 'Gin', fiber: 'Fiber',
 };
 
+const PYTHON_BACKEND_FW = new Set(['Flask', 'FastAPI', 'Django', 'Starlette']);
+const JS_FRONTEND_FW = new Set(['React', 'Vue', 'Svelte', 'Angular', 'Next.js', 'Nuxt', 'Astro', 'Vite']);
+const JS_SERVER_FW = new Set(['Express', 'Fastify', 'Hono', 'NestJS', 'Koa']);
+
 const SKIP_SYMBOL_LABELS = new Set([
-  'Community', 'Process', 'Folder', 'Package', 'Project', 'Module', 'Import',
+  'Community', 'Process', 'Folder', 'Package', 'Project', 'Module', 'Import', 'File',
 ]);
+
+const FILE_EXT_RE = /\.(py|js|jsx|ts|tsx|vue|go|rs|java|cs|rb|php|kt|swift|dart|c|cpp|h|hpp)$/i;
 
 const CLUSTER_RE = /^Cluster_\d+$/;
 
@@ -164,47 +170,122 @@ function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]
     if (allPkgs.has(pkg.toLowerCase())) frameworks.push(name);
   }
 
-  let pkgManager = '';
-  if (fileNames.has('pnpm-lock.yaml') || fileNames.has('pnpm-lock.yml')) pkgManager = 'pnpm';
-  else if (fileNames.has('yarn.lock')) pkgManager = 'yarn';
-  else if (fileNames.has('bun.lockb') || fileNames.has('bun.lock')) pkgManager = 'bun';
-  else if (fileNames.has('package.json')) pkgManager = 'npm';
-  else if (fileNames.has('pyproject.toml')) pkgManager = 'uv';
-  else if (fileNames.has('requirements.txt')) pkgManager = 'pip';
-  else if (fileNames.has('Cargo.toml')) pkgManager = 'cargo';
-  else if (fileNames.has('go.mod')) pkgManager = 'go';
-  else if (fileNames.has('Gemfile')) pkgManager = 'bundler';
+  const pyBackend = frameworks.filter((f) => PYTHON_BACKEND_FW.has(f));
+  const jsFrontend = frameworks.filter((f) => JS_FRONTEND_FW.has(f));
+  const jsServer = frameworks.filter((f) => JS_SERVER_FW.has(f));
+  const isFullstack = pyBackend.length > 0 && (jsFrontend.length > 0 || jsServer.length > 0);
 
-  let runtime = '';
-  if (frameworks.some((f) => ['React', 'Vue', 'Svelte', 'Angular'].includes(f))) runtime = 'browser';
-  else if (frameworks.some((f) => ['Next.js', 'Nuxt'].includes(f))) runtime = 'browser + server';
-  else if (frameworks.some((f) => ['Flask', 'FastAPI', 'Django', 'Express', 'Fastify', 'Hono', 'NestJS'].includes(f))) runtime = 'server';
-  else if (['go', 'rust'].includes(primaryLang)) runtime = 'server';
-  else if (allPkgs.has('aws-lambda-powertools') || allPkgs.has('@aws-sdk/client-lambda')) runtime = 'lambda';
+  // Package managers — detect Python and JS independently for fullstack
+  let pyPkgManager = '';
+  if (fileNames.has('pyproject.toml')) pyPkgManager = 'uv';
+  else if (fileNames.has('requirements.txt')) pyPkgManager = 'pip';
 
-  const stackParts = [primaryLang, frameworks.slice(0, 2).join(' + '), pkgManager, runtime].filter(Boolean);
+  let jsPkgManager = '';
+  if (fileNames.has('pnpm-lock.yaml') || fileNames.has('pnpm-lock.yml')) jsPkgManager = 'pnpm';
+  else if (fileNames.has('yarn.lock')) jsPkgManager = 'yarn';
+  else if (fileNames.has('bun.lockb') || fileNames.has('bun.lock')) jsPkgManager = 'bun';
+  else if (fileNames.has('package.json')) jsPkgManager = 'npm';
 
-  return { primaryLang, frameworks, pkgManager, runtime, fileNames, allPkgs, stackLine: stackParts.join(' • ') };
+  let pkgManager: string;
+  if (isFullstack) {
+    pkgManager = [pyPkgManager, jsPkgManager].filter(Boolean).join(' + ');
+  } else if (pyPkgManager) {
+    pkgManager = pyPkgManager;
+  } else if (jsPkgManager) {
+    pkgManager = jsPkgManager;
+  } else if (fileNames.has('Cargo.toml')) {
+    pkgManager = 'cargo';
+  } else if (fileNames.has('go.mod')) {
+    pkgManager = 'go';
+  } else if (fileNames.has('Gemfile')) {
+    pkgManager = 'bundler';
+  } else {
+    pkgManager = '';
+  }
+
+  let runtime: string;
+  if (isFullstack) {
+    runtime = 'browser + server';
+  } else if (jsFrontend.length > 0 && frameworks.some((f) => ['Next.js', 'Nuxt'].includes(f))) {
+    runtime = 'browser + server';
+  } else if (jsFrontend.length > 0) {
+    runtime = 'browser';
+  } else if (pyBackend.length > 0 || jsServer.length > 0) {
+    runtime = 'server';
+  } else if (['go', 'rust'].includes(primaryLang)) {
+    runtime = 'server';
+  } else if (allPkgs.has('aws-lambda-powertools') || allPkgs.has('@aws-sdk/client-lambda')) {
+    runtime = 'lambda';
+  } else {
+    runtime = '';
+  }
+
+  let stackLine: string;
+  if (isFullstack) {
+    const backendStr = `Python/${pyBackend[0]}`;
+    const frontendStr = (jsFrontend[0] ?? jsServer[0]) ?? '';
+    stackLine = [backendStr + (frontendStr ? ` + ${frontendStr}` : ''), pkgManager, runtime]
+      .filter(Boolean).join(' • ');
+  } else {
+    const fwStr = frameworks.slice(0, 2).join(' + ');
+    stackLine = [primaryLang, fwStr, pkgManager, runtime].filter(Boolean).join(' • ');
+  }
+
+  return {
+    primaryLang, frameworks, pyBackend, jsFrontend, jsServer,
+    isFullstack, pkgManager, pyPkgManager, jsPkgManager,
+    runtime, fileNames, allPkgs, stackLine,
+  };
 }
 
 // ── Commands ──────────────────────────────────────────────────────────────────
 
-function inferCommands(pkgManager: string, primaryLang: string): Record<string, string> {
-  if (['npm', 'pnpm', 'yarn', 'bun'].includes(pkgManager)) {
-    const run = pkgManager === 'npm' ? 'npm run' : `${pkgManager} run`;
-    const install = pkgManager === 'npm' ? 'npm install' : `${pkgManager} install`;
+function inferCommands(
+  stack: ReturnType<typeof detectStack>,
+): Record<string, string | undefined> {
+  const { isFullstack, pyBackend, pyPkgManager, jsPkgManager, primaryLang, fileNames } = stack;
+
+  if (isFullstack) {
+    const jsRun = jsPkgManager === 'npm' ? 'npm run' : `${jsPkgManager} run`;
+    const jsInstall = jsPkgManager === 'npm' ? 'npm install' : `${jsPkgManager} install`;
+    const pyInstall = pyPkgManager === 'uv' ? 'uv sync' : 'pip install -r requirements.txt';
+
+    let serverCmd = 'python app.py';
+    if (fileNames.has('wsgi.py')) serverCmd = 'python wsgi.py';
+    else if (fileNames.has('asgi.py')) serverCmd = 'python asgi.py';
+    else if (fileNames.has('app.py') && pyBackend.includes('Flask')) serverCmd = 'flask run';
+    else if (fileNames.has('app.py')) serverCmd = 'python app.py';
+    else if (fileNames.has('main.py')) serverCmd = 'python main.py';
+
+    return {
+      install: `${pyInstall} && ${jsInstall}`,
+      dev: `${jsRun} dev`,
+      server: serverCmd,
+      test: `pytest && ${jsRun} test`,
+      lint: `ruff check . && ${jsRun} lint`,
+      build: `${jsRun} build`,
+    };
+  }
+
+  if (jsPkgManager) {
+    const run = jsPkgManager === 'npm' ? 'npm run' : `${jsPkgManager} run`;
+    const install = jsPkgManager === 'npm' ? 'npm install' : `${jsPkgManager} install`;
     return { install, dev: `${run} dev`, test: `${run} test`, lint: `${run} lint`, build: `${run} build` };
   }
-  if (primaryLang === 'python' || pkgManager === 'pip' || pkgManager === 'uv') {
-    const install = pkgManager === 'uv' ? 'uv sync' : 'pip install -r requirements.txt';
+
+  if (primaryLang === 'python' || pyPkgManager) {
+    const install = pyPkgManager === 'uv' ? 'uv sync' : 'pip install -r requirements.txt';
     return { install, dev: 'python -m <entry>', test: 'pytest', lint: 'ruff check .', build: '# n/a' };
   }
-  if (pkgManager === 'cargo') {
+
+  if (stack.pkgManager === 'cargo') {
     return { install: '# implicit', dev: 'cargo run', test: 'cargo test', lint: 'cargo clippy', build: 'cargo build --release' };
   }
-  if (pkgManager === 'go') {
+
+  if (stack.pkgManager === 'go') {
     return { install: 'go mod download', dev: 'go run .', test: 'go test ./...', lint: 'golangci-lint run', build: 'go build -o bin/app .' };
   }
+
   return { install: '# see manifest', dev: '# see manifest', test: '# see manifest', lint: '# see manifest', build: '# see manifest' };
 }
 
@@ -252,27 +333,22 @@ function findEntryPoints(cleanNodes: GraphNode[], graph: KnowledgeGraph) {
 
 // ── Module Map ────────────────────────────────────────────────────────────────
 
-function buildModuleMap(
+const SYMBOL_PREFERRED = new Set(['Class', 'Interface', 'Function', 'Method', 'Struct', 'Trait', 'Enum']);
+const INTERNAL_ID_RE = /^[a-f0-9]{8,}-|^comm_\d+$|^node_\d+$|^cluster_\d+$/i;
+
+// Returns the human-readable display label for each community ID.
+// Mirrors the auto-label logic used in Module Map so Bridge Files shows identical labels.
+function buildCommunityLabelMap(
   cleanNodes: GraphNode[],
   degreeMap: Map<string, number>,
   communityMembers: Map<string, GraphNode[]>,
-): string {
-  const communities = cleanNodes.filter((n) => n.label === 'Community');
-  if (communities.length === 0) return '';
+): Map<string, string> {
+  const labels = new Map<string, string>();
 
-  const SYMBOL_PREFERRED = new Set(['Class', 'Interface', 'Function', 'Method', 'Struct', 'Trait', 'Enum']);
-
-  const rows: Array<{ label: string; count: number; purpose: string; keyFile: string }> = [];
-
-  for (const comm of communities) {
+  for (const comm of cleanNodes.filter((n) => n.label === 'Community')) {
     const rawName = (comm.properties.name ?? comm.properties.heuristicLabel ?? comm.id) as string;
-    if (CLUSTER_RE.test(rawName)) continue;
-
     const members = communityMembers.get(comm.id) ?? [];
-    const symbolCount = (comm.properties.symbolCount as number | undefined) ?? members.length;
-    if (symbolCount === 0 && members.length === 0) continue;
 
-    // Prefer named symbols (Class/Function/etc.) over File nodes for auto-label
     const topSymbol = members
       .filter((n) => SYMBOL_PREFERRED.has(n.label))
       .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
@@ -283,7 +359,39 @@ function buildModuleMap(
       .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
       .sort((a, b) => b.degree - a.degree)[0];
 
-    const label = topMember?.node.properties.name ?? rawName;
+    let label = (topMember?.node.properties.name ?? rawName) as string;
+
+    // Never expose internal IDs or Cluster_N patterns
+    if (CLUSTER_RE.test(label) || INTERNAL_ID_RE.test(label)) {
+      label = rawName && !CLUSTER_RE.test(rawName) && !INTERNAL_ID_RE.test(rawName)
+        ? rawName
+        : 'Uncategorized';
+    }
+
+    labels.set(comm.id, label);
+  }
+
+  return labels;
+}
+
+function buildModuleMap(
+  cleanNodes: GraphNode[],
+  degreeMap: Map<string, number>,
+  communityMembers: Map<string, GraphNode[]>,
+  communityLabelMap: Map<string, string>,
+): string {
+  const communities = cleanNodes.filter((n) => n.label === 'Community');
+  if (communities.length === 0) return '';
+
+  const rows: Array<{ label: string; count: number; purpose: string; keyFile: string }> = [];
+
+  for (const comm of communities) {
+    const label = communityLabelMap.get(comm.id);
+    if (!label || label === 'Uncategorized') continue;
+
+    const members = communityMembers.get(comm.id) ?? [];
+    const symbolCount = (comm.properties.symbolCount as number | undefined) ?? members.length;
+    if (symbolCount === 0 && members.length === 0) continue;
 
     const keyFileNode = members
       .filter((n) => n.label === 'File')
@@ -361,7 +469,7 @@ function renderSig(node: GraphNode, lang: string): string {
 
 function buildKeySymbols(cleanNodes: GraphNode[], degreeMap: Map<string, number>, maxNodes = 12): string {
   const top = cleanNodes
-    .filter((n) => !SKIP_SYMBOL_LABELS.has(n.label))
+    .filter((n) => !SKIP_SYMBOL_LABELS.has(n.label) && !FILE_EXT_RE.test(n.properties.name ?? ''))
     .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
     .sort((a, b) => b.degree - a.degree)
     .slice(0, maxNodes);
@@ -429,14 +537,8 @@ function buildBridgeFiles(
   graph: KnowledgeGraph,
   degreeMap: Map<string, number>,
   nodeToCommunity: Map<string, string>,
+  communityLabelMap: Map<string, string>,
 ): string[] {
-  const commNames = new Map<string, string>();
-  for (const n of cleanNodes) {
-    if (n.label !== 'Community') continue;
-    const name = (n.properties.name ?? n.properties.heuristicLabel ?? n.id) as string;
-    commNames.set(n.id, CLUSTER_RE.test(name) ? 'Uncategorized' : name);
-  }
-
   const neighbors = new Map<string, Set<string>>();
   for (const rel of graph.relationships) {
     if (!neighbors.has(rel.sourceId)) neighbors.set(rel.sourceId, new Set());
@@ -445,34 +547,41 @@ function buildBridgeFiles(
     neighbors.get(rel.targetId)!.add(rel.sourceId);
   }
 
-  const bridges: Array<{ path: string; degree: number; commA: string; commB: string }> = [];
+  const bridges: Array<{ path: string; degree: number; labelA: string; labelB: string }> = [];
 
   for (const node of cleanNodes) {
     if (node.label !== 'File') continue;
     const degree = degreeMap.get(node.id) ?? 0;
     if (degree < 2) continue;
 
-    const neighborComms = new Set<string>();
+    const neighborCommIds = new Set<string>();
     for (const nid of neighbors.get(node.id) ?? []) {
       const commId = nodeToCommunity.get(nid);
-      if (commId) neighborComms.add(commId);
+      if (commId) neighborCommIds.add(commId);
     }
 
-    if (neighborComms.size >= 2) {
-      const [cA, cB] = [...neighborComms];
-      bridges.push({
-        path: node.properties.filePath ?? node.id,
-        degree,
-        commA: commNames.get(cA) ?? cA,
-        commB: commNames.get(cB) ?? cB,
-      });
-    }
+    if (neighborCommIds.size < 2) continue;
+
+    // Resolve display labels; skip any that would be unknown or identical
+    const resolvedLabels = [...neighborCommIds]
+      .map((id) => communityLabelMap.get(id))
+      .filter((l): l is string => !!l && l !== 'Uncategorized' && !INTERNAL_ID_RE.test(l));
+
+    const uniqueLabels = [...new Set(resolvedLabels)];
+    if (uniqueLabels.length < 2) continue;
+
+    bridges.push({
+      path: node.properties.filePath ?? node.id,
+      degree,
+      labelA: uniqueLabels[0],
+      labelB: uniqueLabels[1],
+    });
   }
 
   return bridges
     .sort((a, b) => b.degree - a.degree)
     .slice(0, 3)
-    .map(({ path, commA, commB }) => `- \`${path}\` — connects ${commA} ↔ ${commB}`);
+    .map(({ path, labelA, labelB }) => `- \`${path}\` — connects ${labelA} ↔ ${labelB}`);
 }
 
 // ── Boundaries ────────────────────────────────────────────────────────────────
@@ -500,7 +609,6 @@ function detectBoundaries(cleanNodes: GraphNode[]): string[] {
     }
   }
 
-  lines.push('- Ask before adding dependencies or running destructive commands');
   return lines;
 }
 
@@ -551,35 +659,57 @@ function buildClaudeMd(
   const { cleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity } = base;
 
   const stack = detectStack(cleanNodes, cleanDeps);
-  const commands = inferCommands(stack.pkgManager, stack.primaryLang);
+  const commands = inferCommands(stack);
+  const communityLabelMap = buildCommunityLabelMap(cleanNodes, degreeMap, communityMembers);
   const entries = findEntryPoints(cleanNodes, graph);
-  const moduleMapContent = buildModuleMap(cleanNodes, degreeMap, communityMembers);
+  const moduleMapContent = buildModuleMap(cleanNodes, degreeMap, communityMembers, communityLabelMap);
   let keySymbolsContent = buildKeySymbols(cleanNodes, degreeMap, 12);
   let criticalEdgeLines = buildCriticalEdges(graph, nodeById);
-  let bridgeFileLines = buildBridgeFiles(cleanNodes, graph, degreeMap, nodeToCommunity);
+  let bridgeFileLines = buildBridgeFiles(cleanNodes, graph, degreeMap, nodeToCommunity, communityLabelMap);
   const boundaryLines = detectBoundaries(cleanNodes);
   const pointerLines = detectPointers(cleanNodes);
 
+  // Purpose: prefer explicit description, then infer from stack
   const projectNode = cleanNodes.find((n) => n.label === 'Project');
-  const purpose =
-    (projectNode?.properties.description as string | undefined) ||
-    (stack.frameworks[0]
-      ? `A ${stack.frameworks.slice(0, 2).join(' + ')} ${stack.primaryLang || 'application'}.`
-      : stack.primaryLang
-        ? `A ${stack.primaryLang} project.`
-        : 'A software project.');
+  let purpose = projectNode?.properties.description as string | undefined;
+  if (!purpose) {
+    const hasWebsockets = stack.allPkgs.has('flask-socketio') || stack.allPkgs.has('socket.io-client')
+      || stack.allPkgs.has('socketio') || stack.allPkgs.has('websockets');
+    if (stack.isFullstack) {
+      const backendFw = stack.pyBackend[0] ?? stack.primaryLang;
+      const frontendFw = stack.jsFrontend[0] ?? stack.jsServer[0] ?? '';
+      purpose = hasWebsockets && frontendFw
+        ? `Fullstack real-time application with ${backendFw} backend and ${frontendFw} frontend`
+        : frontendFw
+          ? `Fullstack ${backendFw} + ${frontendFw} application`
+          : `${backendFw} application`;
+    } else if (stack.frameworks.length > 0) {
+      purpose = `A ${stack.frameworks.slice(0, 2).join(' + ')} ${stack.primaryLang || 'application'}.`;
+    } else if (stack.primaryLang) {
+      purpose = `A ${stack.primaryLang} project.`;
+    } else {
+      purpose = 'A software project.';
+    }
+  }
+
+  const commandLines = [
+    '## Commands',
+    `- install: \`${commands.install ?? '# see manifest'}\``,
+    `- dev:     \`${commands.dev ?? '# see manifest'}\``,
+    commands.server ? `- server:  \`${commands.server}\`` : '',
+    `- test:    \`${commands.test ?? '# see manifest'}\``,
+    `- lint:    \`${commands.lint ?? '# see manifest'}\``,
+    `- build:   \`${commands.build ?? '# see manifest'}\``,
+  ].filter(Boolean).join('\n');
+
+  const boundariesContent = boundaryLines.length > 0
+    ? boundaryLines.join('\n')
+    : '<!-- add project-specific boundaries here -->';
 
   const parts: Record<string, string> = {
     header: `# ${projectName}\n> ${purpose}`,
     stack: `## Stack\n- ${stack.stackLine || '(not detected)'}`,
-    commands: [
-      '## Commands',
-      `- install: \`${commands.install}\``,
-      `- dev:     \`${commands.dev}\``,
-      `- test:    \`${commands.test}\``,
-      `- lint:    \`${commands.lint}\``,
-      `- build:   \`${commands.build}\``,
-    ].join('\n'),
+    commands: commandLines,
     entries: entries.length
       ? `## Entry Points\n${entries.map((e) => `- \`${e.path}\` — ${e.role}`).join('\n')}`
       : '',
@@ -592,7 +722,7 @@ function buildClaudeMd(
       ? `## Bridge Files  (high degree across communities — edit carefully)\n${bridgeFileLines.join('\n')}`
       : '',
     conventions: '## Conventions  (not enforced by linters)\n<!-- add project-specific conventions here -->',
-    boundaries: `## Boundaries  (DO NOT)\n${boundaryLines.join('\n')}`,
+    boundaries: `## Boundaries  (DO NOT)\n${boundariesContent}`,
     pointers: pointerLines.length ? `## Pointers  (read on demand, do not embed)\n${pointerLines.join('\n')}` : '',
   };
 
