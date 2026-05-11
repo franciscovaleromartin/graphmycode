@@ -599,14 +599,16 @@ function buildBridgeFiles(
       .map((id) => communityLabelMap.get(id))
       .filter((l): l is string => !!l && l !== 'Uncategorized');
 
-    const uniqueLabels = [...new Set(resolvedLabels)];
-    if (uniqueLabels.length < 2) continue;
+    // Compare BASE names (strip ·N suffix) so Backend ↔ Backend·2 is not a bridge.
+    // A real bridge connects functionally distinct communities (Backend ↔ Components).
+    const uniqueBases = [...new Set(resolvedLabels.map((l) => l.replace(/·\d+$/, '')))];
+    if (uniqueBases.length < 2) continue;
 
     bridges.push({
       path: node.properties.filePath ?? node.id,
       degree,
-      labelA: uniqueLabels[0],
-      labelB: uniqueLabels[1],
+      labelA: uniqueBases[0],
+      labelB: uniqueBases[1],
     });
   }
 
