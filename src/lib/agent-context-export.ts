@@ -279,6 +279,13 @@ function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]
     .map((p) => pkgManagerDisplay[p] ?? p)
     .join(' + ');
 
+  const LANG_CAPS: Record<string, string> = {
+    python: 'Python', typescript: 'TypeScript', javascript: 'JavaScript',
+    java: 'Java', go: 'Go', rust: 'Rust', csharp: 'C#', cpp: 'C++',
+    c: 'C', ruby: 'Ruby', php: 'PHP', kotlin: 'Kotlin', swift: 'Swift', dart: 'Dart',
+  };
+  const displayLang = LANG_CAPS[primaryLang] ?? (primaryLang ? primaryLang.charAt(0).toUpperCase() + primaryLang.slice(1) : '');
+
   let stackLine: string;
   if (isFullstack) {
     const backendStr = `Python/${pyBackend[0]}`;
@@ -287,7 +294,7 @@ function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]
       .filter(Boolean).join(' • ');
   } else {
     const fwStr = frameworks.slice(0, 2).join(' + ');
-    stackLine = [primaryLang, fwStr, displayPm, runtime].filter(Boolean).join(' • ');
+    stackLine = [displayLang, fwStr, displayPm, runtime].filter(Boolean).join(' • ');
   }
 
   return {
@@ -801,24 +808,37 @@ function inferPurposeSignals(
     components.push('Stripe payments');
   }
 
-  // ── AI / LLM (domain only — component implied by RAG if that's already set) ──
+  // ── Code tooling / graph analysis — checked BEFORE generic AI so specifics win ─
+  if (!domain) {
+    // Graph signal: cluster, deduplicate, entity connections, community detection…
+    const hasGraphSignal = hits(
+      /\b(cluster|community|node_map|edge_data|graph|adjacen|degree|centrality|dedup|connect|entit|similar)\b/i,
+      2,
+    );
+    // Code signal: AST, call flow, tree-sitter, syntax analysis…
+    const hasCodeSignal = hits(
+      /\b(parse|ast|callflow|call_flow|tree_sitter|syntax|token|grammar|visitor|walker)\b/i,
+      1,
+    );
+    // Builder/exporter signal: generate outputs, export formats…
+    const hasBuildSignal = hits(
+      /\b(build_from|generate|export|to_html|to_wiki|render|serialize)\b/i,
+      1,
+    );
+
+    if      (hasGraphSignal && hasCodeSignal) domain = 'code knowledge graph';
+    else if (hasGraphSignal && hasBuildSignal) domain = 'knowledge graph builder';
+    else if (hasGraphSignal)                  domain = 'knowledge graph';
+    else if (hasCodeSignal && hasBuildSignal) domain = 'code analysis and generation';
+    else if (hasCodeSignal)                   domain = 'code analysis';
+  }
+
+  // ── AI / LLM — only fires when no specific domain was found above ─────────
   if (!domain) {
     const hasAI =
       hits(/\b(openai|anthropic|claude|gpt|llm|completion|generate_text)\b/i, 2)
       || depHas(/openai|anthropic|groq|mistral|cohere/);
     if (hasAI) domain = 'AI';
-  }
-
-  // ── Code tooling / graph analysis ────────────────────────────────────────
-  if (!domain) {
-    const hasGraphSignal = hits(/\b(cluster|community|node|edge|graph|adjacen|degree|centrality)\b/i, 3);
-    const hasCodeSignal  = hits(/\b(parse|ast|tree|syntax|token|grammar|visitor|walker)\b/i, 3);
-    const hasBuildSignal = hits(/\b(build_from|generate|export|to_html|to_wiki|render|serialize)\b/i, 2);
-
-    if (hasGraphSignal && hasCodeSignal) domain = 'code graph analysis';
-    else if (hasGraphSignal)            domain = 'knowledge graph';
-    else if (hasCodeSignal && hasBuildSignal) domain = 'code analysis and generation';
-    else if (hasCodeSignal)             domain = 'code analysis';
   }
 
   // ── Generic domains — each requires ≥3 matching function names ────────────
