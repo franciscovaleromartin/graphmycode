@@ -532,6 +532,32 @@ function buildCriticalEdges(graph: KnowledgeGraph, nodeById: Map<string, GraphNo
 
 // ── Bridge Files ──────────────────────────────────────────────────────────────
 
+// Resolves the community of any node:
+// - Symbols (Function/Class/Method/Interface): direct MEMBER_OF lookup.
+// - File nodes: no MEMBER_OF edge exists (Leiden excludes Files), so look at
+//   the symbols the file CONTAINS and return the most frequent community among them.
+function resolveNodeCommunity(
+  nodeId: string,
+  nodeToCommunity: Map<string, string>,
+  graph: KnowledgeGraph,
+): string | undefined {
+  const direct = nodeToCommunity.get(nodeId);
+  if (direct) return direct;
+
+  const memberCommunities: string[] = [];
+  for (const rel of graph.relationships) {
+    if (rel.type === 'CONTAINS' && rel.sourceId === nodeId) {
+      const symbolCommunity = nodeToCommunity.get(rel.targetId);
+      if (symbolCommunity) memberCommunities.push(symbolCommunity);
+    }
+  }
+  if (memberCommunities.length === 0) return undefined;
+
+  const freq = new Map<string, number>();
+  for (const c of memberCommunities) freq.set(c, (freq.get(c) ?? 0) + 1);
+  return [...freq.entries()].sort((a, b) => b[1] - a[1])[0][0];
+}
+
 function buildBridgeFiles(
   cleanNodes: GraphNode[],
   graph: KnowledgeGraph,
@@ -539,7 +565,7 @@ function buildBridgeFiles(
   nodeToCommunity: Map<string, string>,
   communityLabelMap: Map<string, string>,
 ): string[] {
-  // Build bidirectional neighbor map once (used for resolution and bridge detection)
+  // Build bidirectional neighbor map for bridge candidate detection
   const neighbors = new Map<string, Set<string>>();
   for (const rel of graph.relationships) {
     if (!neighbors.has(rel.sourceId)) neighbors.set(rel.sourceId, new Set());
@@ -548,25 +574,6 @@ function buildBridgeFiles(
     neighbors.get(rel.targetId)!.add(rel.sourceId);
   }
 
-  // Resolve a node's community:
-  //   1. Direct MEMBER_OF lookup (works for symbols: Function, Class, Method…)
-  //   2. Fallback: community of the highest-degree immediate neighbor that has one
-  //      (File nodes lack MEMBER_OF; their contained symbols carry the community)
-  const resolveComm = (nodeId: string): string | undefined => {
-    const direct = nodeToCommunity.get(nodeId);
-    if (direct) return direct;
-
-    let bestCommId: string | undefined;
-    let bestDegree = -1;
-    for (const nid of neighbors.get(nodeId) ?? []) {
-      const commId = nodeToCommunity.get(nid);
-      if (!commId) continue;
-      const d = degreeMap.get(nid) ?? 0;
-      if (d > bestDegree) { bestDegree = d; bestCommId = commId; }
-    }
-    return bestCommId;
-  };
-
   const bridges: Array<{ path: string; degree: number; labelA: string; labelB: string }> = [];
 
   for (const node of cleanNodes) {
@@ -574,21 +581,30 @@ function buildBridgeFiles(
     const degree = degreeMap.get(node.id) ?? 0;
     if (degree < 2) continue;
 
-    // Collect resolved community labels from immediate neighbors.
-    // Unresolvable neighbors are silently skipped (no 'Unknown' in output).
-    const neighborLabels = new Set<string>();
+    // For each neighbor, resolve its community using CONTAINS-aware lookup.
+    // Neighbors without a resolvable community are silently skipped.
+    const neighborCommIds = new Set<string>();
     for (const nid of neighbors.get(node.id) ?? []) {
-      const commId = resolveComm(nid);
-      if (!commId) continue;
-      const label = communityLabelMap.get(commId);
-      if (label) neighborLabels.add(label);
+      const commId = resolveNodeCommunity(nid, nodeToCommunity, graph);
+      if (commId) neighborCommIds.add(commId);
     }
 
-    // A bridge spans 2+ distinct community labels; A↔A excluded by Set deduplication
-    if (neighborLabels.size < 2) continue;
+    if (neighborCommIds.size < 2) continue;
 
-    const [labelA, labelB] = [...neighborLabels];
-    bridges.push({ path: node.properties.filePath ?? node.id, degree, labelA, labelB });
+    // Map community IDs to the same display labels Module Map uses
+    const resolvedLabels = [...neighborCommIds]
+      .map((id) => communityLabelMap.get(id))
+      .filter((l): l is string => !!l);
+
+    const uniqueLabels = [...new Set(resolvedLabels)];
+    if (uniqueLabels.length < 2) continue;
+
+    bridges.push({
+      path: node.properties.filePath ?? node.id,
+      degree,
+      labelA: uniqueLabels[0],
+      labelB: uniqueLabels[1],
+    });
   }
 
   return bridges
