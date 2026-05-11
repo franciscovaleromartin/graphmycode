@@ -537,8 +537,19 @@ function buildBridgeFiles(
   graph: KnowledgeGraph,
   degreeMap: Map<string, number>,
   nodeToCommunity: Map<string, string>,
-  communityLabelMap: Map<string, string>,
+  _communityLabelMap: Map<string, string>,
 ): string[] {
+  // Use each Community node's OWN name/heuristicLabel — not auto-derived member names.
+  // communityLabelMap uses the top-degree member's name (for Module Map auto-labels),
+  // which would produce node names instead of community names here.
+  const commName = new Map<string, string>();
+  for (const n of cleanNodes) {
+    if (n.label !== 'Community') continue;
+    const raw = (n.properties.name ?? n.properties.heuristicLabel ?? '') as string;
+    const readable = raw && !CLUSTER_RE.test(raw) && !INTERNAL_ID_RE.test(raw) ? raw : '';
+    commName.set(n.id, readable);
+  }
+
   const neighbors = new Map<string, Set<string>>();
   for (const rel of graph.relationships) {
     if (!neighbors.has(rel.sourceId)) neighbors.set(rel.sourceId, new Set());
@@ -554,28 +565,19 @@ function buildBridgeFiles(
     const degree = degreeMap.get(node.id) ?? 0;
     if (degree < 2) continue;
 
-    const neighborCommIds = new Set<string>();
+    // Step 1–4: for each neighbor resolve its community label, fallback to 'Unknown'
+    const neighborLabels = new Set<string>();
     for (const nid of neighbors.get(node.id) ?? []) {
       const commId = nodeToCommunity.get(nid);
-      if (commId) neighborCommIds.add(commId);
+      const label = commId ? (commName.get(commId) || 'Unknown') : 'Unknown';
+      neighborLabels.add(label);
     }
 
-    if (neighborCommIds.size < 2) continue;
+    // Step 5: need at least 2 distinct labels (A↔A excluded by Set deduplication)
+    if (neighborLabels.size < 2) continue;
 
-    // Resolve display labels; skip any that would be unknown or identical
-    const resolvedLabels = [...neighborCommIds]
-      .map((id) => communityLabelMap.get(id))
-      .filter((l): l is string => !!l && l !== 'Uncategorized' && !INTERNAL_ID_RE.test(l));
-
-    const uniqueLabels = [...new Set(resolvedLabels)];
-    if (uniqueLabels.length < 2) continue;
-
-    bridges.push({
-      path: node.properties.filePath ?? node.id,
-      degree,
-      labelA: uniqueLabels[0],
-      labelB: uniqueLabels[1],
-    });
+    const [labelA, labelB] = [...neighborLabels];
+    bridges.push({ path: node.properties.filePath ?? node.id, degree, labelA, labelB });
   }
 
   return bridges
