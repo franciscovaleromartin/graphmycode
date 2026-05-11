@@ -906,6 +906,38 @@ function buildClaudeMd(
   return content;
 }
 
+// ── AGENTS.md helpers ────────────────────────────────────────────────────────
+
+const VERB_FORMS: Record<string, string> = {
+  write: 'Writes', read: 'Reads', list: 'Lists', get: 'Gets', fetch: 'Fetches',
+  search: 'Searches', execute: 'Executes', call: 'Calls', invoke: 'Invokes',
+  query: 'Queries', create: 'Creates', update: 'Updates', delete: 'Deletes',
+  remove: 'Removes', run: 'Runs', send: 'Sends', process: 'Processes',
+  handle: 'Handles', parse: 'Parses', load: 'Loads', save: 'Saves',
+  generate: 'Generates', validate: 'Validates', format: 'Formats',
+  transform: 'Transforms', convert: 'Converts', check: 'Checks',
+  filter: 'Filters', find: 'Finds',
+};
+
+const KNOWN_ACRONYMS = new Set([
+  'html', 'css', 'json', 'xml', 'api', 'url', 'http', 'https',
+  'sql', 'db', 'id', 'ui', 'io', 'pdf', 'csv', 'svg', 'jwt',
+  'sdk', 'cli', 'tts', 'llm', 'rag',
+]);
+
+function describeFromSnakeCase(name: string): string {
+  const parts = name.split('_').filter(Boolean);
+  if (parts.length === 0) return name;
+  return parts
+    .map((p, i) => {
+      const lower = p.toLowerCase();
+      if (KNOWN_ACRONYMS.has(lower)) return lower.toUpperCase();
+      if (i === 0) return VERB_FORMS[lower] ?? (p.charAt(0).toUpperCase() + p.slice(1));
+      return p;
+    })
+    .join(' ');
+}
+
 // ── AGENTS.md builder ─────────────────────────────────────────────────────────
 
 function buildAgentsMd(
@@ -982,9 +1014,7 @@ function buildAgentsMd(
     `- **Type**: ${agentType}`,
     `- **Default model**: ${defaultModel}`,
     `- **System prompt**: \`${systemPromptPath}\``,
-    '- **Trigger**: "(fill in — describe when this agent should be invoked)"',
-    '- **Input**: (describe expected input schema)',
-    '- **Output**: (describe output format)',
+    // Trigger / Input / Output omitted — cannot be inferred reliably from the AST
     '- **Known failure modes**:',
     ...knownFailures,
   ];
@@ -992,18 +1022,19 @@ function buildAgentsMd(
   if (tools.length > 0) {
     lines.push('', '## Tools');
     for (const { node } of tools) {
-      const name = node.properties.name ?? node.id;
+      const name = (node.properties.name ?? node.id) as string;
       const file = (node.properties.filePath ?? '').split('/').pop() ?? '';
-      lines.push(`- \`${name}(...)\` — (one-line purpose); defined in \`${file}\``);
+      const desc = describeFromSnakeCase(name);
+      lines.push(`- \`${name}(...)\` — ${desc}; defined in \`${file}\``);
     }
   }
 
   if (subagentNodes.length > 0) {
     lines.push('', '## Subagents');
-    lines.push('| Name | When called | Returns |');
-    lines.push('|------|-------------|---------|');
     for (const n of subagentNodes) {
-      lines.push(`| \`${n.properties.name ?? n.id}\` | (fill in) | (fill in) |`);
+      const name = (n.properties.name ?? n.id) as string;
+      const file = (n.properties.filePath ?? '').split('/').pop() ?? '';
+      lines.push(`- \`${name}\`${file ? ` — \`${file}\`` : ''}`);
     }
   }
 
@@ -1036,7 +1067,9 @@ export function exportAgentContext(
   const base = buildBase(graph, externalDeps);
   triggerDownload(buildClaudeMd(graph, projectName, base), 'CLAUDE.md');
   if (isAgent) {
-    triggerDownload(buildAgentsMd(graph, projectName, base), 'AGENTS.md');
+    // Delay second download 100 ms so the browser doesn't suppress it
+    const agentsMdContent = buildAgentsMd(graph, projectName, base);
+    setTimeout(() => triggerDownload(agentsMdContent, 'AGENTS.md'), 100);
   }
 }
 
