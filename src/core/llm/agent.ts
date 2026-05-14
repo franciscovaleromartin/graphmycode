@@ -410,10 +410,13 @@ export async function* streamAgentResponse(
             content = rawContent;
           } else if (Array.isArray(rawContent)) {
             // Content blocks format: [{type: 'text', text: '...'}, ...]
-            content = rawContent
-              .filter((block: any) => block.type === 'text' || typeof block === 'string')
-              .map((block: any) => (typeof block === 'string' ? block : block.text || ''))
-              .join('');
+            const contentParts: string[] = [];
+            for (const block of rawContent) {
+              if (block.type === 'text' || typeof block === 'string') {
+                contentParts.push(typeof block === 'string' ? block : block.text || '');
+              }
+            }
+            content = contentParts.join('');
           }
 
           // If chunk has content, stream it

@@ -102,7 +102,7 @@ export const WebGPUFallbackDialog = ({
               <li className="flex items-start gap-2">
                 <Snail className="mt-0.5 size-4 flex-shrink-0 text-amber-400" />
                 <span>
-                  <strong className="text-text-secondary">Use CPU</strong> — Works but{' '}
+                  <strong className="text-text-secondary">Use CPU</strong>: Works but{' '}
                   {isSmallCodebase ? 'a bit' : 'way'} slower
                   {nodeCount > 0 && (
                     <span className="text-text-muted">
@@ -115,7 +115,7 @@ export const WebGPUFallbackDialog = ({
               <li className="flex items-start gap-2">
                 <SkipForward className="mt-0.5 size-4 flex-shrink-0 text-blue-400" />
                 <span>
-                  <strong className="text-text-secondary">Skip it</strong> — Graph works, just no AI
+                  <strong className="text-text-secondary">Skip it</strong>: Graph works, just no AI
                   semantic search
                 </span>
               </li>

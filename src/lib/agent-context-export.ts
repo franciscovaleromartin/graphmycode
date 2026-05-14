@@ -123,11 +123,10 @@ function getLang(filePath: string, nodeLang?: string): string {
 // ── Base data extraction ─────────────────────────────────────────────────────
 
 function buildBase(graph: KnowledgeGraph, externalDeps: Record<string, string[]>): BaseData {
-  const systemNodeIds = new Set<string>(
-    graph.nodes
-      .filter((n) => isSystemFile(n.properties.filePath ?? n.properties.name ?? ''))
-      .map((n) => n.id),
-  );
+  const systemNodeIds = new Set<string>();
+  for (const n of graph.nodes) {
+    if (isSystemFile(n.properties.filePath ?? n.properties.name ?? '')) systemNodeIds.add(n.id);
+  }
 
   // allCleanNodes is used for Bridge Files (tests can be bridges too).
   // cleanNodes excludes test/spec/fixture files for all other analyses.
@@ -159,9 +158,10 @@ function buildBase(graph: KnowledgeGraph, externalDeps: Record<string, string[]>
     }
   }
 
-  const testNodeIds = new Set<string>(
-    graph.nodes.filter((n) => isTestNode(n)).map((n) => n.id),
-  );
+  const testNodeIds = new Set<string>();
+  for (const n of graph.nodes) {
+    if (isTestNode(n)) testNodeIds.add(n.id);
+  }
 
   return { cleanNodes, allCleanNodes, cleanDeps, degreeMap, nodeById, communityMembers, nodeToCommunity, testNodeIds };
 }
@@ -378,9 +378,10 @@ function findEntryPoints(cleanNodes: GraphNode[], graph: KnowledgeGraph) {
   const entries: Array<{ path: string; role: string }> = [];
   const seen = new Set<string>();
 
-  const entryIds = new Set<string>(
-    graph.relationships.filter((r) => r.type === 'ENTRY_POINT_OF').map((r) => r.sourceId),
-  );
+  const entryIds = new Set<string>();
+  for (const r of graph.relationships) {
+    if (r.type === 'ENTRY_POINT_OF') entryIds.add(r.sourceId);
+  }
 
   for (const n of cleanNodes) {
     const path = n.properties.filePath ?? n.properties.name ?? '';
@@ -428,15 +429,17 @@ function buildCommunityLabelMap(
   communityMembers: Map<string, GraphNode[]>,
 ): Map<string, string> {
   // Collect and sort by symbolCount desc so the biggest community wins the clean name
-  const entries = cleanNodes
-    .filter((n) => n.label === 'Community')
-    .map((n) => ({
+  const entries: Array<{ id: string; rawName: string; symbolCount: number }> = [];
+  for (const n of cleanNodes) {
+    if (n.label !== 'Community') continue;
+    entries.push({
       id: n.id,
       rawName: (n.properties.name ?? n.properties.heuristicLabel ?? n.id) as string,
       symbolCount: (n.properties.symbolCount as number | undefined)
         ?? (communityMembers.get(n.id)?.length ?? 0),
-    }))
-    .sort((a, b) => b.symbolCount - a.symbolCount);
+    });
+  }
+  entries.sort((a, b) => b.symbolCount - a.symbolCount);
 
   const TEST_COMMUNITY_RE = /^tests?$|^spec$|^fixtures?$|^__tests__$|^benchmarks?$|^perf$/i;
   // Noise communities (examples, demos, raw data…) are merged into "Other"
@@ -516,10 +519,11 @@ function buildModuleMap(
       continue;
     }
 
-    const keyFileNode = members
-      .filter((n) => n.label === 'File')
-      .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
-      .sort((a, b) => b.degree - a.degree)[0]?.node;
+    const fileEntries: Array<{ node: typeof members[number]; degree: number }> = [];
+    for (const n of members) {
+      if (n.label === 'File') fileEntries.push({ node: n, degree: degreeMap.get(n.id) ?? 0 });
+    }
+    const keyFileNode = fileEntries.sort((a, b) => b.degree - a.degree)[0]?.node;
 
     const keyFile = keyFileNode?.properties.filePath ?? '';
 
@@ -597,11 +601,14 @@ function renderSig(node: GraphNode, lang: string): string {
 }
 
 function buildKeySymbols(cleanNodes: GraphNode[], degreeMap: Map<string, number>, maxNodes = 12): string {
-  const top = cleanNodes
-    .filter((n) => !SKIP_SYMBOL_LABELS.has(n.label) && !FILE_EXT_RE.test(n.properties.name ?? ''))
-    .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
-    .sort((a, b) => b.degree - a.degree)
-    .slice(0, maxNodes);
+  const top: Array<{ node: GraphNode; degree: number }> = [];
+  for (const n of cleanNodes) {
+    if (!SKIP_SYMBOL_LABELS.has(n.label) && !FILE_EXT_RE.test(n.properties.name ?? '')) {
+      top.push({ node: n, degree: degreeMap.get(n.id) ?? 0 });
+    }
+  }
+  top.sort((a, b) => b.degree - a.degree);
+  top.splice(maxNodes);
 
   if (top.length === 0) return '(no symbols detected)';
 
@@ -730,9 +737,11 @@ function buildBridgeFiles(
     // Also exclude test/noise sentinels so benchmark/test communities
     // don't appear as one side of a bridge.
     const BRIDGE_SKIP = new Set(['Uncategorized', '__test__', '__other__']);
-    const resolvedLabels = [...neighborCommIds]
-      .map((id) => communityLabelMap.get(id))
-      .filter((l): l is string => !!l && !BRIDGE_SKIP.has(l));
+    const resolvedLabels: string[] = [];
+    for (const id of neighborCommIds) {
+      const l = communityLabelMap.get(id);
+      if (l && !BRIDGE_SKIP.has(l)) resolvedLabels.push(l);
+    }
 
     // Compare BASE names (strip ·N suffix) so Backend ↔ Backend·2 is not a bridge.
     // A real bridge connects functionally distinct communities (Backend ↔ Components).
@@ -965,17 +974,20 @@ function buildClaudeMd(
   // Restrict Bridge Files to only the top 6 communities visible in Module Map.
   // communityLabelMap covers ALL 17+ communities; communities that fall into "Other"
   // have valid labels in the map but are not shown — Bridge Files must not use them.
+  const communityEntries: Array<{ id: string; label: string; symbolCount: number }> = [];
+  for (const n of cleanNodes) {
+    if (n.label !== 'Community') continue;
+    const label = communityLabelMap.get(n.id);
+    if (!label || label === 'Uncategorized') continue;
+    communityEntries.push({
+      id: n.id,
+      label,
+      symbolCount: (n.properties.symbolCount as number | undefined)
+        ?? (communityMembers.get(n.id)?.length ?? 0),
+    });
+  }
   const visibleLabelMap: Map<string, string> = new Map(
-    cleanNodes
-      .filter((n) => n.label === 'Community')
-      .map((n) => ({
-        id: n.id,
-        label: communityLabelMap.get(n.id),
-        symbolCount: (n.properties.symbolCount as number | undefined)
-          ?? (communityMembers.get(n.id)?.length ?? 0),
-      }))
-      .filter((e): e is { id: string; label: string; symbolCount: number } =>
-        !!e.label && e.label !== 'Uncategorized')
+    communityEntries
       .sort((a, b) => b.symbolCount - a.symbolCount)
       .slice(0, 6)
       .map((e) => [e.id, e.label]),
@@ -1155,15 +1167,17 @@ function buildAgentsMd(
   const systemPromptPath = systemPromptNode?.properties.filePath as string | undefined ?? '(not detected)';
 
   // Tool nodes
-  const tools = cleanNodes
-    .filter(
-      (n) =>
-        (n.label === 'Function' || n.label === 'Method' || n.label === 'Tool') &&
-        TOOL_PREFIXES.some((p) => (n.properties.name ?? '').toLowerCase().startsWith(p)),
-    )
-    .map((n) => ({ node: n, degree: degreeMap.get(n.id) ?? 0 }))
-    .sort((a, b) => b.degree - a.degree)
-    .slice(0, 10);
+  const tools: Array<{ node: GraphNode; degree: number }> = [];
+  for (const n of cleanNodes) {
+    if (
+      (n.label === 'Function' || n.label === 'Method' || n.label === 'Tool') &&
+      TOOL_PREFIXES.some((p) => (n.properties.name ?? '').toLowerCase().startsWith(p))
+    ) {
+      tools.push({ node: n, degree: degreeMap.get(n.id) ?? 0 });
+    }
+  }
+  tools.sort((a, b) => b.degree - a.degree);
+  tools.splice(10);
 
   // Subagent nodes
   const SUBAGENT_PATTERNS = ['subagent', 'sub_agent', 'worker_agent', 'child_agent'];

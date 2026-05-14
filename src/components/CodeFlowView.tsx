@@ -443,7 +443,7 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle, CodeFlowViewProps>(
               <>
                 <div className="h-4 w-px bg-border-subtle" />
                 <span className="text-xs text-amber-400">
-                  Archivo muy grande — el renderizado puede ser lento
+                  Archivo muy grande: el renderizado puede ser lento
                 </span>
               </>
             )}

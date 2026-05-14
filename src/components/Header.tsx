@@ -31,6 +31,8 @@ import { GraphNode } from 'gitnexus-shared';
 import { EmbeddingStatus } from './EmbeddingStatus';
 import { RepoAnalyzer } from './RepoAnalyzer';
 
+const EMPTY_REPOS: BackendRepo[] = [];
+
 // Color mapping for node types in search results
 const NODE_TYPE_COLORS: Record<string, string> = {
   Folder: '#6366f1',
@@ -56,7 +58,7 @@ interface HeaderProps {
 
 export const Header = ({
   onFocusNode,
-  availableRepos = [],
+  availableRepos = EMPTY_REPOS,
   onSwitchRepo,
   onAnalyzeComplete,
   onReposChanged,
@@ -365,7 +367,7 @@ export const Header = ({
                       >
                         <Sparkles className="size-3.5 shrink-0 text-accent" />
                         <span className="text-sm text-text-secondary">
-                          Analyze a new repository...
+                          Analyze a new repository…
                         </span>
                       </button>
                     </div>

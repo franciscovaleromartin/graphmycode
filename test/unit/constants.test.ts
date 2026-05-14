@@ -96,8 +96,8 @@ describe('FILTERABLE_LABELS', () => {
 
 describe('edge types', () => {
   it('ALL_EDGE_TYPES contains all EDGE_INFO keys', () => {
-    const edgeInfoKeys = Object.keys(EDGE_INFO).sort();
-    const allEdgeTypes = [...ALL_EDGE_TYPES].sort();
+    const edgeInfoKeys = Object.keys(EDGE_INFO).toSorted();
+    const allEdgeTypes = [...ALL_EDGE_TYPES].toSorted();
     expect(edgeInfoKeys).toEqual(allEdgeTypes);
   });
 

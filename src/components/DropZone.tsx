@@ -83,7 +83,7 @@ function SuccessCard() {
           Server Connected
         </h2>
         <p className="text-center text-sm leading-relaxed text-text-secondary">
-          Preparing your code knowledge graph...
+          Preparing your code knowledge graph…
         </p>
 
         {/* Subtle progress hint */}

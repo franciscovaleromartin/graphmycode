@@ -304,7 +304,7 @@ export const ProcessFlowModal = ({
           {onFocusInGraph && (
             <button
               onClick={handleFocusInGraph}
-              className="flex items-center gap-2 rounded-lg bg-cyan-400 px-5 py-2.5 text-sm font-medium text-slate-900 shadow-lg shadow-cyan-500/20 transition-all hover:bg-cyan-300"
+              className="flex items-center gap-2 rounded-lg bg-cyan-400 px-5 py-2.5 text-sm font-medium text-cyan-950 shadow-lg shadow-cyan-500/20 transition-colors hover:bg-cyan-300"
             >
               <Focus className="size-4" />
               Toggle Focus

@@ -18,9 +18,10 @@ const findRootPrefix = (paths: string[]): string => {
     if (paths.length === 0) return '';
     
     // Get the first path segment of each file
-    const firstSegments = paths
-        .filter(p => p.includes('/'))
-        .map(p => p.split('/')[0]);
+    const firstSegments: string[] = [];
+    for (const p of paths) {
+        if (p.includes('/')) firstSegments.push(p.split('/')[0]);
+    }
     
     if (firstSegments.length === 0) return '';
     

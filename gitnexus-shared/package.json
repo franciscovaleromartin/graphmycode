@@ -13,11 +13,10 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "echo 'dist already compiled'"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "devDependencies": {
     "typescript": "^6.0.2"

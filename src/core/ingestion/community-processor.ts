@@ -107,8 +107,17 @@ export const processCommunities = async (
   onProgress?.(`Found ${details.count} communities...`, 60);
 
   // Step 3: Create community nodes with heuristic labels
+  // details.communities is { [nodeId: string]: number } — invert to Map<commNum, nodeId[]>
+  const communityMembers = new Map<number, string[]>();
+  Object.entries(details.communities).forEach(([nodeId, commNum]) => {
+    if (!communityMembers.has(commNum)) {
+      communityMembers.set(commNum, []);
+    }
+    communityMembers.get(commNum)!.push(nodeId);
+  });
+  
   const communityNodes = createCommunityNodes(
-    details.communities as Record<string, number>,
+    communityMembers,
     details.count,
     graph,
     knowledgeGraph
@@ -118,10 +127,10 @@ export const processCommunities = async (
 
   // Step 4: Create membership mappings
   const memberships: CommunityMembership[] = [];
-  Object.entries(details.communities).forEach(([nodeId, communityNum]) => {
+  Object.entries(details.communities).forEach(([nodeId, commNum]) => {
     memberships.push({
       nodeId,
-      communityId: `comm_${communityNum}`,
+      communityId: `comm_${commNum}`,
     });
   });
 
@@ -192,20 +201,11 @@ const buildGraphologyGraph = (knowledgeGraph: KnowledgeGraph): Graph => {
  * Create Community nodes with auto-generated labels based on member file paths
  */
 const createCommunityNodes = (
-  communities: Record<string, number>,
+  communityMembers: Map<number, string[]>,
   communityCount: number,
   graph: Graph,
   knowledgeGraph: KnowledgeGraph
 ): CommunityNode[] => {
-  // Group node IDs by community
-  const communityMembers = new Map<number, string[]>();
-  
-  Object.entries(communities).forEach(([nodeId, commNum]) => {
-    if (!communityMembers.has(commNum)) {
-      communityMembers.set(commNum, []);
-    }
-    communityMembers.get(commNum)!.push(nodeId);
-  });
 
   // Build node lookup for file paths
   const nodePathMap = new Map<string, string>();

@@ -113,7 +113,9 @@ export const processProcesses = async (
     const traces = traceFromEntryPoint(entryId, callsEdges, cfg);
     
     // Filter out traces that are too short
-    traces.filter(t => t.length >= cfg.minSteps).forEach(t => allTraces.push(t));
+    for (const t of traces) {
+      if (t.length >= cfg.minSteps) allTraces.push(t);
+    }
     
     if (i % 10 === 0) {
       onProgress?.(`Tracing entry point ${i + 1}/${entryPoints.length}...`, 20 + (i / entryPoints.length) * 40);

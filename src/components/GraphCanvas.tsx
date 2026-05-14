@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
-import { useEffect, useCallback, useMemo, useState, useRef, useImperativeHandle, type Ref } from 'react';
+import { useEffect, useCallback, useMemo, useState, useRef, useImperativeHandle, forwardRef, type Ref } from 'react';
 import {
   ZoomIn,
   ZoomOut,
@@ -48,7 +48,11 @@ export interface GraphCanvasHandle {
   focusNode: (nodeId: string) => void;
 }
 
-export const GraphCanvas = ({ ref }: { ref?: Ref<GraphCanvasHandle> }) => {
+interface GraphCanvasProps {
+  dummy?: never;
+}
+
+export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, ref) => {
   const {
     graph,
     setSelectedNode,
@@ -774,7 +778,7 @@ export const GraphCanvas = ({ ref }: { ref?: Ref<GraphCanvasHandle> }) => {
       </div>
     </div>
   );
-};
+});
 
 GraphCanvas.displayName = 'GraphCanvas';
 

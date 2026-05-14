@@ -252,7 +252,7 @@ function TabContent({
 
         <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
           Node <strong style={{ color: '#e2e2e8', fontWeight: 500 }}>size</strong> reflects
-          connection count — larger nodes are depended on by more files. Edges point from importer →
+          connection count; larger nodes are depended on by more files. Edges point from importer →
           imported.
         </p>
 
@@ -260,7 +260,7 @@ function TabContent({
           style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px' }}
         >
           <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
-            Click any node to open its detail panel — showing imports, exports, and reverse
+            Click any node to open its detail panel, showing imports, exports, and reverse
             dependencies.
           </p>
         </div>
@@ -598,7 +598,7 @@ export const HelpPanel = ({ isOpen, onClose, nodeCount, edgeCount }: HelpPanelPr
               <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e2e2e8', margin: 0 }}>
                 Help & Reference
               </h2>
-              <p style={{ fontSize: 12, color: '#6b7280', margin: 0 }}>GitNexus — graph explorer</p>
+              <p style={{ fontSize: 12, color: '#6b7280', margin: 0 }}>GitNexus: graph explorer</p>
             </div>
           </div>
           <button
@@ -655,7 +655,7 @@ export const HelpPanel = ({ isOpen, onClose, nodeCount, edgeCount }: HelpPanelPr
                     fontFamily: 'inherit',
                     color: isActive ? '#a78bfa' : '#9ca3af',
                     cursor: 'pointer',
-                    transition: 'all 0.15s',
+                    transition: 'color 0.15s, background-color 0.15s',
                     width: '100%',
                   }}
                   onMouseEnter={(e) => {
@@ -704,7 +704,7 @@ export const HelpPanel = ({ isOpen, onClose, nodeCount, edgeCount }: HelpPanelPr
           }}
         >
           <span style={{ fontSize: 12, color: '#4b5563' }}>
-            GitNexus — open source codebase graph explorer
+            GitNexus: open source codebase graph explorer
           </span>
           <a
             href="https://github.com/abhigyanpatwari/GitNexus"

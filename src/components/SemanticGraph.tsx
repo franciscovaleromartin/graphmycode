@@ -112,9 +112,11 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
       const capped = cappedRef.current;
       const sims = simsRef.current;
       return capped.map((node, i) => {
-        const topK = (sims[i] ?? [])
-          .map((sim, j) => ({ j, sim }))
-          .filter(({ j }) => j !== i)
+        const simEntries: Array<{ j: number; sim: number }> = [];
+        for (const [j, sim] of (sims[i] ?? []).entries()) {
+          if (j !== i) simEntries.push({ j, sim });
+        }
+        const topK = simEntries
           .sort((a, b) => b.sim - a.sim)
           .slice(0, k)
           .map(({ j, sim }) => `${capped[j]?.name ?? '?'} (${(sim * 100).toFixed(0)}%)`);
@@ -165,10 +167,12 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
       const k = topNRef.current;
 
       // Top-K vecinos más cercanos (excluyendo el nodo clicado)
+      const topSetEntries: Array<{ j: number; sim: number }> = [];
+      for (const [j, sim] of simRow.entries()) {
+        if (j !== clickedIdx) topSetEntries.push({ j, sim });
+      }
       const topSet = new Set(
-        simRow
-          .map((sim, j) => ({ j, sim }))
-          .filter(({ j }) => j !== clickedIdx)
+        topSetEntries
           .sort((a, b) => b.sim - a.sim)
           .slice(0, k)
           .map(({ j }) => j),

@@ -782,15 +782,18 @@ const workerApi = {
     const { graph } = currentGraphResult;
 
     // Filter for community nodes
-    const communityNodes = graph.nodes
-      .filter(n => n.label === 'Community')
-      .map(n => ({
-        id: n.id,
-        label: 'Community',
-        heuristicLabel: n.properties.heuristicLabel,
-        cohesion: n.properties.cohesion,
-        symbolCount: n.properties.symbolCount
-      } as CommunityNode));
+    const communityNodes: CommunityNode[] = [];
+    for (const n of graph.nodes) {
+      if (n.label === 'Community') {
+        communityNodes.push({
+          id: n.id,
+          label: 'Community',
+          heuristicLabel: n.properties.heuristicLabel,
+          cohesion: n.properties.cohesion,
+          symbolCount: n.properties.symbolCount,
+        } as CommunityNode);
+      }
+    }
 
     if (communityNodes.length === 0) {
       return { enrichments: {}, tokensUsed: 0 };

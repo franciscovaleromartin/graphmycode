@@ -132,7 +132,7 @@ export const SidePanel = () => {
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-text-muted">Cargando clusters...</p>
+                  <p className="text-xs text-text-muted">Cargando clusters…</p>
                 )}
               </div>
             ) : graphViewType === 'city' ? (

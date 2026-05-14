@@ -76,7 +76,7 @@ interface DistrictCell {
 function computeDistrictCells(
   districtSizes: Map<string, number>,
 ): Map<string, DistrictCell> {
-  const sorted = [...districtSizes.entries()].sort((a, b) => b[1] - a[1]);
+  const sorted = [...districtSizes.entries()].toSorted((a, b) => b[1] - a[1]);
   const result = new Map<string, DistrictCell>();
 
   const cellSize = (n: number) =>

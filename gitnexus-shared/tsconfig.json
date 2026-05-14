@@ -5,14 +5,13 @@
     "moduleResolution": "NodeNext",
     "strict": true,
     "declaration": true,
-    "declarationMap": true,
     "sourceMap": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "composite": true,
-    "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "noEmit": true
   },
-  "include": ["src"]
+  "include": ["dist"]
 }

@@ -32,7 +32,7 @@ function buildTree(files: GraphNode[]): TreeNode[] {
   const root: TreeNode[] = [];
   const pathMap = new Map<string, TreeNode>();
 
-  const sorted = [...files].sort((a, b) =>
+  const sorted = files.toSorted((a, b) =>
     a.properties.filePath.localeCompare(b.properties.filePath),
   );
 

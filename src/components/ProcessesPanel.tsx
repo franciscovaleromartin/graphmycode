@@ -99,9 +99,10 @@ export const ProcessesPanel = () => {
     setLoadingProcess('all');
 
     try {
-      const allProcessIds = [...processes.cross, ...processes.intra]
-        .map((p) => p.id)
-        .filter(isSafeId);
+      const allProcessIds: string[] = [];
+      for (const p of [...processes.cross, ...processes.intra]) {
+        if (isSafeId(p.id)) allProcessIds.push(p.id);
+      }
 
       if (allProcessIds.length === 0) return;
 
@@ -132,7 +133,10 @@ export const ProcessesPanel = () => {
       }
 
       const allSteps = Array.from(allStepsMap.values());
-      const stepIds = allSteps.map((s) => s.id).filter(isSafeId);
+      const stepIds: string[] = [];
+      for (const s of allSteps) {
+        if (isSafeId(s.id)) stepIds.push(s.id);
+      }
 
       // Query for all CALLS edges between the combined steps
       if (stepIds.length > 0) {
@@ -146,15 +150,14 @@ export const ProcessesPanel = () => {
 
         try {
           const edgesResult = await runQuery(edgesQuery);
-          allEdges.push(
-            ...edgesResult
-              .map((row: any) => ({
-                from: row.fromId || row[0],
-                to: row.toId || row[1],
-                type: row.type || row[2] || 'CALLS',
-              }))
-              .filter((edge) => edge.from !== edge.to),
-          );
+          for (const row of edgesResult) {
+            const edge = {
+              from: row.fromId || row[0],
+              to: row.toId || row[1],
+              type: row.type || row[2] || 'CALLS',
+            };
+            if (edge.from !== edge.to) allEdges.push(edge);
+          }
         } catch (err) {
           console.warn('Could not fetch combined edges:', err);
         }
@@ -201,7 +204,10 @@ export const ProcessesPanel = () => {
         }));
 
         // Get step IDs for edge query
-        const stepIds = steps.map((s) => s.id).filter(isSafeId);
+        const stepIds: string[] = [];
+        for (const s of steps) {
+          if (isSafeId(s.id)) stepIds.push(s.id);
+        }
 
         // Query for CALLS edges between the steps in this process
         let edges: Array<{ from: string; to: string; type: string }> = [];
@@ -215,13 +221,15 @@ export const ProcessesPanel = () => {
 
           try {
             const edgesResult = await runQuery(edgesQuery);
-            edges = edgesResult
-              .map((row: any) => ({
+            edges = [];
+            for (const row of edgesResult) {
+              const edge = {
                 from: row.fromId || row[0],
                 to: row.toId || row[1],
                 type: row.type || row[2] || 'CALLS',
-              }))
-              .filter((edge) => edge.from !== edge.to); // Remove self-loops
+              };
+              if (edge.from !== edge.to) edges.push(edge); // Remove self-loops
+            }
           } catch (err) {
             console.warn('Could not fetch edges:', err);
             // Continue with empty edges - will fallback to linear
