@@ -720,6 +720,8 @@ export const LandingScreen = () => {
               controls
               playsInline
               preload="none"
+              width="3840"
+              height="2160"
               className="w-full"
             />
           </div>
