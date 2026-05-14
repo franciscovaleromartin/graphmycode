@@ -384,8 +384,9 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
     if (!graph) return new Map<string, string>();
     const map = new Map<string, string>();
     for (const n of graph.nodes) {
-      if (n.label === 'File' && n.properties.filePath) {
-        map.set(normalizePath(n.properties.filePath), n.properties.filePath);
+      const fp = n.properties.filePath;
+      if (n.label === 'File' && fp) {
+        map.set(normalizePath(fp), fp);
       }
     }
     return map;

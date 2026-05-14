@@ -178,9 +178,10 @@ export const RightPanel = () => {
     // Set to scrollHeight, capped at max
     const maxHeight = 160; // ~6 lines
     const newHeight = Math.min(textarea.scrollHeight, maxHeight);
-    textarea.style.height = `${newHeight}px`;
-    // Show scrollbar if content exceeds max
-    textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
+    Object.assign(textarea.style, {
+      height: `${newHeight}px`,
+      overflowY: textarea.scrollHeight > maxHeight ? 'auto' : 'hidden',
+    });
   }, []);
 
   // Adjust height when input changes

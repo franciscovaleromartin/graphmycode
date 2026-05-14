@@ -663,16 +663,10 @@ export const HelpPanel = ({ isOpen, onClose, nodeCount, edgeCount }: HelpPanelPr
                     width: '100%',
                   }}
                   onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.color = '#e2e2e8';
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                    }
+                    if (!isActive) Object.assign(e.currentTarget.style, { color: '#e2e2e8', background: 'rgba(255,255,255,0.04)' });
                   }}
                   onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.color = '#9ca3af';
-                      e.currentTarget.style.background = 'transparent';
-                    }
+                    if (!isActive) Object.assign(e.currentTarget.style, { color: '#9ca3af', background: 'transparent' });
                   }}
                 >
                   <span

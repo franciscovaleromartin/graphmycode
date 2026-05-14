@@ -806,7 +806,7 @@ export const SettingsPanel = ({
               }}
             >
               <div className="space-y-2">
-                <label className="text-sm font-medium text-text-secondary">Model</label>
+                <p className="text-sm font-medium text-text-secondary">Model</p>
                 <OpenRouterModelCombobox
                   value={settings.openrouter?.model ?? ''}
                   onChange={(model) =>

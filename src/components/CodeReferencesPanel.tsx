@@ -105,8 +105,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
       e.preventDefault();
       e.stopPropagation();
       resizeRef.current = { startX: e.clientX, startWidth: panelWidth };
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
+      Object.assign(document.body.style, { cursor: 'col-resize', userSelect: 'none' });
 
       const onMove = (ev: MouseEvent) => {
         const state = resizeRef.current;
@@ -118,8 +117,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
 
       const onUp = () => {
         resizeRef.current = null;
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
+        Object.assign(document.body.style, { cursor: '', userSelect: '' });
         window.removeEventListener('mousemove', onMove);
         window.removeEventListener('mouseup', onUp);
       };
