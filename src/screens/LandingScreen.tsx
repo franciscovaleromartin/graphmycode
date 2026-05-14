@@ -227,6 +227,11 @@ const GraphAnimation = () => {
 
 // ── LandingCards ──────────────────────────────────────────────────────────────
 
+const GLOW_BASE: React.CSSProperties = {
+  position: 'absolute', top: '-30px', right: '-30px',
+  borderRadius: '50%', pointerEvents: 'none',
+};
+
 const CARD_STYLE: React.CSSProperties = {
   borderRadius: '14px', border: '1px solid #1e293b',
   background: '#0c111d', padding: '18px 20px', position: 'relative', overflow: 'hidden',
@@ -263,13 +268,7 @@ const LandingCards = () => {
       }}>
         <GraphAnimation />
         <div style={{ padding: '4px 22px 22px' }}>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center',
-            fontSize: '9px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase',
-            padding: '3px 9px', borderRadius: '6px', marginBottom: '10px',
-            background: 'rgba(251,191,36,.08)', color: '#fbbf24',
-            border: '1px solid rgba(251,191,36,.18)',
-          }}>
+          <span style={{ ...TAG_BASE, alignItems: 'center', marginBottom: '10px', background: 'rgba(251,191,36,.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,.18)' }}>
             {t.cardsViewsTag}
           </span>
           <p style={{ fontSize: '15px', fontWeight: 600, color: '#f1f5f9', marginBottom: '4px', lineHeight: 1.35 }}>
@@ -311,12 +310,7 @@ const LandingCards = () => {
 
       {/* ── Export / Agent Mode card ── */}
       <div style={CARD_STYLE}>
-        <div style={{
-          position: 'absolute', top: '-30px', right: '-30px',
-          width: '110px', height: '110px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(245,158,11,.13) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
+        <div style={{ ...GLOW_BASE, width: '110px', height: '110px', background: 'radial-gradient(circle, rgba(245,158,11,.13) 0%, transparent 70%)' }} />
         <div style={{ ...ICON_BOX_BASE, background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)' }}>⬇</div>
         <span style={{ ...TAG_BASE, background: 'rgba(245,158,11,.08)', color: '#f59e0b', border: '1px solid rgba(245,158,11,.18)' }}>
           {t.cardsExportTag}
@@ -337,12 +331,7 @@ const LandingCards = () => {
 
         {/* Privacy */}
         <div style={CARD_STYLE}>
-          <div style={{
-            position: 'absolute', top: '-30px', right: '-30px',
-            width: '100px', height: '100px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(45,212,191,.12) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }} />
+          <div style={{ ...GLOW_BASE, width: '100px', height: '100px', background: 'radial-gradient(circle, rgba(45,212,191,.12) 0%, transparent 70%)' }} />
           <div style={{ ...ICON_BOX_BASE, background: 'rgba(45,212,191,.1)', border: '1px solid rgba(45,212,191,.2)' }}>🔒</div>
           <span style={{ ...TAG_BASE, background: 'rgba(20,184,166,.08)', color: '#2dd4bf', border: '1px solid rgba(45,212,191,.18)' }}>
             {t.cardsPrivacyTag}
@@ -357,22 +346,13 @@ const LandingCards = () => {
 
         {/* AI */}
         <div style={CARD_STYLE}>
-          <div style={{
-            position: 'absolute', top: '-30px', right: '-30px',
-            width: '100px', height: '100px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(167,139,250,.14) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }} />
+          <div style={{ ...GLOW_BASE, width: '100px', height: '100px', background: 'radial-gradient(circle, rgba(167,139,250,.14) 0%, transparent 70%)' }} />
           <div style={{ ...ICON_BOX_BASE, background: 'rgba(167,139,250,.1)', border: '1px solid rgba(167,139,250,.2)' }}>✦</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
             <span style={{ ...TAG_BASE, marginBottom: 0, background: 'rgba(167,139,250,.08)', color: '#c4b5fd', border: '1px solid rgba(196,181,253,.18)' }}>
               {t.cardsAiTag}
             </span>
-            <span style={{
-              fontSize: '9px', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase',
-              background: 'rgba(255,255,255,.05)', color: '#94a3b8',
-              borderRadius: '5px', padding: '3px 7px', border: '1px solid rgba(255,255,255,.07)',
-            }}>
+            <span style={{ ...TAG_BASE, marginBottom: 0, letterSpacing: '.08em', background: 'rgba(255,255,255,.05)', color: '#94a3b8', borderRadius: '5px', padding: '3px 7px', border: '1px solid rgba(255,255,255,.07)' }}>
               {t.cardsAiOptional}
             </span>
           </div>
@@ -382,13 +362,7 @@ const LandingCards = () => {
           <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.6 }}>
             {t.cardsAiBody}
           </p>
-          <p style={{
-            marginTop: '10px', fontSize: '10px', lineHeight: 1.5,
-            color: '#f59e0b',
-            background: 'rgba(245,158,11,.08)',
-            border: '1px solid rgba(245,158,11,.2)',
-            borderRadius: '7px', padding: '6px 9px',
-          }}>
+          <p style={AI_WARNING_STYLE}>
             {t.cardsAiWarning}
           </p>
         </div>
@@ -397,12 +371,7 @@ const LandingCards = () => {
 
       {/* ── Cypher card ── */}
       <div style={CARD_STYLE}>
-        <div style={{
-          position: 'absolute', top: '-30px', right: '-30px',
-          width: '110px', height: '110px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(52,211,153,.13) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
+        <div style={{ ...GLOW_BASE, width: '110px', height: '110px', background: 'radial-gradient(circle, rgba(52,211,153,.13) 0%, transparent 70%)' }} />
         <div style={{ ...ICON_BOX_BASE, background: 'rgba(52,211,153,.1)', border: '1px solid rgba(52,211,153,.2)' }}>🔍</div>
         <span style={{ ...TAG_BASE, background: 'rgba(52,211,153,.08)', color: '#34d399', border: '1px solid rgba(52,211,153,.2)' }}>
           {t.cardsCypherTag}
@@ -413,12 +382,7 @@ const LandingCards = () => {
         <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.6, marginBottom: '10px' }}>
           {t.cardsCypherBody}
         </p>
-        <code style={{
-          display: 'block', fontSize: '10px', color: '#34d399',
-          background: 'rgba(52,211,153,.06)', border: '1px solid rgba(52,211,153,.15)',
-          borderRadius: '7px', padding: '7px 10px', fontFamily: 'monospace',
-          letterSpacing: '0.01em',
-        }}>
+        <code style={CYPHER_CODE_STYLE}>
           {t.cardsCypherExample}
         </code>
       </div>
@@ -428,6 +392,46 @@ const LandingCards = () => {
 };
 
 // ── TopBar ────────────────────────────────────────────────────────────────────
+
+const TOPBAR_STYLE: React.CSSProperties = {
+  position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+  padding: '10px 24px',
+  borderBottom: '1px solid rgba(255,255,255,0.06)',
+  background: 'rgba(8,13,24,0.85)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+};
+
+const SOCIAL_ICON_STYLE: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  width: '32px', height: '32px', borderRadius: '8px',
+  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'rgba(255,255,255,0.04)',
+  color: '#94a3b8', textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
+};
+
+const AI_WARNING_STYLE: React.CSSProperties = {
+  marginTop: '10px', fontSize: '10px', lineHeight: 1.5,
+  color: '#f59e0b', background: 'rgba(245,158,11,.08)',
+  border: '1px solid rgba(245,158,11,.2)', borderRadius: '7px', padding: '6px 9px',
+};
+
+const GITHUB_LINK_STYLE: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: '7px',
+  padding: '5px 12px', borderRadius: '8px',
+  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'rgba(255,255,255,0.04)',
+  color: '#94a3b8', fontSize: '12px', fontWeight: 500,
+  textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
+};
+
+const CYPHER_CODE_STYLE: React.CSSProperties = {
+  display: 'block', fontSize: '10px', color: '#34d399',
+  background: 'rgba(52,211,153,.06)', border: '1px solid rgba(52,211,153,.15)',
+  borderRadius: '7px', padding: '7px 10px', fontFamily: 'monospace',
+  letterSpacing: '0.01em',
+};
 
 function formatStars(n: number): string {
   return n >= 1000 ? `${(n / 1000).toFixed(1).replace('.0', '')}k` : String(n);
@@ -444,17 +448,7 @@ const TopBar = () => {
   }, []);
 
   return (
-    <div
-      style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '10px 24px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        background: 'rgba(8,13,24,0.85)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-      }}
-    >
+    <div style={TOPBAR_STYLE}>
       {/* Logo */}
       <span style={{ fontSize: '16px', fontWeight: 600, letterSpacing: '-0.02em', color: '#f1f5f9' }}>
         <span style={{ color: '#e879f9' }}>Graph</span>My<span style={{ color: '#22d3ee' }}>Code</span>
@@ -467,14 +461,7 @@ const TopBar = () => {
           href="https://github.com/franciscovaleromartin/graphmycode"
           target="_blank"
           rel="noopener noreferrer"
-          style={{
-            display: 'flex', alignItems: 'center', gap: '7px',
-            padding: '5px 12px', borderRadius: '8px',
-            border: '1px solid rgba(255,255,255,0.08)',
-            background: 'rgba(255,255,255,0.04)',
-            color: '#94a3b8', fontSize: '12px', fontWeight: 500,
-            textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
-          }}
+          style={GITHUB_LINK_STYLE}
           onMouseEnter={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#f1f5f9', background: 'rgba(255,255,255,0.08)' })}
           onMouseLeave={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#94a3b8', background: 'rgba(255,255,255,0.04)' })}
         >
@@ -494,13 +481,7 @@ const TopBar = () => {
           href="https://francisco-valero.com"
           target="_blank"
           rel="noopener noreferrer"
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: '32px', height: '32px', borderRadius: '8px',
-            border: '1px solid rgba(255,255,255,0.08)',
-            background: 'rgba(255,255,255,0.04)',
-            color: '#94a3b8', textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
-          }}
+          style={SOCIAL_ICON_STYLE}
           onMouseEnter={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#f1f5f9', background: 'rgba(255,255,255,0.08)' })}
           onMouseLeave={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#94a3b8', background: 'rgba(255,255,255,0.04)' })}
           title="Portfolio"
@@ -513,13 +494,7 @@ const TopBar = () => {
           href="https://www.linkedin.com/in/francisco-valero/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: '32px', height: '32px', borderRadius: '8px',
-            border: '1px solid rgba(255,255,255,0.08)',
-            background: 'rgba(255,255,255,0.04)',
-            color: '#94a3b8', textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
-          }}
+          style={SOCIAL_ICON_STYLE}
           onMouseEnter={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#f1f5f9', background: 'rgba(255,255,255,0.08)' })}
           onMouseLeave={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#94a3b8', background: 'rgba(255,255,255,0.04)' })}
           title="LinkedIn"
