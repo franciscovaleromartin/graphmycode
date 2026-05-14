@@ -21,8 +21,8 @@ export const BackendRepoSelector = ({
   return (
     <div className="p-8 bg-surface border border-border-default rounded-3xl">
       {/* Icon */}
-      <div className="mx-auto w-20 h-20 mb-6 flex items-center justify-center bg-gradient-to-br from-accent to-node-interface rounded-2xl shadow-glow">
-        <Server className="w-10 h-10 text-white" />
+      <div className="mx-auto size-20 mb-6 flex items-center justify-center bg-gradient-to-br from-accent to-node-interface rounded-2xl shadow-glow">
+        <Server className="size-10 text-white" />
       </div>
 
       {/* Title */}
@@ -36,7 +36,7 @@ export const BackendRepoSelector = ({
       {/* Connected status badge */}
       {isConnected && (
         <div className="flex items-center justify-center gap-2 mb-6">
-          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          <span className="size-2 bg-green-400 rounded-full animate-pulse" />
           <span className="text-xs text-green-400">Connected to {backendUrl}</span>
         </div>
       )}
@@ -54,7 +54,7 @@ export const BackendRepoSelector = ({
                 <span className="font-medium text-text-primary group-hover:text-accent transition-colors">
                   {repo.name}
                 </span>
-                <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-accent transition-colors" />
+                <ArrowRight className="size-4 text-text-muted group-hover:text-accent transition-colors" />
               </div>
               <div className="flex items-center gap-3 text-xs text-text-muted">
                 {repo.stats?.files != null && <span>{repo.stats.files} files</span>}

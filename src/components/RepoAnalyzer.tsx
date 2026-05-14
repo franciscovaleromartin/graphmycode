@@ -54,7 +54,7 @@ function ModeTabs({ mode, onChange }: { mode: InputMode; onChange: (m: InputMode
             : 'text-text-muted hover:text-text-secondary'
         } `}
       >
-        <Github className="h-3 w-3" />
+        <Github className="size-3" />
         GitHub URL
       </button>
       <button
@@ -67,7 +67,7 @@ function ModeTabs({ mode, onChange }: { mode: InputMode; onChange: (m: InputMode
             : 'text-text-muted hover:text-text-secondary'
         } `}
       >
-        <FolderOpen className="h-3 w-3" />
+        <FolderOpen className="size-3" />
         Local Folder
       </button>
     </div>
@@ -99,8 +99,8 @@ function AnalyzeButton({
           : 'cursor-not-allowed border border-border-subtle bg-elevated text-text-muted'
       } `}
     >
-      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-      <span>{isLoading ? 'Starting analysis...' : 'Analyze Repository'}</span>
+      {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+      <span>{isLoading ? 'Starting analysis…' : 'Analyze Repository'}</span>
       {canSubmit && !isLoading && <ArrowRight className="h-3.5 w-3.5" />}
     </button>
   );
@@ -115,14 +115,14 @@ function DoneState({ repoName }: { repoName: string }) {
       role="status"
       aria-live="polite"
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/15 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
-        <Check className="h-6 w-6 text-emerald-400" />
+      <div className="flex size-12 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/15 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+        <Check className="size-6 text-emerald-400" />
       </div>
       <div className="text-center">
         <p className="text-sm font-medium text-emerald-400">Analysis complete</p>
         <p className="mt-0.5 font-mono text-xs text-text-muted">{repoName}</p>
       </div>
-      <p className="text-xs text-text-secondary">Loading graph...</p>
+      <p className="text-xs text-text-secondary">Loading graph…</p>
     </div>
   );
 }
@@ -267,7 +267,7 @@ export const RepoAnalyzer = ({ variant, onComplete, onCancel }: RepoAnalyzerProp
                   : 'border-border-default focus-within:border-accent/40'
             } `}
           >
-            <Github className="h-4 w-4 shrink-0 text-text-muted" />
+            <Github className="size-4 shrink-0 text-text-muted" />
             <input
               id={inputId}
               type="url"
@@ -319,7 +319,7 @@ export const RepoAnalyzer = ({ variant, onComplete, onCancel }: RepoAnalyzerProp
                   : 'border-border-default focus-within:border-accent/40'
             } `}
           >
-            <FolderOpen className="h-4 w-4 shrink-0 text-text-muted" />
+            <FolderOpen className="size-4 shrink-0 text-text-muted" />
             <input
               id={`${inputId}-local`}
               type="text"
@@ -379,7 +379,7 @@ export const RepoAnalyzer = ({ variant, onComplete, onCancel }: RepoAnalyzerProp
       {/* Error message */}
       {(phase === 'error' || (phase === 'input' && validationError)) && validationError && (
         <p className="flex animate-fade-in items-center gap-1.5 text-xs text-red-400">
-          <AlertCircle className="h-3 w-3 shrink-0" />
+          <AlertCircle className="size-3 shrink-0" />
           {validationError}
         </p>
       )}

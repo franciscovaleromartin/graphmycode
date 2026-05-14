@@ -231,6 +231,9 @@ export const ProcessFlowModal = ({
   return (
     <div
       ref={containerRef}
+      role="button"
+      aria-label="Close modal"
+      tabIndex={-1}
       className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/20"
       onClick={handleBackdropClick}
       data-testid="process-modal"
@@ -277,7 +280,7 @@ export const ProcessFlowModal = ({
               className="rounded-md p-2 text-slate-300 transition-all hover:bg-white/10 hover:text-white"
               title="Zoom out (-)"
             >
-              <ZoomOut className="h-4 w-4" />
+              <ZoomOut className="size-4" />
             </button>
             <span className="min-w-[3rem] px-2 text-center font-mono text-xs text-slate-400">
               {Math.round(zoom * 100)}%
@@ -287,7 +290,7 @@ export const ProcessFlowModal = ({
               className="rounded-md p-2 text-slate-300 transition-all hover:bg-white/10 hover:text-white"
               title="Zoom in (+)"
             >
-              <ZoomIn className="h-4 w-4" />
+              <ZoomIn className="size-4" />
             </button>
           </div>
           <button
@@ -302,7 +305,7 @@ export const ProcessFlowModal = ({
               onClick={handleFocusInGraph}
               className="flex items-center gap-2 rounded-lg bg-cyan-400 px-5 py-2.5 text-sm font-medium text-slate-900 shadow-lg shadow-cyan-500/20 transition-all hover:bg-cyan-300"
             >
-              <Focus className="h-4 w-4" />
+              <Focus className="size-4" />
               Toggle Focus
             </button>
           )}
@@ -310,7 +313,7 @@ export const ProcessFlowModal = ({
             onClick={handleCopyMermaid}
             className="flex items-center gap-2 rounded-lg bg-purple-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-purple-500/20 transition-all hover:bg-purple-500"
           >
-            <Copy className="h-4 w-4" />
+            <Copy className="size-4" />
             Copy Mermaid
           </button>
           <button

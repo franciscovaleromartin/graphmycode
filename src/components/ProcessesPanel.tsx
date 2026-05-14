@@ -328,8 +328,8 @@ export const ProcessesPanel = () => {
   if (totalCount === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-surface">
-          <GitBranch className="h-7 w-7 text-text-muted" />
+        <div className="mb-4 flex size-14 items-center justify-center rounded-xl bg-surface">
+          <GitBranch className="size-7 text-text-muted" />
         </div>
         <h3 className="mb-2 text-base font-medium text-text-primary">No Processes Detected</h3>
         <p className="max-w-xs text-sm text-text-secondary">
@@ -346,7 +346,7 @@ export const ProcessesPanel = () => {
       <div className="border-b border-border-subtle p-3">
         <div className="mb-2 flex items-center gap-2">
           <div className="flex flex-1 items-center gap-2 rounded-lg border border-border-subtle bg-elevated px-3 py-2 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20">
-            <Search className="h-4 w-4 text-text-muted" />
+            <Search className="size-4 text-text-muted" />
             <input
               type="text"
               value={searchQuery}
@@ -374,7 +374,7 @@ export const ProcessesPanel = () => {
             className="group flex w-full items-center gap-3 rounded-xl border border-border-subtle bg-elevated/40 p-3 text-left shadow-sm transition-all hover:border-cyan-500/30 hover:bg-elevated/80 hover:shadow-cyan-900/10"
           >
             <div className="rounded-lg bg-cyan-500/10 p-2 transition-colors group-hover:bg-cyan-500/20">
-              <Layers className="h-5 w-5 text-cyan-400" />
+              <Layers className="size-5 text-cyan-400" />
             </div>
             <div className="flex-1">
               <h4 className="text-sm font-medium text-text-primary group-hover:text-cyan-200">
@@ -384,10 +384,10 @@ export const ProcessesPanel = () => {
             </div>
             {loadingProcess === 'all' ? (
               <span className="mr-1 animate-spin">
-                <Sparkles className="h-4 w-4 text-cyan-400" />
+                <Sparkles className="size-4 text-cyan-400" />
               </span>
             ) : (
-              <Eye className="h-4 w-4 text-text-muted group-hover:text-cyan-400" />
+              <Eye className="size-4 text-text-muted group-hover:text-cyan-400" />
             )}
           </button>
         </div>
@@ -400,11 +400,11 @@ export const ProcessesPanel = () => {
               className="flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-hover"
             >
               {expandedSections.has('cross') ? (
-                <ChevronDown className="h-4 w-4 text-text-muted" />
+                <ChevronDown className="size-4 text-text-muted" />
               ) : (
-                <ChevronRight className="h-4 w-4 text-text-muted" />
+                <ChevronRight className="size-4 text-text-muted" />
               )}
-              <Zap className="h-4 w-4 text-amber-400" />
+              <Zap className="size-4 text-amber-400" />
               <span className="text-sm font-medium text-text-primary">Cross-Community</span>
               <span className="ml-auto rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">
                 {filteredProcesses.cross.length}
@@ -437,11 +437,11 @@ export const ProcessesPanel = () => {
               className="flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-hover"
             >
               {expandedSections.has('intra') ? (
-                <ChevronDown className="h-4 w-4 text-text-muted" />
+                <ChevronDown className="size-4 text-text-muted" />
               ) : (
-                <ChevronRight className="h-4 w-4 text-text-muted" />
+                <ChevronRight className="size-4 text-text-muted" />
               )}
-              <Home className="h-4 w-4 text-emerald-400" />
+              <Home className="size-4 text-emerald-400" />
               <span className="text-sm font-medium text-text-primary">Intra-Community</span>
               <span className="ml-auto rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">
                 {filteredProcesses.intra.length}
@@ -508,7 +508,7 @@ const ProcessItem = ({
       data-testid="process-row"
       className={`group mx-2 flex items-center gap-2 rounded-lg px-4 py-2 transition-all hover:bg-hover ${rowClass}`}
     >
-      <GitBranch className="h-4 w-4 flex-shrink-0 text-text-muted" />
+      <GitBranch className="size-4 flex-shrink-0 text-text-muted" />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm text-text-primary">{process.label}</div>
         <div className="flex items-center gap-2 text-xs text-text-muted">
@@ -532,7 +532,7 @@ const ProcessItem = ({
         title={isFocused ? 'Click to remove highlight from graph' : 'Click to highlight in graph'}
         data-testid="process-highlight-button"
       >
-        <Lightbulb className="h-4 w-4" />
+        <Lightbulb className="size-4" />
       </button>
       <button
         onClick={onView}
@@ -545,7 +545,7 @@ const ProcessItem = ({
         }`}
       >
         {isLoading ? (
-          <span className="animate-pulse">Loading...</span>
+          <span className="animate-pulse">Loading…</span>
         ) : isSelected ? (
           <>
             <Eye className="h-3.5 w-3.5" />

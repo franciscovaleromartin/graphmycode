@@ -192,7 +192,7 @@ export const QueryFAB = () => {
         onClick={() => setIsExpanded(true)}
         className="group absolute bottom-36 left-4 z-20 flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 px-4 py-2.5 text-sm font-medium text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]"
       >
-        <Terminal className="h-4 w-4" />
+        <Terminal className="size-4" />
         <span>Consulta Cypher</span>
         {queryResult && queryResult.nodeIds.length > 0 && (
           <span className="ml-1 rounded-md bg-white/20 px-1.5 py-0.5 text-xs font-semibold">
@@ -210,8 +210,8 @@ export const QueryFAB = () => {
     >
       <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-teal-500">
-            <Terminal className="h-4 w-4 text-white" />
+          <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-teal-500">
+            <Terminal className="size-4 text-white" />
           </div>
           <span className="text-sm font-medium">Cypher Query</span>
         </div>
@@ -219,7 +219,7 @@ export const QueryFAB = () => {
           onClick={handleClose}
           className="rounded-md p-1.5 text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
         >
-          <X className="h-4 w-4" />
+          <X className="size-4" />
         </button>
       </div>
 
@@ -324,11 +324,11 @@ export const QueryFAB = () => {
                 onClick={() => setShowResults(!showResults)}
                 className="flex items-center gap-1 text-xs text-text-muted transition-colors hover:text-text-primary"
               >
-                <Table className="h-3 w-3" />
+                <Table className="size-3" />
                 {showResults ? (
-                  <ChevronDown className="h-3 w-3" />
+                  <ChevronDown className="size-3" />
                 ) : (
-                  <ChevronUp className="h-3 w-3" />
+                  <ChevronUp className="size-3" />
                 )}
               </button>
             </div>

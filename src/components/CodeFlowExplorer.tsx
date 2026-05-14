@@ -108,12 +108,12 @@ const TreeItem = ({ node, depth, selectedPath, expandedPaths, onToggle, onSelect
         )}
         {node.type === 'folder' ? (
           isExpanded ? (
-            <FolderOpen className="h-4 w-4 shrink-0" style={{ color: NODE_COLORS.Folder }} />
+            <FolderOpen className="size-4 shrink-0" style={{ color: NODE_COLORS.Folder }} />
           ) : (
-            <Folder className="h-4 w-4 shrink-0" style={{ color: NODE_COLORS.Folder }} />
+            <Folder className="size-4 shrink-0" style={{ color: NODE_COLORS.Folder }} />
           )
         ) : (
-          <FileCode className="h-4 w-4 shrink-0" style={{ color: NODE_COLORS.File }} />
+          <FileCode className="size-4 shrink-0" style={{ color: NODE_COLORS.File }} />
         )}
         <span className="truncate font-mono">{node.name}</span>
       </button>

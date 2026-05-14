@@ -130,7 +130,7 @@ export const ToolCallCard = ({ toolCall, defaultExpanded = false }: ToolCallCard
       >
         {/* Expand/collapse icon */}
         <span className="text-text-muted">
-          {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
         </span>
 
         {/* Tool name */}
@@ -179,8 +179,8 @@ export const ToolCallCard = ({ toolCall, defaultExpanded = false }: ToolCallCard
           {/* Loading state for in-progress */}
           {toolCall.status === 'running' && !toolCall.result && (
             <div className="flex items-center gap-2 px-3 py-3 text-xs text-text-muted">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span>Executing...</span>
+              <Loader2 className="size-3 animate-spin" />
+              <span>Executing…</span>
             </div>
           )}
         </div>

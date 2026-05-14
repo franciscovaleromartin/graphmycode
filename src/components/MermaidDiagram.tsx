@@ -115,7 +115,7 @@ export const MermaidDiagram = ({ code }: MermaidDiagramProps) => {
     return (
       <div className="my-3 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4">
         <div className="mb-2 flex items-center gap-2 text-sm text-rose-300">
-          <AlertTriangle className="h-4 w-4" />
+          <AlertTriangle className="size-4" />
           <span className="font-medium">Diagram Error</span>
         </div>
         <pre className="font-mono text-xs whitespace-pre-wrap text-rose-200/70">{error}</pre>

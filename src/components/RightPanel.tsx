@@ -253,7 +253,7 @@ export const RightPanel = () => {
           className="rounded p-1.5 text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
           title="Close Panel"
         >
-          <PanelRightClose className="h-4 w-4" />
+          <PanelRightClose className="size-4" />
         </button>
       </div>
 
@@ -277,7 +277,7 @@ export const RightPanel = () => {
               )}
               {isAgentInitializing && (
                 <span className="flex items-center gap-1 rounded-full border border-border-subtle bg-surface px-2 py-1 text-[11px] text-text-muted">
-                  <Loader2 className="h-3 w-3 animate-spin" /> {t.connecting}
+                  <Loader2 className="size-3 animate-spin" /> {t.connecting}
                 </span>
               )}
             </div>
@@ -294,7 +294,7 @@ export const RightPanel = () => {
           {/* Status / errors */}
           {agentError && (
             <div className="flex items-center gap-2 border-b border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
-              <AlertTriangle className="h-4 w-4" />
+              <AlertTriangle className="size-4" />
               <span>{agentError}</span>
             </div>
           )}
@@ -303,7 +303,7 @@ export const RightPanel = () => {
           <div className="scrollbar-thin flex-1 overflow-y-auto p-4">
             {chatMessages.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center px-4 text-center">
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-node-interface text-2xl shadow-glow">
+                <div className="mb-4 flex size-14 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-node-interface text-2xl shadow-glow">
                   🧠
                 </div>
                 <h3 className="mb-2 text-base font-medium">{t.askAnything}</h3>
@@ -328,7 +328,7 @@ export const RightPanel = () => {
                     {message.role === 'user' && (
                       <div className="mb-4">
                         <div className="mb-2 flex items-center gap-2">
-                          <User className="h-4 w-4 text-text-muted" />
+                          <User className="size-4 text-text-muted" />
                           <span className="text-xs font-medium tracking-wide text-text-muted uppercase">
                             {t.youLabel}
                           </span>
@@ -341,12 +341,12 @@ export const RightPanel = () => {
                     {message.role === 'assistant' && (
                       <div>
                         <div className="mb-3 flex items-center gap-2">
-                          <Sparkles className="h-4 w-4 text-accent" />
+                          <Sparkles className="size-4 text-accent" />
                           <span className="text-xs font-medium tracking-wide text-text-muted uppercase">
                             {t.aiLabel}
                           </span>
                           {isChatLoading && message === chatMessages[chatMessages.length - 1] && (
-                            <Loader2 className="h-3 w-3 animate-spin text-accent" />
+                            <Loader2 className="size-3 animate-spin text-accent" />
                           )}
                         </div>
                         <div className="chat-prose pl-6">
@@ -424,7 +424,7 @@ export const RightPanel = () => {
               {isChatLoading ? (
                 <button
                   onClick={stopChatResponse}
-                  className="flex h-9 w-9 items-center justify-center rounded-md bg-red-500/80 text-white transition-all hover:bg-red-500"
+                  className="flex size-9 items-center justify-center rounded-md bg-red-500/80 text-white transition-all hover:bg-red-500"
                   title="Stop response"
                 >
                   <Square className="h-3.5 w-3.5 fill-current" />
@@ -433,7 +433,7 @@ export const RightPanel = () => {
                 <button
                   onClick={handleSendMessage}
                   disabled={!chatInput.trim() || isAgentInitializing}
-                  className="flex h-9 w-9 items-center justify-center rounded-md bg-accent text-white transition-all hover:bg-accent-dim disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex size-9 items-center justify-center rounded-md bg-accent text-white transition-all hover:bg-accent-dim disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Send className="h-3.5 w-3.5" />
                 </button>

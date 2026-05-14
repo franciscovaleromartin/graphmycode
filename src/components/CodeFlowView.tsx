@@ -473,8 +473,8 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle, CodeFlowViewProps>(
             {isLoading && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-void/80">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-border-subtle border-t-accent" />
-                  <span className="text-sm text-text-muted">Analizando flujo...</span>
+                  <div className="size-8 animate-spin rounded-full border-2 border-border-subtle border-t-accent" />
+                  <span className="text-sm text-text-muted">Analizando flujo…</span>
                 </div>
               </div>
             )}

@@ -21,12 +21,12 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
-  { id: 'overview', label: 'Overview', icon: <HelpCircle className="h-4 w-4" /> },
-  { id: 'graph', label: 'Graph & nodes', icon: <GitBranch className="h-4 w-4" /> },
-  { id: 'search', label: 'Search & filter', icon: <Search className="h-4 w-4" /> },
-  { id: 'ai', label: 'Nexus AI', icon: <Zap className="h-4 w-4" /> },
-  { id: 'shortcuts', label: 'Shortcuts', icon: <Keyboard className="h-4 w-4" /> },
-  { id: 'status', label: 'Status bar', icon: <BarChart2 className="h-4 w-4" /> },
+  { id: 'overview', label: 'Overview', icon: <HelpCircle className="size-4" /> },
+  { id: 'graph', label: 'Graph & nodes', icon: <GitBranch className="size-4" /> },
+  { id: 'search', label: 'Search & filter', icon: <Search className="size-4" /> },
+  { id: 'ai', label: 'Nexus AI', icon: <Zap className="size-4" /> },
+  { id: 'shortcuts', label: 'Shortcuts', icon: <Keyboard className="size-4" /> },
+  { id: 'status', label: 'Status bar', icon: <BarChart2 className="size-4" /> },
 ];
 
 const shortcuts = [
@@ -82,7 +82,7 @@ const getStatusItems = (nodeCount: number, edgeCount: number) => [
     badge: (
       <span
         style={{
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: 500,
           color: '#34d399',
           flexShrink: 0,

@@ -167,7 +167,7 @@ export const Header = ({
       <div className="flex items-center gap-4">
         {/* Logo */}
         <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-accent to-node-interface text-sm font-bold text-white shadow-glow">
+          <div className="flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-accent to-node-interface text-sm font-bold text-white shadow-glow">
             ◇
           </div>
           <span className="text-[15px] font-semibold tracking-tight">GitNexus</span>
@@ -190,7 +190,7 @@ export const Header = ({
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-node-function" />
               <span className="max-w-[160px] truncate">{projectName}</span>
               <ChevronDown
-                className={`h-3 w-3 text-text-muted transition-transform duration-200 ${isRepoDropdownOpen ? 'rotate-180' : ''}`}
+                className={`size-3 text-text-muted transition-transform duration-200 ${isRepoDropdownOpen ? 'rotate-180' : ''}`}
               />
             </button>
 
@@ -251,7 +251,7 @@ export const Header = ({
                                 setReanalyzeProgress({
                                   phase: 'queued',
                                   percent: 0,
-                                  message: 'Starting...',
+                                  message: 'Starting…',
                                 });
                                 try {
                                   const { jobId } = await startAnalyze({
@@ -288,7 +288,7 @@ export const Header = ({
                               }`}
                               title={
                                 reanalyzing === repo.name
-                                  ? 'Re-analyzing...'
+                                  ? 'Re-analyzing…'
                                   : `Re-analyze ${repo.name}`
                               }
                             >
@@ -336,7 +336,7 @@ export const Header = ({
                     {reanalyzing && reanalyzeProgress && (
                       <div className="border-t border-border-subtle bg-accent/5 px-4 py-2.5">
                         <div className="mb-1.5 flex items-center gap-2">
-                          <Loader2 className="h-3 w-3 shrink-0 animate-spin text-accent" />
+                          <Loader2 className="size-3 shrink-0 animate-spin text-accent" />
                           <span className="truncate text-xs text-text-secondary">
                             Re-analyzing {reanalyzing}: {reanalyzeProgress.message}
                           </span>
@@ -380,7 +380,7 @@ export const Header = ({
       {/* Center - Search */}
       <div className="relative mx-6 max-w-md flex-1" ref={searchRef}>
         <div className="flex items-center gap-2.5 rounded-lg border border-border-subtle bg-surface px-3.5 py-2 transition-all focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20">
-          <Search className="h-4 w-4 flex-shrink-0 text-text-muted" />
+          <Search className="size-4 flex-shrink-0 text-text-muted" />
           <input
             ref={inputRef}
             type="text"
@@ -444,10 +444,10 @@ export const Header = ({
           href="https://www.franciscoo-valero.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+          className="flex size-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Portfolio"
         >
-          <Globe className="h-4 w-4" />
+          <Globe className="size-4" />
         </a>
 
         {/* LinkedIn */}
@@ -455,10 +455,10 @@ export const Header = ({
           href="https://www.linkedin.com/in/francisco-valero/"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+          className="flex size-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="LinkedIn"
         >
-          <Linkedin className="h-4 w-4" />
+          <Linkedin className="size-4" />
         </a>
 
         {/* GitHub Star Button */}
@@ -468,7 +468,7 @@ export const Header = ({
           rel="noopener noreferrer"
           className="group flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-3.5 py-2 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:from-purple-500 hover:to-pink-500 hover:shadow-xl"
         >
-          <Github className="h-4 w-4" />
+          <Github className="size-4" />
           <span className="hidden sm:inline">Star if cool</span>
           <Star className="h-3.5 w-3.5 transition-all group-hover:fill-yellow-300 group-hover:text-yellow-300" />
           <span className="hidden sm:inline">✨</span>
@@ -488,7 +488,7 @@ export const Header = ({
         {/* Icon buttons */}
         <button
           onClick={() => setSettingsPanelOpen(true)}
-          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+          className="flex size-9 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="AI Settings"
         >
           <Settings className="h-4.5 w-4.5" />
@@ -496,7 +496,7 @@ export const Header = ({
         <button
           title="Help"
           onClick={() => setHelpDialogBoxOpen(true)}
-          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+          className="flex size-9 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
         >
           <HelpCircle className="h-4.5 w-4.5" />
         </button>
@@ -510,7 +510,7 @@ export const Header = ({
               : 'bg-gradient-to-r from-accent to-accent-dim text-white shadow-glow hover:-translate-y-0.5 hover:shadow-lg'
           } `}
         >
-          <Sparkles className="h-4 w-4" />
+          <Sparkles className="size-4" />
           <span>Nexus AI</span>
         </button>
       </div>

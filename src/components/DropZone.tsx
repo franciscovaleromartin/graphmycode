@@ -71,12 +71,12 @@ function SuccessCard() {
       aria-live="polite"
     >
       {/* Success glow */}
-      <div className="pointer-events-none absolute -top-20 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-emerald-500/8 blur-3xl" />
+      <div className="pointer-events-none absolute -top-20 left-1/2 size-64 -translate-x-1/2 rounded-full bg-emerald-500/8 blur-3xl" />
 
       <div className="relative">
         {/* Animated check icon */}
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
-          <Check className="h-8 w-8 text-emerald-400" />
+        <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+          <Check className="size-8 text-emerald-400" />
         </div>
 
         <h2 className="mb-2 text-center text-lg font-semibold text-emerald-400">
@@ -111,16 +111,16 @@ function LoadingCard({ message }: { message: string }) {
       aria-live="polite"
     >
       {/* Loading glow */}
-      <div className="pointer-events-none absolute -top-20 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-accent/8 blur-3xl" />
+      <div className="pointer-events-none absolute -top-20 left-1/2 size-64 -translate-x-1/2 rounded-full bg-accent/8 blur-3xl" />
 
       <div className="relative">
         {/* Spinner */}
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/20 to-accent-dim/10 shadow-glow-soft">
-          <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/20 to-accent-dim/10 shadow-glow-soft">
+          <Loader2 className="size-8 animate-spin text-accent" />
         </div>
 
         <h2 className="mb-2 text-center text-lg font-semibold text-text-primary">
-          {message || 'Connecting...'}
+          {message || 'Connecting…'}
         </h2>
         <p className="text-center text-sm leading-relaxed text-text-secondary">
           This may take a moment for large repositories
@@ -128,7 +128,7 @@ function LoadingCard({ message }: { message: string }) {
 
         {/* Decorative sparkle */}
         <div className="mt-5 flex items-center justify-center">
-          <Sparkles className="h-4 w-4 text-accent/30" />
+          <Sparkles className="size-4 text-accent/30" />
         </div>
       </div>
     </div>
@@ -167,7 +167,7 @@ export const DropZone = ({ onServerConnect }: DropZoneProps) => {
   // appropriate screen (landing with repo cards, or analyze for zero repos).
   const handleAutoConnect = async () => {
     setPhase('loading');
-    setLoadingMessage('Connecting...');
+    setLoadingMessage('Connecting…');
     setError(null);
 
     try {
@@ -197,7 +197,7 @@ export const DropZone = ({ onServerConnect }: DropZoneProps) => {
   const connectToRepo = (repoName: string) => {
     autoConnectRan.current = true;
     setPhase('loading');
-    setLoadingMessage('Loading graph...');
+    setLoadingMessage('Loading graph…');
     setError(null);
 
     (async () => {
@@ -208,13 +208,13 @@ export const DropZone = ({ onServerConnect }: DropZoneProps) => {
           detectedBackendUrl,
           (p, downloaded, total) => {
             if (p === 'validating') {
-              setLoadingMessage('Validating server...');
+              setLoadingMessage('Validating server…');
             } else if (p === 'downloading') {
               const pct = total ? Math.round((downloaded / total) * 100) : null;
               const mb = (downloaded / (1024 * 1024)).toFixed(1);
-              setLoadingMessage(pct ? `Downloading graph... ${pct}%` : `Downloading... ${mb} MB`);
+              setLoadingMessage(pct ? `Downloading graph… ${pct}%` : `Downloading… ${mb} MB`);
             } else if (p === 'extracting') {
-              setLoadingMessage('Processing graph...');
+              setLoadingMessage('Processing graph…');
             }
           },
           abortController.signal,
@@ -288,8 +288,8 @@ export const DropZone = ({ onServerConnect }: DropZoneProps) => {
     <div className="flex min-h-screen items-center justify-center bg-void p-8">
       {/* Background gradient effects */}
       <div className="pointer-events-none fixed inset-0">
-        <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
-        <div className="absolute right-1/4 bottom-1/4 h-96 w-96 rounded-full bg-node-interface/10 blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 size-96 rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute right-1/4 bottom-1/4 size-96 rounded-full bg-node-interface/10 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-lg">

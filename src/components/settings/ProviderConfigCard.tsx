@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
-import { ReactNode } from 'react';
+import { ReactNode, useId } from 'react';
 import { Eye, EyeOff, Key } from '@/lib/lucide-icons';
 
 type ApiKeyField = {
@@ -39,6 +39,10 @@ export const ProviderConfigCard = ({
   model,
   children,
 }: ProviderConfigCardProps) => {
+  const baseId = useId();
+  const apiKeyInputId = `${baseId}-api-key`;
+  const modelInputId = `${baseId}-model`;
+
   return (
     <div className="animate-fade-in space-y-4">
       <div className="flex items-center justify-between">
@@ -50,12 +54,13 @@ export const ProviderConfigCard = ({
 
       {apiKey && (
         <div className="space-y-2">
-          <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
-            <Key className="h-4 w-4" />
+          <label htmlFor={apiKeyInputId} className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+            <Key className="size-4" />
             API Key
           </label>
           <div className="relative">
             <input
+              id={apiKeyInputId}
               type={apiKey.isVisible ? 'text' : 'password'}
               value={apiKey.value}
               onChange={(e) => apiKey.onChange(e.target.value)}
@@ -67,7 +72,7 @@ export const ProviderConfigCard = ({
               onClick={apiKey.onToggleVisibility}
               className="absolute top-1/2 right-3 -translate-y-1/2 p-1 text-text-muted transition-colors hover:text-text-primary"
             >
-              {apiKey.isVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {apiKey.isVisible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
           </div>
           {apiKey.helperText && (
@@ -90,10 +95,11 @@ export const ProviderConfigCard = ({
 
       {model && (
         <div className="space-y-2">
-          <label className="text-sm font-medium text-text-secondary">
+          <label htmlFor={modelInputId} className="text-sm font-medium text-text-secondary">
             {model.label ?? 'Model'}
           </label>
           <input
+            id={modelInputId}
             type="text"
             value={model.value}
             onChange={(e) => model.onChange(e.target.value)}

@@ -236,12 +236,15 @@ export function parseJsTs(tree: Tree, deep = false): CodeFlowGraph {
 
   walk(tree.rootNode, startId);
 
+  // Build O(1) lookup set of existing edge IDs before the loop to avoid O(n*m)
+  const existingEdgeIds = new Set(edges.map((e) => e.id));
   for (const { fromId, callee } of pendingCalls) {
     const targetId = fnNameToId.get(callee);
     if (targetId && targetId !== fromId) {
       const edgeId = `call_${fromId}_${targetId}`;
-      if (!edges.some(e => e.id === edgeId)) {
+      if (!existingEdgeIds.has(edgeId)) {
         edges.push({ id: edgeId, source: fromId, target: targetId });
+        existingEdgeIds.add(edgeId);
       }
     }
   }

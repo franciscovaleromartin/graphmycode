@@ -768,8 +768,8 @@ export const LandingScreen = () => {
       <TopBar />
       {/* Ambient glows */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-accent/8 blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-node-function/6 blur-3xl" />
+        <div className="absolute -top-32 left-1/2 size-96 -translate-x-1/2 rounded-full bg-accent/8 blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 size-64 rounded-full bg-node-function/6 blur-3xl" />
       </div>
 
       <div className="relative flex w-full max-w-xl flex-1 flex-col justify-center py-10">
@@ -826,7 +826,7 @@ export const LandingScreen = () => {
             onClick={() => fileInputRef.current?.click()}
           >
             <svg
-              className={`mb-4 h-10 w-10 transition-colors ${isDragging ? 'text-accent' : 'text-text-muted'}`}
+              className={`mb-4 size-10 transition-colors ${isDragging ? 'text-accent' : 'text-text-muted'}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
             >
               <path strokeLinecap="round" strokeLinejoin="round"

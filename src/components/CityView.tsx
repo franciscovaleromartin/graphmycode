@@ -101,7 +101,7 @@ export const CityView = forwardRef<CityViewHandle, Props>(
     if (buildings.length === 0) {
       return (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0d0d1a] text-center">
-          <Building2 className="h-8 w-8 text-text-muted opacity-40" />
+          <Building2 className="size-8 text-text-muted opacity-40" />
           <p className="text-sm text-text-muted">No hay datos de deuda técnica disponibles.</p>
           <p className="text-xs text-text-muted opacity-60">Analiza un repositorio para visualizar su estructura.</p>
         </div>

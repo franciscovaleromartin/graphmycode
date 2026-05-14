@@ -147,12 +147,12 @@ const TreeItem = ({
         {/* Node icon */}
         {node.type === 'folder' ? (
           isExpanded ? (
-            <FolderOpen className="h-4 w-4 shrink-0" style={{ color: NODE_COLORS.Folder }} />
+            <FolderOpen className="size-4 shrink-0" style={{ color: NODE_COLORS.Folder }} />
           ) : (
-            <Folder className="h-4 w-4 shrink-0" style={{ color: NODE_COLORS.Folder }} />
+            <Folder className="size-4 shrink-0" style={{ color: NODE_COLORS.Folder }} />
           )
         ) : (
-          <FileCode className="h-4 w-4 shrink-0" style={{ color: NODE_COLORS.File }} />
+          <FileCode className="size-4 shrink-0" style={{ color: NODE_COLORS.File }} />
         )}
 
         {/* Name */}
@@ -309,7 +309,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
           className="rounded p-2 text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Expand Panel"
         >
-          <PanelLeft className="h-5 w-5" />
+          <PanelLeft className="size-5" />
         </button>
         <div className="my-1 h-px w-6 bg-border-subtle" />
         <button
@@ -320,7 +320,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
           className={`rounded p-2 transition-colors ${activeTab === 'files' ? 'bg-accent/10 text-accent' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
           title="File Explorer"
         >
-          <Folder className="h-5 w-5" />
+          <Folder className="size-5" />
         </button>
         <button
           onClick={() => {
@@ -330,7 +330,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
           className={`rounded p-2 transition-colors ${activeTab === 'filters' ? 'bg-accent/10 text-accent' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
           title="Filters"
         >
-          <Filter className="h-5 w-5" />
+          <Filter className="size-5" />
         </button>
       </div>
     );
@@ -367,7 +367,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
           className="rounded p-1 text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
           title="Collapse Panel"
         >
-          <PanelLeftClose className="h-4 w-4" />
+          <PanelLeftClose className="size-4" />
         </button>
       </div>
 
@@ -436,14 +436,14 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
                   } `}
                 >
                   <div
-                    className={`flex h-5 w-5 items-center justify-center rounded ${isVisible ? '' : 'opacity-40'}`}
+                    className={`flex size-5 items-center justify-center rounded ${isVisible ? '' : 'opacity-40'}`}
                     style={{ backgroundColor: `${NODE_COLORS[label]}20` }}
                   >
-                    <Icon className="h-3 w-3" style={{ color: NODE_COLORS[label] }} />
+                    <Icon className="size-3" style={{ color: NODE_COLORS[label] }} />
                   </div>
                   <span className="flex-1 text-xs">{label}</span>
                   <div
-                    className={`h-2 w-2 rounded-full transition-colors ${isVisible ? 'bg-accent' : 'bg-border-subtle'}`}
+                    className={`size-2 rounded-full transition-colors ${isVisible ? 'bg-accent' : 'bg-border-subtle'}`}
                   />
                 </button>
               );
@@ -480,7 +480,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
                     />
                     <span className="flex-1 text-xs">{info.label}</span>
                     <div
-                      className={`h-2 w-2 rounded-full transition-colors ${isVisible ? 'bg-accent' : 'bg-border-subtle'}`}
+                      className={`size-2 rounded-full transition-colors ${isVisible ? 'bg-accent' : 'bg-border-subtle'}`}
                     />
                   </button>
                 );
@@ -491,7 +491,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
           {/* Depth Filter */}
           <div className="mt-6 border-t border-border-subtle pt-4">
             <h3 className="mb-2 text-xs font-medium tracking-wide text-text-secondary uppercase">
-              <Target className="mr-1.5 inline h-3 w-3" />
+              <Target className="mr-1.5 inline size-3" />
               Focus Depth
             </h3>
             <p className="mb-3 text-[11px] text-text-muted">

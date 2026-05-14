@@ -60,7 +60,7 @@ export const WebGPUFallbackDialog = ({
             onClick={onClose}
             className="absolute top-4 right-4 p-1 text-text-muted transition-colors hover:text-text-primary"
           >
-            <X className="h-5 w-5" />
+            <X className="size-5" />
           </button>
 
           <div className="flex items-center gap-4">
@@ -94,7 +94,7 @@ export const WebGPUFallbackDialog = ({
             </p>
             <ul className="mt-2 space-y-1.5 text-sm text-text-muted">
               <li className="flex items-start gap-2">
-                <Snail className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" />
+                <Snail className="mt-0.5 size-4 flex-shrink-0 text-amber-400" />
                 <span>
                   <strong className="text-text-secondary">Use CPU</strong> — Works but{' '}
                   {isSmallCodebase ? 'a bit' : 'way'} slower
@@ -107,7 +107,7 @@ export const WebGPUFallbackDialog = ({
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <SkipForward className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-400" />
+                <SkipForward className="mt-0.5 size-4 flex-shrink-0 text-blue-400" />
                 <span>
                   <strong className="text-text-secondary">Skip it</strong> — Graph works, just no AI
                   semantic search
@@ -132,7 +132,7 @@ export const WebGPUFallbackDialog = ({
             onClick={onSkip}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border-subtle bg-surface px-4 py-2.5 text-sm font-medium text-text-secondary transition-all hover:bg-hover hover:text-text-primary"
           >
-            <SkipForward className="h-4 w-4" />
+            <SkipForward className="size-4" />
             Skip Embeddings
           </button>
           <button
@@ -143,7 +143,7 @@ export const WebGPUFallbackDialog = ({
                 : 'border border-amber-500/30 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30'
             }`}
           >
-            <Snail className="h-4 w-4" />
+            <Snail className="size-4" />
             Use CPU {isSmallCodebase ? '(Recommended)' : '(Slow)'}
           </button>
         </div>

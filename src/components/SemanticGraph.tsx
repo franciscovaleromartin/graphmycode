@@ -376,18 +376,18 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
 
     const loadingContent = (() => {
       if (state.status === 'loading-model') {
-        return { message: 'Cargando modelo semántico...', detail: null, percent: state.percent };
+        return { message: 'Cargando modelo semántico…', detail: null, percent: state.percent };
       }
       if (state.status === 'embedding') {
         const pct = state.total > 0 ? Math.round((state.processed / state.total) * 100) : 0;
         return {
-          message: 'Generando embeddings...',
+          message: 'Generando embeddings…',
           detail: `${state.processed} / ${state.total} nodos`,
           percent: pct,
         };
       }
       if (state.status === 'reducing') {
-        return { message: 'Calculando similitudes...', detail: null, percent: 99 };
+        return { message: 'Calculando similitudes…', detail: null, percent: 99 };
       }
       return null;
     })();
@@ -398,14 +398,14 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-void">
             {/* Gradientes de fondo */}
             <div className="pointer-events-none absolute inset-0">
-              <div className="absolute top-1/3 left-1/3 h-96 w-96 animate-pulse rounded-full bg-accent/10 blur-3xl" />
-              <div className="absolute right-1/3 bottom-1/3 h-96 w-96 animate-pulse rounded-full bg-node-interface/10 blur-3xl" />
+              <div className="absolute top-1/3 left-1/3 size-96 animate-pulse rounded-full bg-accent/10 blur-3xl" />
+              <div className="absolute right-1/3 bottom-1/3 size-96 animate-pulse rounded-full bg-node-interface/10 blur-3xl" />
             </div>
 
             {/* Orb pulsante */}
             <div className="relative mb-10">
-              <div className="h-28 w-28 animate-pulse-glow rounded-full bg-gradient-to-br from-accent to-node-interface" />
-              <div className="absolute inset-0 h-28 w-28 rounded-full bg-gradient-to-br from-accent to-node-interface opacity-50 blur-xl" />
+              <div className="size-28 animate-pulse-glow rounded-full bg-gradient-to-br from-accent to-node-interface" />
+              <div className="absolute inset-0 size-28 rounded-full bg-gradient-to-br from-accent to-node-interface opacity-50 blur-xl" />
             </div>
 
             {/* Barra de progreso */}
@@ -450,7 +450,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
       const isOffline = !navigator.onLine;
       return (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-void px-8 text-center">
-          <AlertCircle className="h-6 w-6 text-red-400" />
+          <AlertCircle className="size-6 text-red-400" />
           <p className="max-w-xs text-sm text-red-400">{state.message}</p>
           {!isOffline && (
             <button

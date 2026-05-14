@@ -31,8 +31,8 @@ export const AnalyzeOnboarding = ({ onComplete }: AnalyzeOnboardingProps) => {
   return (
     <div className="relative animate-fade-in overflow-hidden rounded-3xl border border-border-default bg-surface p-7">
       {/* Ambient glows — mirrors OnboardingGuide aesthetic */}
-      <div className="pointer-events-none absolute -top-28 -right-28 h-72 w-72 rounded-full bg-accent/6 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-node-function/6 blur-3xl" />
+      <div className="pointer-events-none absolute -top-28 -right-28 size-72 rounded-full bg-accent/6 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 size-56 rounded-full bg-node-function/6 blur-3xl" />
 
       {/* Header */}
       <div className="relative mb-6">
@@ -46,8 +46,8 @@ export const AnalyzeOnboarding = ({ onComplete }: AnalyzeOnboardingProps) => {
           </div>
 
           {/* Icon */}
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/20 to-accent-dim/10 shadow-glow-soft">
-            <Github className="h-7 w-7 text-accent" />
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/20 to-accent-dim/10 shadow-glow-soft">
+            <Github className="size-7 text-accent" />
           </div>
 
           <h2 className="text-lg leading-snug font-semibold text-text-primary">

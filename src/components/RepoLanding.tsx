@@ -50,7 +50,7 @@ function RepoCard({ repo, onClick }: { repo: BackendRepo; onClick: () => void })
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <GitBranch className="h-4 w-4 shrink-0 text-accent" />
+            <GitBranch className="size-4 shrink-0 text-accent" />
             <h3 className="truncate text-sm font-semibold text-text-primary transition-colors group-hover:text-accent">
               {repo.name}
             </h3>
@@ -61,24 +61,24 @@ function RepoCard({ repo, onClick }: { repo: BackendRepo; onClick: () => void })
             </p>
           )}
         </div>
-        <ArrowRight className="h-4 w-4 shrink-0 text-text-muted opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-accent group-hover:opacity-100" />
+        <ArrowRight className="size-4 shrink-0 text-text-muted opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-accent group-hover:opacity-100" />
       </div>
 
       {stats && (stats.files || stats.nodes) && (
         <div className="mt-3 flex flex-wrap gap-2 pl-6">
           {stats.files != null && (
             <span className="inline-flex items-center gap-1 rounded-md bg-void px-2 py-0.5 text-[11px] text-text-muted">
-              <FileCode className="h-3 w-3" /> {stats.files.toLocaleString()} files
+              <FileCode className="size-3" /> {stats.files.toLocaleString()} files
             </span>
           )}
           {stats.nodes != null && (
             <span className="inline-flex items-center gap-1 rounded-md bg-void px-2 py-0.5 text-[11px] text-text-muted">
-              <Layers className="h-3 w-3" /> {stats.nodes.toLocaleString()} symbols
+              <Layers className="size-3" /> {stats.nodes.toLocaleString()} symbols
             </span>
           )}
           {stats.processes != null && stats.processes > 0 && (
             <span className="inline-flex items-center gap-1 rounded-md bg-void px-2 py-0.5 text-[11px] text-text-muted">
-              <Sparkles className="h-3 w-3" /> {stats.processes} flows
+              <Sparkles className="size-3" /> {stats.processes} flows
             </span>
           )}
         </div>
@@ -99,8 +99,8 @@ export const RepoLanding = ({ repos, onSelectRepo, onAnalyzeComplete }: RepoLand
   return (
     <div className="relative animate-fade-in overflow-hidden rounded-3xl border border-border-default bg-surface p-7">
       {/* Ambient glows — mirrors OnboardingGuide aesthetic */}
-      <div className="pointer-events-none absolute -top-28 -right-28 h-72 w-72 rounded-full bg-accent/6 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-node-function/6 blur-3xl" />
+      <div className="pointer-events-none absolute -top-28 -right-28 size-72 rounded-full bg-accent/6 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 size-56 rounded-full bg-node-function/6 blur-3xl" />
 
       {/* Header */}
       <div className="relative mb-6">

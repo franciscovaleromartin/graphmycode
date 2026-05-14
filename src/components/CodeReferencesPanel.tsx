@@ -297,7 +297,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
           className="rounded p-2 text-text-secondary transition-colors hover:bg-cyan-500/10 hover:text-cyan-400"
           title="Expand Code Panel"
         >
-          <PanelLeft className="h-5 w-5" />
+          <PanelLeft className="size-5" />
         </button>
         <div className="my-1 h-px w-6 bg-border-subtle" />
         {showSelectedViewer && (
@@ -365,7 +365,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
                   Selected
                 </span>
               </div>
-              <FileCode className="h-3 w-3 text-amber-400/70" />
+              <FileCode className="size-3 text-amber-400/70" />
               <span className="flex-1 truncate font-mono text-[11px] text-text-primary">
                 {selectedNode?.properties?.filePath?.split('/').pop() ??
                   selectedNode?.properties?.name}
@@ -375,14 +375,14 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
                 className="rounded p-1 text-text-muted transition-colors hover:bg-amber-500/10 hover:text-amber-400"
                 title="Clear selection"
               >
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </button>
             </div>
             <div ref={selectedViewerRef} className="scrollbar-thin min-h-0 flex-1 overflow-auto">
               {isLoadingFile ? (
                 <div className="flex items-center justify-center gap-2 py-8 text-text-muted">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span className="text-xs">Loading source...</span>
+                  <span className="text-xs">Loading source…</span>
                 </div>
               ) : selectedFileContent ? (
                 <SyntaxHighlighter
@@ -521,7 +521,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
                               className="rounded p-1.5 text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
                               title="Focus in graph"
                             >
-                              <Target className="h-4 w-4" />
+                              <Target className="size-4" />
                             </button>
                           )}
                           <button
@@ -529,7 +529,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
                             className="rounded p-1.5 text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
                             title="Remove"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="size-4" />
                           </button>
                         </div>
                       </div>

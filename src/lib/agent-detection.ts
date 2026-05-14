@@ -43,11 +43,13 @@ export function detectAgentCode(
   externalDeps: Record<string, string[]>,
 ): AgentDetectionResult {
   // Build set of system/OS artifact node IDs to ignore in all signals
-  const systemNodeIds = new Set<string>(
-    graph.nodes
-      .filter((n) => isSystemFile(n.properties.filePath ?? n.properties.name ?? ''))
-      .map((n) => n.id),
-  );
+  // Single-pass for...of avoids creating two intermediate arrays
+  const systemNodeIds = new Set<string>();
+  for (const n of graph.nodes) {
+    if (isSystemFile(n.properties.filePath ?? n.properties.name ?? '')) {
+      systemNodeIds.add(n.id);
+    }
+  }
 
   // ── Category A: AI framework imports (+0.35 first, +0.10 each additional) ──
   const foundFrameworks = new Set<string>();

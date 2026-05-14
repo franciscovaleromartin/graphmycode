@@ -62,11 +62,11 @@ export const SidePanel = () => {
       <div className="flex h-10 items-center border-b border-border-subtle">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center text-text-muted transition-colors hover:text-text-primary"
+          className="flex size-10 flex-shrink-0 items-center justify-center text-text-muted transition-colors hover:text-text-primary"
           title={collapsed ? 'Expandir panel' : 'Colapsar panel'}
         >
           <svg
-            className={`h-4 w-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
+            className={`size-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
             fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -121,7 +121,7 @@ export const SidePanel = () => {
                     <div key={i} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span
-                          className="h-2 w-2 flex-shrink-0 rounded-full"
+                          className="size-2 flex-shrink-0 rounded-full"
                           style={{ backgroundColor: cluster.color }}
                         />
                         <span className="text-xs text-text-secondary">Cluster {i + 1}</span>
@@ -167,7 +167,7 @@ export const SidePanel = () => {
                 <div>
                   <p className="mb-1.5 text-xs text-text-muted">Distritos</p>
                   <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 flex-shrink-0 rounded-sm" style={{ backgroundColor: '#1a1a2e', border: '1px solid #2d2d4a' }} />
+                    <span className="size-2 flex-shrink-0 rounded-sm" style={{ backgroundColor: '#1a1a2e', border: '1px solid #2d2d4a' }} />
                     <span className="text-xs text-text-secondary">Cada plano = carpeta raíz</span>
                   </div>
                 </div>
@@ -178,7 +178,7 @@ export const SidePanel = () => {
                     {LEGEND_LABELS.slice(0, 4).map((label) => (
                       <div key={label} className="flex items-center gap-2">
                         <span
-                          className="h-2 w-2 flex-shrink-0 rounded-sm"
+                          className="size-2 flex-shrink-0 rounded-sm"
                           style={{ backgroundColor: NODE_COLORS[label] }}
                         />
                         <span className="text-xs text-text-secondary">{LABEL_I18N[label] ?? label}</span>
@@ -246,7 +246,7 @@ export const SidePanel = () => {
                   { color: '#5a5a70', label: 'Retorno' },
                 ] as const).map(({ color, label }) => (
                   <div key={label} className="flex items-center gap-2">
-                    <span className="h-2 w-2 flex-shrink-0 rounded-sm" style={{ backgroundColor: color }} />
+                    <span className="size-2 flex-shrink-0 rounded-sm" style={{ backgroundColor: color }} />
                     <span className="text-xs text-text-secondary">{label}</span>
                   </div>
                 ))}
@@ -256,7 +256,7 @@ export const SidePanel = () => {
                 {LEGEND_LABELS.map((label) => (
                   <div key={label} className="flex items-center gap-2">
                     <span
-                      className="h-2 w-2 flex-shrink-0 rounded-full"
+                      className="size-2 flex-shrink-0 rounded-full"
                       style={{ backgroundColor: NODE_COLORS[label] }}
                     />
                     <span className="text-xs text-text-secondary">{LABEL_I18N[label] ?? label}</span>

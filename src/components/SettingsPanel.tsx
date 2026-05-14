@@ -155,13 +155,13 @@ const OpenRouterModelCombobox = ({
           <span
             className={`flex-1 truncate font-mono text-sm ${value ? 'text-text-primary' : 'text-text-muted'}`}
           >
-            {displayValue || 'Select or type a model...'}
+            {displayValue || 'Select or type a model…'}
           </span>
         )}
         <div className="flex items-center gap-1">
-          {isLoading && <Loader2 className="h-4 w-4 animate-spin text-text-muted" />}
+          {isLoading && <Loader2 className="size-4 animate-spin text-text-muted" />}
           <ChevronDown
-            className={`h-4 w-4 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            className={`size-4 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`}
           />
         </div>
       </div>
@@ -171,14 +171,14 @@ const OpenRouterModelCombobox = ({
         <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-border-subtle bg-elevated shadow-xl">
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 px-4 py-6 text-center text-sm text-text-muted">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading models...
+              <Loader2 className="size-4 animate-spin" />
+              Loading models…
             </div>
           ) : filteredModels.length === 0 ? (
             <div className="px-4 py-4 text-center">
               {models.length === 0 ? (
                 <div className="text-sm text-text-muted">
-                  <Search className="mx-auto mb-2 h-5 w-5 opacity-50" />
+                  <Search className="mx-auto mb-2 size-5 opacity-50" />
                   <p>Type a model ID or press Enter</p>
                   <p className="mt-1 text-xs">e.g. openai/gpt-4o</p>
                 </div>
@@ -356,8 +356,8 @@ export const SettingsPanel = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border-subtle bg-elevated/50 px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/20">
-              <Brain className="h-5 w-5 text-accent" />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-accent/20">
+              <Brain className="size-5 text-accent" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-text-primary">{t.settingsTitle}</h2>
@@ -368,7 +368,7 @@ export const SettingsPanel = ({
             onClick={onClose}
             className="rounded-lg p-2 text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
           >
-            <X className="h-5 w-5" />
+            <X className="size-5" />
           </button>
         </div>
 
@@ -380,10 +380,10 @@ export const SettingsPanel = ({
               <label className="block text-sm font-medium text-text-secondary">Local Server</label>
               <div className="space-y-2">
                 <div className="mb-2 flex items-center gap-2">
-                  <Server className="h-4 w-4 text-text-muted" />
+                  <Server className="size-4 text-text-muted" />
                   <span className="text-sm text-text-secondary">Backend URL</span>
                   <span
-                    className={`h-2 w-2 rounded-full ${isBackendConnected ? 'bg-green-400' : 'bg-red-400'}`}
+                    className={`size-2 rounded-full ${isBackendConnected ? 'bg-green-400' : 'bg-red-400'}`}
                   />
                   <span className="text-xs text-text-muted">
                     {isBackendConnected ? 'Connected' : 'Not connected'}
@@ -419,7 +419,7 @@ export const SettingsPanel = ({
                   } `}
                 >
                   <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg text-lg ${settings.activeProvider === provider ? 'bg-accent/20' : 'bg-surface'} `}
+                    className={`flex size-8 items-center justify-center rounded-lg text-lg ${settings.activeProvider === provider ? 'bg-accent/20' : 'bg-surface'} `}
                   >
                     {provider === 'openai'
                       ? '🤖'
@@ -477,7 +477,7 @@ export const SettingsPanel = ({
             >
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
-                  <Server className="h-4 w-4" />
+                  <Server className="size-4" />
                   Base URL <span className="font-normal text-text-muted">(optional)</span>
                 </label>
                 <input
@@ -565,7 +565,7 @@ export const SettingsPanel = ({
             <div className="animate-fade-in space-y-4">
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
-                  <Key className="h-4 w-4" />
+                  <Key className="size-4" />
                   API Key
                 </label>
                 <div className="relative">
@@ -587,9 +587,9 @@ export const SettingsPanel = ({
                     className="absolute top-1/2 right-3 -translate-y-1/2 p-1 text-text-muted transition-colors hover:text-text-primary"
                   >
                     {showApiKey['azure'] ? (
-                      <EyeOff className="h-4 w-4" />
+                      <EyeOff className="size-4" />
                     ) : (
-                      <Eye className="h-4 w-4" />
+                      <Eye className="size-4" />
                     )}
                   </button>
                 </div>
@@ -597,7 +597,7 @@ export const SettingsPanel = ({
 
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
-                  <Server className="h-4 w-4" />
+                  <Server className="size-4" />
                   Endpoint
                 </label>
                 <input
@@ -702,7 +702,7 @@ export const SettingsPanel = ({
 
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
-                  <Server className="h-4 w-4" />
+                  <Server className="size-4" />
                   Base URL
                 </label>
                 <div className="flex gap-2">
@@ -727,7 +727,7 @@ export const SettingsPanel = ({
                     className="rounded-xl border border-border-subtle bg-elevated px-3 py-3 text-text-secondary transition-colors hover:border-accent/50 hover:text-text-primary disabled:opacity-50"
                     title="Check connection"
                   >
-                    <RefreshCw className={`h-4 w-4 ${isCheckingOllama ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`size-4 ${isCheckingOllama ? 'animate-spin' : ''}`} />
                   </button>
                 </div>
                 <p className="text-xs text-text-muted">
@@ -741,7 +741,7 @@ export const SettingsPanel = ({
                 {ollamaError && !isCheckingOllama && (
                   <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2">
                     <p className="flex items-center gap-1 text-xs text-red-400">
-                      <AlertCircle className="h-3 w-3" />
+                      <AlertCircle className="size-3" />
                       {ollamaError}
                     </p>
                   </div>
@@ -851,7 +851,7 @@ export const SettingsPanel = ({
             <div className="animate-fade-in space-y-4">
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
-                  <Key className="h-4 w-4" />
+                  <Key className="size-4" />
                   API Key
                 </label>
                 <div className="relative">
@@ -873,9 +873,9 @@ export const SettingsPanel = ({
                     className="absolute top-1/2 right-3 -translate-y-1/2 p-1 text-text-muted transition-colors hover:text-text-primary"
                   >
                     {showApiKey['glm'] ? (
-                      <EyeOff className="h-4 w-4" />
+                      <EyeOff className="size-4" />
                     ) : (
-                      <Eye className="h-4 w-4" />
+                      <Eye className="size-4" />
                     )}
                   </button>
                 </div>
@@ -936,7 +936,7 @@ export const SettingsPanel = ({
           {/* Privacy Note */}
           <div className="rounded-xl border border-border-subtle bg-elevated/50 p-4">
             <div className="flex gap-3">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-green-500/20 text-green-400">
+              <div className="flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-green-500/20 text-green-400">
                 🔒
               </div>
               <div className="text-xs leading-relaxed text-text-muted">
@@ -954,13 +954,13 @@ export const SettingsPanel = ({
           <div className="flex items-center gap-2 text-sm">
             {saveStatus === 'saved' && (
               <span className="flex animate-fade-in items-center gap-1.5 text-green-400">
-                <Check className="h-4 w-4" />
+                <Check className="size-4" />
                 Settings saved
               </span>
             )}
             {saveStatus === 'error' && (
               <span className="flex animate-fade-in items-center gap-1.5 text-red-400">
-                <AlertCircle className="h-4 w-4" />
+                <AlertCircle className="size-4" />
                 Failed to save
               </span>
             )}

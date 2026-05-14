@@ -328,7 +328,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Vista estructural (grafo 2D)"
           >
-            <Layers className="h-3 w-3" />
+            <Layers className="size-3" />
             Structural
           </button>
           <div className="w-px bg-border-subtle" />
@@ -341,7 +341,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Vista semántica 3D (similitud de código)"
           >
-            <Brain className="h-3 w-3" />
+            <Brain className="size-3" />
             Semantic
           </button>
           <div className="w-px bg-border-subtle" />
@@ -354,7 +354,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Vista ciudad 3D (deuda técnica)"
           >
-            <Building2 className="h-3 w-3" />
+            <Building2 className="size-3" />
             Technical Debt
           </button>
           <div className="w-px bg-border-subtle" />
@@ -367,7 +367,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Mapa de calor de acoplamiento entre ficheros"
           >
-            <GitBranch className="h-3 w-3" />
+            <GitBranch className="size-3" />
             Dependency Heatmap
           </button>
           <div className="w-px bg-border-subtle" />
@@ -380,7 +380,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Flujo de ejecución del archivo seleccionado"
           >
-            <Share2 className="h-3 w-3" />
+            <Share2 className="size-3" />
             Code Flow
           </button>
         </div>
@@ -395,7 +395,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
           <div className="flex items-center gap-1">
             <button
               onClick={() => setSemanticTopN((n) => Math.max(1, n - 1))}
-              className="flex h-5 w-5 items-center justify-center rounded text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
+              className="flex size-5 items-center justify-center rounded text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
             >
               −
             </button>
@@ -412,7 +412,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             />
             <button
               onClick={() => setSemanticTopN((n) => Math.min(100, n + 1))}
-              className="flex h-5 w-5 items-center justify-center rounded text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
+              className="flex size-5 items-center justify-center rounded text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
             >
               +
             </button>
@@ -434,7 +434,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Mostrar dependencias externas (npm/PyPI) como capa exterior"
           >
-            <Globe className="h-3 w-3" />
+            <Globe className="size-3" />
             Import
           </button>
         </div>
@@ -454,7 +454,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Altura = número de conexiones del nodo"
           >
-            <GitBranch className="h-3 w-3" />
+            <GitBranch className="size-3" />
             Conexiones
           </button>
           <div className="w-px bg-border-subtle" />
@@ -467,7 +467,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Altura = profundidad en el árbol de directorios"
           >
-            <Layers className="h-3 w-3" />
+            <Layers className="size-3" />
             Profundidad
           </button>
         </div>
@@ -487,7 +487,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Mostrar todos los módulos"
           >
-            <Layers className="h-3 w-3" />
+            <Layers className="size-3" />
             Todos
           </button>
           <div className="w-px bg-border-subtle" />
@@ -500,7 +500,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Solo módulos con alto acoplamiento"
           >
-            <Zap className="h-3 w-3" />
+            <Zap className="size-3" />
             Acoplados
           </button>
           <div className="w-px bg-border-subtle" />
@@ -513,7 +513,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Solo módulos aislados"
           >
-            <Box className="h-3 w-3" />
+            <Box className="size-3" />
             Aislados
           </button>
         </div>
@@ -531,7 +531,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Vista estructural: funciones, clases, flujo de control principal"
           >
-            <Layers className="h-3 w-3" />
+            <Layers className="size-3" />
             Alto nivel
           </button>
           <div className="w-px bg-border-subtle" />
@@ -544,7 +544,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             }`}
             title="Vista detallada: incluye bloques anidados, switch/case y funciones internas"
           >
-            <List className="h-3 w-3" />
+            <List className="size-3" />
             Bajo nivel
           </button>
           <div className="w-px bg-border-subtle" />
@@ -553,7 +553,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-hover hover:text-text-secondary"
             title="Exportar flujo como SVG"
           >
-            <Download className="h-3 w-3" />
+            <Download className="size-3" />
             Exportar SVG
           </button>
         </div>
@@ -630,7 +630,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       {/* Selection info bar */}
       {sigmaSelectedNode && appSelectedNode && (
         <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 animate-slide-up items-center gap-2 rounded-xl border border-accent/30 bg-accent/20 px-4 py-2 backdrop-blur-sm">
-          <div className="h-2 w-2 animate-pulse rounded-full bg-accent" />
+          <div className="size-2 animate-pulse rounded-full bg-accent" />
           <span className="font-mono text-sm text-text-primary">
             {appSelectedNode.properties.name}
           </span>
@@ -648,24 +648,24 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
       <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-1">
         <button
           onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomIn() : graphViewType === 'city' ? cityRef.current?.zoomIn() : graphViewType === 'heatmap' ? heatmapRef.current?.zoomIn() : graphViewType === 'codeflow' ? codeFlowRef.current?.zoomIn() : zoomIn()}
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+          className="flex size-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom In"
         >
-          <ZoomIn className="h-4 w-4" />
+          <ZoomIn className="size-4" />
         </button>
         <button
           onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomOut() : graphViewType === 'city' ? cityRef.current?.zoomOut() : graphViewType === 'heatmap' ? heatmapRef.current?.zoomOut() : graphViewType === 'codeflow' ? codeFlowRef.current?.zoomOut() : zoomOut()}
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+          className="flex size-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom Out"
         >
-          <ZoomOut className="h-4 w-4" />
+          <ZoomOut className="size-4" />
         </button>
         <button
           onClick={() => graphViewType === 'semantic' ? semanticRef.current?.resetZoom() : graphViewType === 'city' ? cityRef.current?.resetZoom() : graphViewType === 'heatmap' ? heatmapRef.current?.resetZoom() : graphViewType === 'codeflow' ? codeFlowRef.current?.resetZoom() : resetZoom()}
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+          className="flex size-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Fit to Screen"
         >
-          <Maximize2 className="h-4 w-4" />
+          <Maximize2 className="size-4" />
         </button>
 
         {/* Divider */}
@@ -675,10 +675,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         {appSelectedNode && (
           <button
             onClick={handleFocusSelected}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-accent/30 bg-accent/20 text-accent transition-colors hover:bg-accent/30"
+            className="flex size-9 items-center justify-center rounded-md border border-accent/30 bg-accent/20 text-accent transition-colors hover:bg-accent/30"
             title="Focus on Selected Node"
           >
-            <Focus className="h-4 w-4" />
+            <Focus className="size-4" />
           </button>
         )}
 
@@ -686,10 +686,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         {sigmaSelectedNode && (
           <button
             onClick={handleClearSelection}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+            className="flex size-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
             title="Clear Selection"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="size-4" />
           </button>
         )}
 
@@ -711,21 +711,21 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
               isLayoutRunning ? stopLayout() : startLayout();
             }
           }}
-          className={`flex h-9 w-9 items-center justify-center rounded-md border transition-all ${
+          className={`flex size-9 items-center justify-center rounded-md border transition-all ${
             isLayoutRunning || isHeatmapLayoutRunning
               ? 'animate-pulse border-accent bg-accent text-white shadow-glow'
               : 'border-border-subtle bg-elevated text-text-secondary hover:bg-hover hover:text-text-primary'
           } `}
           title={isLayoutRunning || isHeatmapLayoutRunning ? 'Stop Layout' : 'Run Layout Again'}
         >
-          {isLayoutRunning || isHeatmapLayoutRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          {isLayoutRunning || isHeatmapLayoutRunning ? <Pause className="size-4" /> : <Play className="size-4" />}
         </button>
       </div>
 
       {/* Layout running indicator */}
       {(isLayoutRunning || isHeatmapLayoutRunning) && (
         <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 animate-fade-in items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-3 py-1.5 backdrop-blur-sm">
-          <div className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
+          <div className="size-2 animate-ping rounded-full bg-emerald-400" />
           <span className="text-xs font-medium text-emerald-400">{t.layoutRunning}</span>
         </div>
       )}
@@ -743,7 +743,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
         }`}
         title={t.aiButtonTitle}
       >
-        <Sparkles className="h-4 w-4" />
+        <Sparkles className="size-4" />
         <span>AI Question</span>
       </button>
 
@@ -759,16 +759,16 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>((_, ref) => {
           onClick={handleToggleAIHighlights}
           className={
             isAIHighlightsEnabled
-              ? 'flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-400/40 bg-cyan-500/15 text-cyan-200 transition-colors hover:border-cyan-300/60 hover:bg-cyan-500/20'
-              : 'flex h-10 w-10 items-center justify-center rounded-lg border border-border-subtle bg-elevated text-text-muted transition-colors hover:bg-hover hover:text-text-primary'
+              ? 'flex size-10 items-center justify-center rounded-lg border border-cyan-400/40 bg-cyan-500/15 text-cyan-200 transition-colors hover:border-cyan-300/60 hover:bg-cyan-500/20'
+              : 'flex size-10 items-center justify-center rounded-lg border border-border-subtle bg-elevated text-text-muted transition-colors hover:bg-hover hover:text-text-primary'
           }
           title={isAIHighlightsEnabled ? 'Turn off all highlights' : 'Turn on AI highlights'}
           data-testid="ai-highlights-toggle"
         >
           {isAIHighlightsEnabled ? (
-            <Lightbulb className="h-4 w-4" />
+            <Lightbulb className="size-4" />
           ) : (
-            <LightbulbOff className="h-4 w-4" />
+            <LightbulbOff className="size-4" />
           )}
         </button>
       </div>

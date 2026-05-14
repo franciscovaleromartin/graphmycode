@@ -97,23 +97,23 @@ type StepState = 'waiting' | 'active' | 'done';
 function StepDot({ state, number }: { state: StepState; number: number }) {
   if (state === 'done') {
     return (
-      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-500/50 bg-emerald-500/20">
-        <Check className="h-3 w-3 text-emerald-400" />
+      <div className="flex size-6 shrink-0 items-center justify-center rounded-full border border-emerald-500/50 bg-emerald-500/20">
+        <Check className="size-3 text-emerald-400" />
       </div>
     );
   }
   if (state === 'active') {
     return (
-      <div className="relative flex h-6 w-6 shrink-0 items-center justify-center">
+      <div className="relative flex size-6 shrink-0 items-center justify-center">
         <div className="absolute inset-0 animate-ping rounded-full border border-accent/30" />
-        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-accent/60 bg-accent/20">
+        <div className="flex size-6 items-center justify-center rounded-full border border-accent/60 bg-accent/20">
           <span className="text-[10px] leading-none font-semibold text-accent">{number}</span>
         </div>
       </div>
     );
   }
   return (
-    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border-subtle bg-elevated">
+    <div className="flex size-6 shrink-0 items-center justify-center rounded-full border border-border-subtle bg-elevated">
       <span className="text-[10px] leading-none font-semibold text-text-muted">{number}</span>
     </div>
   );
@@ -179,9 +179,9 @@ function PollingBar() {
       role="status"
     >
       <div className="relative shrink-0">
-        <Zap className="h-4 w-4 text-accent/70" />
+        <Zap className="size-4 text-accent/70" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="h-5 w-5 animate-pulse rounded-full border border-accent/25" />
+          <div className="size-5 animate-pulse rounded-full border border-accent/25" />
         </div>
       </div>
 
@@ -217,8 +217,8 @@ export const OnboardingGuide = ({ isPolling }: OnboardingGuideProps) => {
   return (
     <div className="relative animate-fade-in overflow-hidden rounded-3xl border border-border-default bg-surface p-7">
       {/* Ambient background glows */}
-      <div className="pointer-events-none absolute -top-28 -right-28 h-72 w-72 rounded-full bg-accent/6 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-node-function/6 blur-3xl" />
+      <div className="pointer-events-none absolute -top-28 -right-28 size-72 rounded-full bg-accent/6 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 size-56 rounded-full bg-node-function/6 blur-3xl" />
 
       {/* ── Headline ─────────────────────────────────────────────── */}
       <div className="relative mb-6">
@@ -297,7 +297,7 @@ export const OnboardingGuide = ({ isPolling }: OnboardingGuideProps) => {
 
       {/* ── Prerequisite footnote ────────────────────────────────────── */}
       <div className="mt-6 flex items-center justify-center gap-1.5 border-t border-border-subtle pt-5 text-xs text-text-muted">
-        <Server className="h-3 w-3 shrink-0" />
+        <Server className="size-3 shrink-0" />
         <span>
           Requires{' '}
           <a
@@ -310,7 +310,7 @@ export const OnboardingGuide = ({ isPolling }: OnboardingGuideProps) => {
           </a>
         </span>
         <span className="mx-1 text-border-default">·</span>
-        <Terminal className="h-3 w-3 shrink-0" />
+        <Terminal className="size-3 shrink-0" />
         <span>Port 4747</span>
       </div>
     </div>
