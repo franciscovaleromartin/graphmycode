@@ -1,6 +1,7 @@
 # Dependencias
 node_modules/
 dist/
+!gitnexus-shared/dist/
 *.tsbuildinfo
 
 # Entorno
