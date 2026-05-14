@@ -94,14 +94,16 @@ const findEnclosingFunction = (
         label = 'Method';
       } else if (current.type === 'method_declaration') {
         // Java method: public void foo() {}
+        const children = current.children;
         const nameNode = current.childForFieldName?.('name') ||
-                         current.children?.find((c: any) => c.type === 'identifier');
+                         children?.find((c: any) => c.type === 'identifier');
         funcName = nameNode?.text;
         label = 'Method';
       } else if (current.type === 'constructor_declaration') {
         // Java constructor: public ClassName() {}
+        const children = current.children;
         const nameNode = current.childForFieldName?.('name') ||
-                         current.children?.find((c: any) => c.type === 'identifier');
+                         children?.find((c: any) => c.type === 'identifier');
         funcName = nameNode?.text;
         label = 'Method'; // Treat constructors as methods for process detection
       } else if (current.type === 'method') {

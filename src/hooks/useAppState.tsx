@@ -454,7 +454,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
       const kept = prev.filter((r) => r.source !== 'ai');
 
       // Remove citation-based AI highlights for removed refs
-      const removedNodeIds = new Set(removed.map((r) => r.nodeId).filter(Boolean) as string[]);
+      const removedNodeIds = new Set(removed.flatMap((r) => r.nodeId ? [r.nodeId] : []));
       if (removedNodeIds.size > 0) {
         setAICitationHighlightedNodeIds((prevIds) => {
           const next = new Set(prevIds);

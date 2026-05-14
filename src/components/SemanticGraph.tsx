@@ -208,7 +208,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
       ) => {
         if (!plotRef.current) return;
 
-        const Plotly = ((await import('plotly.js-dist-min' as any)) as any).default as any;
+        const Plotly = ((await import('plotly.js-dist-min')) as any).default as any;
         plotlyRef.current = Plotly;
 
         const nodeTrace = {

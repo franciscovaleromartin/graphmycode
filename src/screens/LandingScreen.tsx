@@ -227,6 +227,21 @@ const GraphAnimation = () => {
 
 // ── LandingCards ──────────────────────────────────────────────────────────────
 
+const CARD_STYLE: React.CSSProperties = {
+  borderRadius: '14px', border: '1px solid #1e293b',
+  background: '#0c111d', padding: '18px 20px', position: 'relative', overflow: 'hidden',
+};
+
+const ICON_BOX_BASE: React.CSSProperties = {
+  width: '32px', height: '32px', borderRadius: '9px', display: 'flex',
+  alignItems: 'center', justifyContent: 'center', fontSize: '14px', marginBottom: '12px',
+};
+
+const TAG_BASE: React.CSSProperties = {
+  display: 'inline-flex', fontSize: '9px', fontWeight: 700, letterSpacing: '.1em',
+  textTransform: 'uppercase', padding: '3px 9px', borderRadius: '6px', marginBottom: '8px',
+};
+
 const LandingCards = () => {
   const t = useT();
 
@@ -295,27 +310,15 @@ const LandingCards = () => {
       </div>
 
       {/* ── Export / Agent Mode card ── */}
-      <div style={{
-        borderRadius: '14px', border: '1px solid #1e293b',
-        background: '#0c111d', padding: '18px 20px', position: 'relative', overflow: 'hidden',
-      }}>
+      <div style={CARD_STYLE}>
         <div style={{
           position: 'absolute', top: '-30px', right: '-30px',
           width: '110px', height: '110px', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(245,158,11,.13) 0%, transparent 70%)',
           pointerEvents: 'none',
         }} />
-        <div style={{
-          width: '32px', height: '32px', borderRadius: '9px', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', fontSize: '14px', marginBottom: '12px',
-          background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)',
-        }}>⬇</div>
-        <span style={{
-          display: 'inline-flex', fontSize: '9px', fontWeight: 700, letterSpacing: '.1em',
-          textTransform: 'uppercase', padding: '3px 9px', borderRadius: '6px', marginBottom: '8px',
-          background: 'rgba(245,158,11,.08)', color: '#f59e0b',
-          border: '1px solid rgba(245,158,11,.18)',
-        }}>
+        <div style={{ ...ICON_BOX_BASE, background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)' }}>⬇</div>
+        <span style={{ ...TAG_BASE, background: 'rgba(245,158,11,.08)', color: '#f59e0b', border: '1px solid rgba(245,158,11,.18)' }}>
           {t.cardsExportTag}
         </span>
         <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px', lineHeight: 1.35 }}>
@@ -333,27 +336,15 @@ const LandingCards = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
 
         {/* Privacy */}
-        <div style={{
-          borderRadius: '14px', border: '1px solid #1e293b',
-          background: '#0c111d', padding: '18px 20px', position: 'relative', overflow: 'hidden',
-        }}>
+        <div style={CARD_STYLE}>
           <div style={{
             position: 'absolute', top: '-30px', right: '-30px',
             width: '100px', height: '100px', borderRadius: '50%',
             background: 'radial-gradient(circle, rgba(45,212,191,.12) 0%, transparent 70%)',
             pointerEvents: 'none',
           }} />
-          <div style={{
-            width: '32px', height: '32px', borderRadius: '9px', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', fontSize: '14px', marginBottom: '12px',
-            background: 'rgba(45,212,191,.1)', border: '1px solid rgba(45,212,191,.2)',
-          }}>🔒</div>
-          <span style={{
-            display: 'inline-flex', fontSize: '9px', fontWeight: 700, letterSpacing: '.1em',
-            textTransform: 'uppercase', padding: '3px 9px', borderRadius: '6px', marginBottom: '8px',
-            background: 'rgba(20,184,166,.08)', color: '#2dd4bf',
-            border: '1px solid rgba(45,212,191,.18)',
-          }}>
+          <div style={{ ...ICON_BOX_BASE, background: 'rgba(45,212,191,.1)', border: '1px solid rgba(45,212,191,.2)' }}>🔒</div>
+          <span style={{ ...TAG_BASE, background: 'rgba(20,184,166,.08)', color: '#2dd4bf', border: '1px solid rgba(45,212,191,.18)' }}>
             {t.cardsPrivacyTag}
           </span>
           <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
@@ -365,28 +356,16 @@ const LandingCards = () => {
         </div>
 
         {/* AI */}
-        <div style={{
-          borderRadius: '14px', border: '1px solid #1e293b',
-          background: '#0c111d', padding: '18px 20px', position: 'relative', overflow: 'hidden',
-        }}>
+        <div style={CARD_STYLE}>
           <div style={{
             position: 'absolute', top: '-30px', right: '-30px',
             width: '100px', height: '100px', borderRadius: '50%',
             background: 'radial-gradient(circle, rgba(167,139,250,.14) 0%, transparent 70%)',
             pointerEvents: 'none',
           }} />
-          <div style={{
-            width: '32px', height: '32px', borderRadius: '9px', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', fontSize: '14px', marginBottom: '12px',
-            background: 'rgba(167,139,250,.1)', border: '1px solid rgba(167,139,250,.2)',
-          }}>✦</div>
+          <div style={{ ...ICON_BOX_BASE, background: 'rgba(167,139,250,.1)', border: '1px solid rgba(167,139,250,.2)' }}>✦</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-            <span style={{
-              display: 'inline-flex', fontSize: '9px', fontWeight: 700, letterSpacing: '.1em',
-              textTransform: 'uppercase', padding: '3px 9px', borderRadius: '6px',
-              background: 'rgba(167,139,250,.08)', color: '#c4b5fd',
-              border: '1px solid rgba(196,181,253,.18)',
-            }}>
+            <span style={{ ...TAG_BASE, marginBottom: 0, background: 'rgba(167,139,250,.08)', color: '#c4b5fd', border: '1px solid rgba(196,181,253,.18)' }}>
               {t.cardsAiTag}
             </span>
             <span style={{
@@ -417,27 +396,15 @@ const LandingCards = () => {
       </div>
 
       {/* ── Cypher card ── */}
-      <div style={{
-        borderRadius: '14px', border: '1px solid #1e293b',
-        background: '#0c111d', padding: '18px 20px', position: 'relative', overflow: 'hidden',
-      }}>
+      <div style={CARD_STYLE}>
         <div style={{
           position: 'absolute', top: '-30px', right: '-30px',
           width: '110px', height: '110px', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(52,211,153,.13) 0%, transparent 70%)',
           pointerEvents: 'none',
         }} />
-        <div style={{
-          width: '32px', height: '32px', borderRadius: '9px', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', fontSize: '14px', marginBottom: '12px',
-          background: 'rgba(52,211,153,.1)', border: '1px solid rgba(52,211,153,.2)',
-        }}>🔍</div>
-        <span style={{
-          display: 'inline-flex', fontSize: '9px', fontWeight: 700, letterSpacing: '.1em',
-          textTransform: 'uppercase', padding: '3px 9px', borderRadius: '6px', marginBottom: '8px',
-          background: 'rgba(52,211,153,.08)', color: '#34d399',
-          border: '1px solid rgba(52,211,153,.2)',
-        }}>
+        <div style={{ ...ICON_BOX_BASE, background: 'rgba(52,211,153,.1)', border: '1px solid rgba(52,211,153,.2)' }}>🔍</div>
+        <span style={{ ...TAG_BASE, background: 'rgba(52,211,153,.08)', color: '#34d399', border: '1px solid rgba(52,211,153,.2)' }}>
           {t.cardsCypherTag}
         </span>
         <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px', lineHeight: 1.35 }}>
