@@ -149,48 +149,49 @@ const readAllFiles = async (baseDir: string, currentDir: string): Promise<FileEn
   try {
     entries = await pfs.readdir(currentDir);
   } catch (err) {
-    // Directory might not exist or be inaccessible
     console.warn(`Cannot read directory: ${currentDir}`);
     return files;
   }
 
-  for (const entry of entries) {
-    // Skip .git directory
-    if (entry === '.git') continue;
+  const fileResults = await Promise.all(
+    entries.map(async (entry) => {
+      if (entry === '.git') return null;
 
-    const fullPath = `${currentDir}/${entry}`;
-    const relativePath = fullPath.replace(`${baseDir}/`, '');
+      const fullPath = `${currentDir}/${entry}`;
+      const relativePath = fullPath.replace(`${baseDir}/`, '');
 
-    // Check ignore rules
-    if (shouldIgnorePath(relativePath)) continue;
+      if (shouldIgnorePath(relativePath)) return null;
 
-    // Try to stat the file - skip if it fails (broken symlinks, etc.)
-    let stat;
-    try {
-      stat = await pfs.stat(fullPath);
-    } catch {
-      // Skip files that can't be stat'd (broken symlinks, permission issues)
-      if (import.meta.env.DEV) {
-        console.warn(`Skipping unreadable entry: ${relativePath}`);
-      }
-      continue;
-    }
-
-    if (stat.isDirectory()) {
-      // Recurse into subdirectory
-      const subFiles = await readAllFiles(baseDir, fullPath);
-      files.push(...subFiles);
-    } else {
-      // Read file content
+      let stat;
       try {
-        const content = await pfs.readFile(fullPath, { encoding: 'utf8' }) as string;
-        files.push({
-          path: relativePath,
-          content,
-        });
+        stat = await pfs.stat(fullPath);
       } catch {
-        // Skip binary files or files that can't be read as text
+        if (import.meta.env.DEV) {
+          console.warn(`Skipping unreadable entry: ${relativePath}`);
+        }
+        return null;
       }
+
+      if (stat.isDirectory()) {
+        const subFiles = await readAllFiles(baseDir, fullPath);
+        return { type: 'dir' as const, files: subFiles };
+      } else {
+        try {
+          const content = await pfs.readFile(fullPath, { encoding: 'utf8' }) as string;
+          return { type: 'file' as const, path: relativePath, content };
+        } catch {
+          return null;
+        }
+      }
+    })
+  );
+
+  for (const result of fileResults) {
+    if (!result) continue;
+    if (result.type === 'dir') {
+      files.push(...result.files);
+    } else {
+      files.push({ path: result.path, content: result.content });
     }
   }
 

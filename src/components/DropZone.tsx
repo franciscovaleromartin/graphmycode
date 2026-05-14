@@ -268,16 +268,13 @@ export const DropZone = ({ onServerConnect }: DropZoneProps) => {
       setPhase('onboarding');
       setError(null);
     }
-    // NOTE: No cleanup return here. The autoConnectTimerRef must survive effect
-    // re-runs (e.g. isProbing flipping false while the 1200ms window is active).
-    // The unmount cleanup effect below is the sole owner of timer cancellation.
   }, [isConnected, isProbing, stopPolling]);
 
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
-      if (autoConnectTimerRef.current !== null) clearTimeout(autoConnectTimerRef.current);
       abortControllerRef.current?.abort();
+      if (autoConnectTimerRef.current !== null) clearTimeout(autoConnectTimerRef.current);
     };
   }, []);
 
