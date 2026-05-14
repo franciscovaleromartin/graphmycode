@@ -1,53 +1,70 @@
-import type { GraphNode, GraphRelationship } from '../../src';
+/**
+ * Shared test data factories for graph structures.
+ * No test code — pure data exports.
+ */
 
-export function createFileNode(
-  name: string,
-  filePath: string,
-  opts: Partial<GraphNode> = {},
-): GraphNode {
+import type { GraphNode, GraphRelationship } from '../../src/core/graph/types';
+
+export function createFileNode(name: string, filePath?: string): GraphNode {
   return {
-    id: name,
-    label: 'File' as const,
-    name,
-    filePath,
-    content: opts.content ?? `// ${name}`,
-    startLine: opts.startLine ?? 1,
-    endLine: opts.endLine ?? 10,
-    isExported: opts.isExported ?? false,
-    heuristicLabel: opts.heuristicLabel,
-    keywords: opts.keywords,
-    description: opts.description,
-    enrichedBy: opts.enrichedBy,
-    cohesion: opts.cohesion,
-    symbolCount: opts.symbolCount ?? 0,
+    id: `File:${filePath ?? name}`,
+    label: 'File',
+    properties: { name, filePath: filePath ?? name },
   };
 }
 
-export function createFunctionNode(
-  name: string,
-  filePath: string,
-  startLine: number,
-  endLine: number,
-  isExported: boolean,
-  opts: Partial<GraphNode> = {},
-): GraphNode {
+export function createFunctionNode(name: string, filePath: string, line = 1): GraphNode {
   return {
-    id: name,
-    label: 'Function' as const,
-    name,
-    filePath,
-    content: opts.content ?? `function ${name}() {}`,
-    startLine,
-    endLine,
-    isExported,
-    heuristicLabel: opts.heuristicLabel,
-    keywords: opts.keywords,
-    description: opts.description,
-    enrichedBy: opts.enrichedBy,
-    cohesion: opts.cohesion,
-    symbolCount: opts.symbolCount ?? 1,
+    id: `Function:${filePath}:${name}:${line}`,
+    label: 'Function',
+    properties: { name, filePath, startLine: line, endLine: line + 10 },
   };
 }
 
+export function createClassNode(name: string, filePath: string): GraphNode {
+  return {
+    id: `Class:${filePath}:${name}`,
+    label: 'Class',
+    properties: { name, filePath },
+  };
+}
 
+export function createProcessNode(
+  id: string,
+  label: string,
+  type: 'cross_community' | 'intra_community' = 'cross_community',
+): GraphNode {
+  return {
+    id,
+    label: 'Process',
+    properties: {
+      name: label,
+      heuristicLabel: label,
+      processType: type,
+      stepCount: 3,
+      communities: ['cluster-a', 'cluster-b'],
+    } as any,
+  };
+}
 
+export function createCallsRelationship(sourceId: string, targetId: string): GraphRelationship {
+  return {
+    id: `${sourceId}_CALLS_${targetId}`,
+    sourceId,
+    targetId,
+    type: 'CALLS',
+    confidence: 0.9,
+    reason: 'same-file',
+  };
+}
+
+export function createContainsRelationship(sourceId: string, targetId: string): GraphRelationship {
+  return {
+    id: `${sourceId}_CONTAINS_${targetId}`,
+    sourceId,
+    targetId,
+    type: 'CONTAINS',
+    confidence: 1.0,
+    reason: '',
+  };
+}
