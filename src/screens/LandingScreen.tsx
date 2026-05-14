@@ -565,15 +565,10 @@ export const LandingScreen = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Pre-calentar el worker y los WASM de lenguaje al montar el componente.
-  // Objetivo: que el chunk JS del worker y todos los archivos WASM queden en
-  // caché del navegador antes de que el usuario pueda desconectarse de internet.
-  // Los WASM de lenguaje se descargan en segundo plano durante el tiempo de
-  // inactividad del navegador para no interferir con la carga inicial.
+  // Pre-calentar el worker y los WASM de lenguaje durante el tiempo de
+  // inactividad del navegador, para que estén en caché antes de que el usuario
+  // pueda desconectarse de internet, sin interferir con la carga inicial.
   useEffect(() => {
-    const api = getWorkerApi();
-    api.preWarm().catch(() => {/* no fatal */ });
-
     const languageWasms = [
       '/wasm/typescript/tree-sitter-typescript.wasm',
       '/wasm/typescript/tree-sitter-tsx.wasm',
@@ -589,15 +584,17 @@ export const LandingScreen = () => {
       '/wasm/php/tree-sitter-php.wasm',
     ];
 
-    const prefetch = () =>
+    const warmUp = () => {
+      getWorkerApi().preWarm().catch(() => { });
       languageWasms.forEach(url => fetch(url).catch(() => { }));
+    };
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     let idleId: number | undefined;
     if ('requestIdleCallback' in window) {
-      idleId = (window as any).requestIdleCallback(prefetch, { timeout: 10_000 });
+      idleId = (window as any).requestIdleCallback(warmUp, { timeout: 10_000 });
     } else {
-      timeoutId = setTimeout(prefetch, 3_000);
+      timeoutId = setTimeout(warmUp, 3_000);
     }
     return () => {
       if (timeoutId !== undefined) clearTimeout(timeoutId);
@@ -722,6 +719,7 @@ export const LandingScreen = () => {
               src="/anuncio_GraphMyCode.mp4"
               controls
               playsInline
+              preload="none"
               className="w-full"
             />
           </div>
