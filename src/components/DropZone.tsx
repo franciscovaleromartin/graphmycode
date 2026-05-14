@@ -268,6 +268,14 @@ export const DropZone = ({ onServerConnect }: DropZoneProps) => {
       setPhase('onboarding');
       setError(null);
     }
+    // Only cancel the pending timer if the connection was lost — not on re-renders
+    // while still connected (which would break the auto-connect transition).
+    return () => {
+      if (!isConnected && autoConnectTimerRef.current !== null) {
+        clearTimeout(autoConnectTimerRef.current);
+        autoConnectTimerRef.current = null;
+      }
+    };
   }, [isConnected, isProbing, stopPolling]);
 
   // Cleanup timers on unmount

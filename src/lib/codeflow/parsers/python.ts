@@ -80,12 +80,13 @@ export function parsePython(tree: Tree, deep = false): CodeFlowGraph {
             if (consequence) walkBody(consequence, id);
             for (const sibling of child.namedChildren) {
               if (sibling.type === 'elif_clause') {
+                const siblingChildren = sibling.namedChildren;
                 const elifCond = sibling.childForFieldName('condition')?.text ?? 'elif';
                 const elifLabel = 'elif ' + (elifCond.length > 22 ? elifCond.slice(0, 21) + '…' : elifCond);
                 const elifId = uid('elif');
                 nodes.push({ id: elifId, label: elifLabel, type: 'decision' });
                 edges.push({ id: uid('e'), source: id, target: elifId });
-                const elifBody = sibling.childForFieldName('consequence') ?? sibling.namedChildren.find(c => c.type === 'block');
+                const elifBody = sibling.childForFieldName('consequence') ?? siblingChildren.find(c => c.type === 'block');
                 if (elifBody) walkBody(elifBody, elifId);
               } else if (sibling.type === 'else_clause') {
                 const elseBody = sibling.namedChildren.find(c => c.type === 'block');

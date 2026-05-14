@@ -70,23 +70,26 @@ const findEnclosingFunction = (
           current.type === 'generator_function_declaration' ||
           current.type === 'function_item') { // Rust function
         // Named function: function foo() {}
-        const nameNode = current.childForFieldName?.('name') || 
-                         current.children?.find((c: any) => c.type === 'identifier' || c.type === 'property_identifier');
+        const children = current.children;
+        const nameNode = current.childForFieldName?.('name') ||
+                         children?.find((c: any) => c.type === 'identifier' || c.type === 'property_identifier');
         funcName = nameNode?.text;
       } else if (current.type === 'impl_item') {
         // Rust method inside impl block: wrapper around function_item or const_item
         // We need to look inside for the function_item
-        const funcItem = current.children?.find((c: any) => c.type === 'function_item');
+        const children = current.children;
+        const funcItem = children?.find((c: any) => c.type === 'function_item');
         if (funcItem) {
-           const nameNode = funcItem.childForFieldName?.('name') || 
+           const nameNode = funcItem.childForFieldName?.('name') ||
                             funcItem.children?.find((c: any) => c.type === 'identifier');
            funcName = nameNode?.text;
            label = 'Method';
         }
       } else if (current.type === 'method_definition') {
         // Method: foo() {} inside class (JS/TS)
+        const children = current.children;
         const nameNode = current.childForFieldName?.('name') ||
-                         current.children?.find((c: any) => c.type === 'property_identifier');
+                         children?.find((c: any) => c.type === 'property_identifier');
         funcName = nameNode?.text;
         label = 'Method';
       } else if (current.type === 'method_declaration') {

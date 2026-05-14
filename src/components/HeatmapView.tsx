@@ -247,15 +247,13 @@ export const HeatmapView = forwardRef<HeatmapViewHandle, Props>(
       ctx.scale(cam.scale, cam.scale);
 
       // Conjunto de nodos visibles según filtro
-      const visibleIds = new Set(
-        nodesRef.current
-          .filter(n => {
-            if (currentFilter === 'hot') return n.degree >= maxDeg * 0.5;
-            if (currentFilter === 'cold') return n.degree < maxDeg * 0.35;
-            return true;
-          })
-          .map(n => n.id),
-      );
+      const visibleIds = new Set<string>();
+      for (const n of nodesRef.current) {
+        const visible = currentFilter === 'hot' ? n.degree >= maxDeg * 0.5
+          : currentFilter === 'cold' ? n.degree < maxDeg * 0.35
+          : true;
+        if (visible) visibleIds.add(n.id);
+      }
 
       // Selection: nodos vecinos y aristas conectadas al nodo seleccionado
       const selected = selectedNodeRef.current;
