@@ -324,6 +324,9 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
     >
       {/* Resize handle */}
       <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize panel"
         onMouseDown={startResize}
         className="absolute top-0 right-0 h-full w-2 cursor-col-resize bg-transparent transition-colors hover:bg-cyan-500/25"
         title="Drag to resize"

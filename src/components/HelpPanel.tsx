@@ -542,6 +542,9 @@ export const HelpPanel = ({ isOpen, onClose, nodeCount, edgeCount }: HelpPanelPr
     >
       {/* Backdrop */}
       <div
+        role="button"
+        aria-label="Close help panel"
+        tabIndex={0}
         style={{
           position: 'absolute',
           inset: 0,
@@ -549,6 +552,7 @@ export const HelpPanel = ({ isOpen, onClose, nodeCount, edgeCount }: HelpPanelPr
           backdropFilter: 'blur(4px)',
         }}
         onClick={onClose}
+        onKeyDown={(e) => e.key === 'Enter' && onClose()}
       />
 
       {/* Panel */}

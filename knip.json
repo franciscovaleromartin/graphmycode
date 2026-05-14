@@ -1,0 +1,3 @@
+{
+  "ignore": ["gitnexus-shared/dist/**", "gitnexus-shared/src/**"]
+}

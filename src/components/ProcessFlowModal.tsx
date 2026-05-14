@@ -255,6 +255,7 @@ export const ProcessFlowModal = ({
 
         {/* Diagram */}
         <div
+          role="presentation"
           ref={scrollContainerRef}
           className={`relative z-10 flex flex-1 items-center justify-center overflow-hidden p-8 ${isFullScreen ? 'min-h-[70vh]' : 'min-h-[400px]'}`}
           onMouseDown={handleMouseDown}

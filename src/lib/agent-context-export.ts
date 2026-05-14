@@ -189,7 +189,9 @@ function detectStack(cleanNodes: GraphNode[], cleanDeps: Record<string, string[]
     if (base) fileNames.add(base);
   }
 
-  const primaryLang = [...langCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
+  const primaryLang = [...langCounts.entries()].reduce<[string, number]>(
+    (max, cur) => cur[1] > max[1] ? cur : max, ['', 0]
+  )[0];
 
   const allPkgs = new Set(Object.values(cleanDeps).flat().map((p) => p.toLowerCase()));
 
@@ -523,7 +525,9 @@ function buildModuleMap(
     for (const n of members) {
       if (n.label === 'File') fileEntries.push({ node: n, degree: degreeMap.get(n.id) ?? 0 });
     }
-    const keyFileNode = fileEntries.sort((a, b) => b.degree - a.degree)[0]?.node;
+    const keyFileNode = fileEntries.reduce<typeof fileEntries[number] | undefined>(
+      (max, cur) => !max || cur.degree > max.degree ? cur : max, undefined
+    )?.node;
 
     const keyFile = keyFileNode?.properties.filePath ?? '';
 
@@ -647,7 +651,7 @@ function buildCriticalEdges(
   }
 
   return [...callers.entries()]
-    .sort((a, b) => b[1].size - a[1].size)
+    .toSorted((a, b) => b[1].size - a[1].size)
     .slice(0, 5)
     .map(([targetId, callerSet]) => {
       const target = nodeById.get(targetId);
@@ -655,12 +659,11 @@ function buildCriticalEdges(
       const file = (target?.properties.filePath ?? '').split('/').pop()?.replace(/\.(ts|tsx|js|jsx|py|go|rs)$/, '') ?? '';
 
       const callerDirs = new Set(
-        [...callerSet]
-          .map((cid) => {
-            const path = nodeById.get(cid)?.properties.filePath as string | undefined ?? '';
-            return path.split('/').slice(0, -1).join('/') || path;
-          })
-          .filter(Boolean),
+        [...callerSet].flatMap((cid) => {
+          const path = nodeById.get(cid)?.properties.filePath as string | undefined ?? '';
+          const dir = path.split('/').slice(0, -1).join('/') || path;
+          return dir ? [dir] : [];
+        }),
       );
 
       const context = callerDirs.size === 1
@@ -696,7 +699,9 @@ function resolveNodeCommunity(
 
   const freq = new Map<string, number>();
   for (const c of memberCommunities) freq.set(c, (freq.get(c) ?? 0) + 1);
-  return [...freq.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  return [...freq.entries()].reduce<[string, number]>(
+    (max, cur) => cur[1] > max[1] ? cur : max, ['', 0]
+  )[0];
 }
 
 function buildBridgeFiles(

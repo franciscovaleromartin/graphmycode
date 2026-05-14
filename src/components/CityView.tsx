@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Francisco Alejandro Valero Martin
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // https://polyformproject.org/licenses/noncommercial/1.0.0
+/* eslint-disable react/no-unknown-property */
 
 import { useState, useMemo, useCallback, forwardRef, useImperativeHandle, useRef, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
