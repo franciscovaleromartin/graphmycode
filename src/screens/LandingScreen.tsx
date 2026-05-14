@@ -668,12 +668,12 @@ export const LandingScreen = () => {
     const prefetch = () =>
       languageWasms.forEach(url => fetch(url).catch(() => { }));
 
-    let timeoutId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     let idleId: number | undefined;
     if ('requestIdleCallback' in window) {
       idleId = (window as any).requestIdleCallback(prefetch, { timeout: 10_000 });
     } else {
-      timeoutId = window.setTimeout(prefetch, 3_000);
+      timeoutId = setTimeout(prefetch, 3_000);
     }
     return () => {
       if (timeoutId !== undefined) clearTimeout(timeoutId);
