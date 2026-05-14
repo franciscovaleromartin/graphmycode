@@ -189,4 +189,4 @@ export const ToolCallCard = ({ toolCall, defaultExpanded = false }: ToolCallCard
   );
 };
 
-export default ToolCallCard;
+
