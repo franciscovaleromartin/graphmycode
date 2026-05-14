@@ -20,4 +20,3 @@ export declare const getLanguageFromFilename: (filename: string) => SupportedLan
  * Returns 'text' for unrecognised files.
  */
 export declare const getSyntaxLanguageFromFilename: (filePath: string) => string;
-//# sourceMappingURL=language-detection.d.ts.map

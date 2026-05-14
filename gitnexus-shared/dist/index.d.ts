@@ -4,4 +4,3 @@ export type { NodeTableName, RelType } from './lbug/schema-constants.js';
 export { SupportedLanguages } from './languages.js';
 export { getLanguageFromFilename, getSyntaxLanguageFromFilename } from './language-detection.js';
 export type { PipelinePhase, PipelineProgress } from './pipeline.js';
-//# sourceMappingURL=index.d.ts.map

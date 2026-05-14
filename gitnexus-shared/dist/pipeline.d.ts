@@ -13,4 +13,3 @@ export interface PipelineProgress {
         nodesCreated: number;
     };
 }
-//# sourceMappingURL=pipeline.d.ts.map

@@ -13,4 +13,3 @@ export declare const REL_TABLE_NAME = "CodeRelation";
 export declare const REL_TYPES: readonly ["CONTAINS", "DEFINES", "IMPORTS", "CALLS", "EXTENDS", "IMPLEMENTS", "HAS_METHOD", "HAS_PROPERTY", "ACCESSES", "OVERRIDES", "MEMBER_OF", "STEP_IN_PROCESS", "HANDLES_ROUTE", "FETCHES", "HANDLES_TOOL", "ENTRY_POINT_OF", "WRAPS", "QUERIES"];
 export type RelType = (typeof REL_TYPES)[number];
 export declare const EMBEDDING_TABLE_NAME = "CodeEmbedding";
-//# sourceMappingURL=schema-constants.d.ts.map

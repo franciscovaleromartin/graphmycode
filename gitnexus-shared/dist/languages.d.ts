@@ -23,4 +23,3 @@ export declare enum SupportedLanguages {
     /** Standalone regex processor — no tree-sitter, no LanguageProvider. */
     Cobol = "cobol"
 }
-//# sourceMappingURL=languages.d.ts.map
