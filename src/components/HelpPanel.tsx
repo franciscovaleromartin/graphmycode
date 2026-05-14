@@ -5,6 +5,37 @@
 import React, { useState } from 'react';
 import { X, GitBranch, Search, Filter, Zap, Keyboard, BarChart2, HelpCircle } from 'lucide-react';
 
+const PANEL_STYLE: React.CSSProperties = {
+  position: 'relative',
+  background: '#12121a',
+  border: '0.5px solid rgba(255,255,255,0.12)',
+  borderRadius: 16,
+  boxShadow: '0 25px 60px rgba(0,0,0,0.7)',
+  width: '100%',
+  maxWidth: 680,
+  margin: '0 16px',
+  height: '60vh',
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+  fontFamily: 'var(--font-mono, monospace)',
+};
+
+const NAV_BTN_BASE: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  textAlign: 'left',
+  border: 'none',
+  borderRadius: 8,
+  padding: '8px 10px',
+  fontSize: 12,
+  fontFamily: 'inherit',
+  cursor: 'pointer',
+  transition: 'color 0.15s, background-color 0.15s',
+  width: '100%',
+};
+
 interface HelpPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -556,23 +587,7 @@ export const HelpPanel = ({ isOpen, onClose, nodeCount, edgeCount }: HelpPanelPr
       />
 
       {/* Panel */}
-      <div
-        style={{
-          position: 'relative',
-          background: '#12121a',
-          border: '0.5px solid rgba(255,255,255,0.12)',
-          borderRadius: 16,
-          boxShadow: '0 25px 60px rgba(0,0,0,0.7)',
-          width: '100%',
-          maxWidth: 680,
-          margin: '0 16px',
-          height: '60vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          fontFamily: 'var(--font-mono, monospace)',
-        }}
-      >
+      <div style={PANEL_STYLE}>
         {/* Header */}
         <div
           style={{
@@ -607,22 +622,9 @@ export const HelpPanel = ({ isOpen, onClose, nodeCount, edgeCount }: HelpPanelPr
           </div>
           <button
             onClick={onClose}
-            style={{
-              padding: 8,
-              color: '#6b7280',
-              background: 'transparent',
-              border: 'none',
-              borderRadius: 8,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'color 0.15s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#e2e2e8')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = '#6b7280')}
+            className="flex cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent p-2 text-gray-500 transition-colors duration-150 hover:text-gray-200"
           >
-            <X style={{ width: 20, height: 20 }} />
+            <X className="size-5" />
           </button>
         </div>
 
@@ -647,20 +649,9 @@ export const HelpPanel = ({ isOpen, onClose, nodeCount, edgeCount }: HelpPanelPr
                   key={id}
                   onClick={() => setActive(id)}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    textAlign: 'left',
+                    ...NAV_BTN_BASE,
                     background: isActive ? 'rgba(167,139,250,0.12)' : 'transparent',
-                    border: 'none',
-                    borderRadius: 8,
-                    padding: '8px 10px',
-                    fontSize: 12,
-                    fontFamily: 'inherit',
                     color: isActive ? '#a78bfa' : '#9ca3af',
-                    cursor: 'pointer',
-                    transition: 'color 0.15s, background-color 0.15s',
-                    width: '100%',
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) Object.assign(e.currentTarget.style, { color: '#e2e2e8', background: 'rgba(255,255,255,0.04)' });

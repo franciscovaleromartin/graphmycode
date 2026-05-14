@@ -20,9 +20,9 @@ import { SupportedLanguages } from '../../config/supported-languages';
 // ── Call routing dispatch table ─────────────────────────────────────────────
 
 /** null = this call was not routed; fall through to default call handling */
-export type CallRoutingResult = RubyCallRouting | null;
+type CallRoutingResult = RubyCallRouting | null;
 
-export type CallRouter = (
+type CallRouter = (
   calledName: string,
   callNode: any,
 ) => CallRoutingResult;
@@ -50,22 +50,22 @@ export const callRouters = {
 
 // ── Result types ────────────────────────────────────────────────────────────
 
-export type RubyCallRouting =
+type RubyCallRouting =
   | { kind: 'import'; importPath: string; isRelative: boolean }
   | { kind: 'heritage'; items: RubyHeritageItem[] }
   | { kind: 'properties'; items: RubyPropertyItem[] }
   | { kind: 'call' }
   | { kind: 'skip' };
 
-export interface RubyHeritageItem {
+interface RubyHeritageItem {
   enclosingClass: string;
   mixinName: string;
   heritageKind: 'include' | 'extend' | 'prepend';
 }
 
-export type RubyAccessorType = 'attr_accessor' | 'attr_reader' | 'attr_writer';
+type RubyAccessorType = 'attr_accessor' | 'attr_reader' | 'attr_writer';
 
-export interface RubyPropertyItem {
+interface RubyPropertyItem {
   propName: string;
   accessorType: RubyAccessorType;
   startLine: number;
@@ -88,7 +88,7 @@ const MAX_PARENT_DEPTH = 50;
  * @param callNode   - The tree-sitter `call` AST node
  * @returns A discriminated union describing the call's semantic role
  */
-export function routeRubyCall(calledName: string, callNode: any): RubyCallRouting {
+function routeRubyCall(calledName: string, callNode: any): RubyCallRouting {
   // ── require / require_relative → import ─────────────────────────────────
   if (calledName === 'require' || calledName === 'require_relative') {
     const argList = callNode.childForFieldName?.('arguments');

@@ -27,12 +27,12 @@ export interface ClusterEnrichment {
   description: string;
 }
 
-export interface EnrichmentResult {
+interface EnrichmentResult {
   enrichments: Map<string, ClusterEnrichment>;
   tokensUsed: number;
 }
 
-export interface LLMClient {
+interface LLMClient {
   generate: (prompt: string) => Promise<string>;
 }
 
@@ -102,7 +102,7 @@ const parseEnrichmentResponse = (response: string, fallbackLabel: string): Clust
  * @param llmClient - LLM client for generation
  * @param onProgress - Progress callback
  */
-export const enrichClusters = async (
+const enrichClusters = async (
   communities: CommunityNode[],
   memberMap: Map<string, ClusterMemberInfo[]>,
   llmClient: LLMClient,

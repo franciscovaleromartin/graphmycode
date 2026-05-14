@@ -20,12 +20,12 @@ export const EMBEDDABLE_LABELS = [
   'File',
 ] as const;
 
-export type EmbeddableLabel = typeof EMBEDDABLE_LABELS[number];
+type EmbeddableLabel = typeof EMBEDDABLE_LABELS[number];
 
 /**
  * Check if a label should be embedded
  */
-export const isEmbeddableLabel = (label: string): label is EmbeddableLabel =>
+const isEmbeddableLabel = (label: string): label is EmbeddableLabel =>
   EMBEDDABLE_LABELS.includes(label as EmbeddableLabel);
 
 /**

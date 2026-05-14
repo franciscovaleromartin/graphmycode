@@ -23,7 +23,7 @@ let currentDevice: 'webgpu' | 'wasm' | null = null;
 /**
  * Progress callback type for model loading
  */
-export type ModelProgressCallback = (progress: ModelProgress) => void;
+type ModelProgressCallback = (progress: ModelProgress) => void;
 
 /**
  * Custom error thrown when WebGPU is not available
@@ -41,7 +41,7 @@ export class WebGPUNotAvailableError extends Error {
  * Check if WebGPU is available in this browser
  * Quick check without loading the model
  */
-export const checkWebGPUAvailability = async (): Promise<boolean> => {
+const checkWebGPUAvailability = async (): Promise<boolean> => {
   try {
     // Cast to any to avoid WebGPU types not being available in all TS configs
     const nav = navigator as any;
@@ -64,7 +64,7 @@ export const checkWebGPUAvailability = async (): Promise<boolean> => {
 /**
  * Get the current device being used for inference
  */
-export const getCurrentDevice = (): 'webgpu' | 'wasm' | null => currentDevice;
+const getCurrentDevice = (): 'webgpu' | 'wasm' | null => currentDevice;
 
 /**
  * Initialize the embedding model
@@ -233,7 +233,7 @@ export const isEmbedderReady = (): boolean => {
 /**
  * Get the embedder instance (throws if not initialized)
  */
-export const getEmbedder = (): FeatureExtractionPipeline => {
+const getEmbedder = (): FeatureExtractionPipeline => {
   if (!embedderInstance) {
     throw new Error('Embedder not initialized. Call initEmbedder() first.');
   }
