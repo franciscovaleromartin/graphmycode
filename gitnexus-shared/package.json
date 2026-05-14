@@ -13,7 +13,7 @@
     }
   },
   "scripts": {
-    "build": "echo 'dist already compiled'"
+    "build": "tsc"
   },
   "files": [
     "dist"
