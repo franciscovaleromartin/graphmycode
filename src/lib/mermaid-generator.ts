@@ -86,7 +86,7 @@ export function generateProcessMermaid(process: ProcessData): string {
   const getFileName = (path?: string) => path?.split('/').pop() || '';
 
   // Determine node class (entry, terminal, or normal step)
-  const sortedStepsRef = [...steps].sort((a, b) => a.stepNumber - b.stepNumber);
+  const sortedStepsRef = steps.toSorted((a, b) => a.stepNumber - b.stepNumber);
   const entryId = sortedStepsRef[0]?.id;
   const terminalId = sortedStepsRef[sortedStepsRef.length - 1]?.id;
 
@@ -153,7 +153,7 @@ export function generateProcessMermaid(process: ProcessData): string {
     // For now assume graph is connected enough or user accepts fragments.
   } else {
     // Fallback: linear chain based on step order
-    const sortedSteps = [...steps].sort((a, b) => a.stepNumber - b.stepNumber);
+    const sortedSteps = steps.toSorted((a, b) => a.stepNumber - b.stepNumber);
     for (let i = 0; i < sortedSteps.length - 1; i++) {
       lines.push(`  ${nodeId(sortedSteps[i])} --> ${nodeId(sortedSteps[i + 1])}`);
     }

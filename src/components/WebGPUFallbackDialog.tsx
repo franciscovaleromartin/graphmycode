@@ -46,8 +46,12 @@ export const WebGPUFallbackDialog = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Close dialog"
         className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}
       />
 
       {/* Dialog */}
@@ -65,13 +69,15 @@ export const WebGPUFallbackDialog = ({
 
           <div className="flex items-center gap-4">
             {/* Animated emoji */}
-            <div
+            <button
+              type="button"
+              aria-label="Animate emoji"
               className={`text-5xl ${isAnimating ? 'animate-bounce' : ''}`}
               onAnimationEnd={() => setIsAnimating(false)}
               onClick={() => setIsAnimating(true)}
             >
               🤔
-            </div>
+            </button>
             <div>
               <h2 className="text-lg font-semibold text-text-primary">WebGPU said "nope"</h2>
               <p className="mt-0.5 text-sm text-text-muted">
@@ -118,7 +124,7 @@ export const WebGPUFallbackDialog = ({
 
           {isSmallCodebase && (
             <p className="flex items-center gap-1.5 rounded-lg bg-node-function/10 px-3 py-2 text-xs text-node-function">
-              <Rocket className="h-3.5 w-3.5" />
+              <Rocket className="size-3.5" />
               Small codebase detected! CPU should be fine.
             </p>
           )}

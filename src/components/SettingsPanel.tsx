@@ -137,7 +137,10 @@ const OpenRouterModelCombobox = ({
     <div ref={containerRef} className="relative">
       {/* Main input/button */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={handleOpen}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpen(); }}
         className={`flex w-full cursor-pointer items-center gap-2 rounded-xl border bg-elevated px-4 py-3 transition-all ${isOpen ? 'border-accent ring-2 ring-accent/20' : 'border-border-subtle hover:border-accent/50'}`}
       >
         {isOpen ? (
@@ -175,7 +178,7 @@ const OpenRouterModelCombobox = ({
               Loading models…
             </div>
           ) : filteredModels.length === 0 ? (
-            <div className="px-4 py-4 text-center">
+            <div className="p-4 text-center">
               {models.length === 0 ? (
                 <div className="text-sm text-text-muted">
                   <Search className="mx-auto mb-2 size-5 opacity-50" />
@@ -349,7 +352,14 @@ export const SettingsPanel = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label="Close settings"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}
+      />
 
       {/* Panel */}
       <div className="relative mx-4 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-2xl">
@@ -596,11 +606,12 @@ export const SettingsPanel = ({
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+                <label htmlFor="azure-endpoint" className="flex items-center gap-2 text-sm font-medium text-text-secondary">
                   <Server className="size-4" />
                   Endpoint
                 </label>
                 <input
+                  id="azure-endpoint"
                   type="url"
                   value={settings.azureOpenAI?.endpoint ?? ''}
                   onChange={(e) =>
@@ -615,8 +626,9 @@ export const SettingsPanel = ({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-text-secondary">Deployment Name</label>
+                <label htmlFor="azure-deployment-name" className="text-sm font-medium text-text-secondary">Deployment Name</label>
                 <input
+                  id="azure-deployment-name"
                   type="text"
                   value={settings.azureOpenAI?.deploymentName ?? ''}
                   onChange={(e) =>
@@ -632,8 +644,9 @@ export const SettingsPanel = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-text-secondary">Model</label>
+                  <label htmlFor="azure-model" className="text-sm font-medium text-text-secondary">Model</label>
                   <input
+                    id="azure-model"
                     type="text"
                     value={settings.azureOpenAI?.model ?? 'gpt-4o'}
                     onChange={(e) =>
@@ -648,8 +661,9 @@ export const SettingsPanel = ({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-text-secondary">API Version</label>
+                  <label htmlFor="azure-api-version" className="text-sm font-medium text-text-secondary">API Version</label>
                   <input
+                    id="azure-api-version"
                     type="text"
                     value={settings.azureOpenAI?.apiVersion ?? '2024-08-01-preview'}
                     onChange={(e) =>
@@ -701,12 +715,13 @@ export const SettingsPanel = ({
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+                <label htmlFor="ollama-base-url" className="flex items-center gap-2 text-sm font-medium text-text-secondary">
                   <Server className="size-4" />
                   Base URL
                 </label>
                 <div className="flex gap-2">
                   <input
+                    id="ollama-base-url"
                     type="url"
                     value={settings.ollama?.baseUrl ?? DEFAULT_OLLAMA_BASE_URL}
                     onChange={(e) =>
@@ -724,7 +739,7 @@ export const SettingsPanel = ({
                       checkOllamaConnection(settings.ollama?.baseUrl ?? DEFAULT_OLLAMA_BASE_URL)
                     }
                     disabled={isCheckingOllama}
-                    className="rounded-xl border border-border-subtle bg-elevated px-3 py-3 text-text-secondary transition-colors hover:border-accent/50 hover:text-text-primary disabled:opacity-50"
+                    className="rounded-xl border border-border-subtle bg-elevated p-3 text-text-secondary transition-colors hover:border-accent/50 hover:text-text-primary disabled:opacity-50"
                     title="Check connection"
                   >
                     <RefreshCw className={`size-4 ${isCheckingOllama ? 'animate-spin' : ''}`} />
@@ -736,7 +751,7 @@ export const SettingsPanel = ({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-text-secondary">Model</label>
+                <label htmlFor="ollama-model" className="text-sm font-medium text-text-secondary">Model</label>
 
                 {ollamaError && !isCheckingOllama && (
                   <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2">

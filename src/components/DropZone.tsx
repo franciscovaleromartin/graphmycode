@@ -89,11 +89,11 @@ function SuccessCard() {
         {/* Subtle progress hint */}
         <div className="mt-6 flex items-center justify-center gap-2">
           <div className="flex gap-1">
-            {[0, 1, 2].map((i) => (
+            {[0, 1, 2].map((dot) => (
               <div
-                key={i}
+                key={dot}
                 className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400/60"
-                style={{ animationDelay: `${i * 200}ms` }}
+                style={{ animationDelay: `${dot * 200}ms` }}
               />
             ))}
           </div>

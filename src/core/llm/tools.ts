@@ -901,8 +901,7 @@ MATCH (n:Function {id: emb.nodeId}) RETURN n`,
 
       // Handle multiple matches - require disambiguation
       const allPaths = targetResults
-        .map((r: any) => (Array.isArray(r) ? r[2] : r.filePath))
-        .filter(Boolean);
+        .flatMap((r: any) => { const p = Array.isArray(r) ? r[2] : r.filePath; return p ? [p] : []; });
 
       // If multiple matches and target doesn't look like a specific path, ask for clarification
       if (targetResults.length > 1 && !target.includes('/')) {

@@ -242,10 +242,10 @@ export const QueryFAB = () => {
               onClick={() => setShowExamples(!showExamples)}
               className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
             >
-              <Sparkles className="h-3.5 w-3.5" />
+              <Sparkles className="size-3.5" />
               <span>Examples</span>
               <ChevronDown
-                className={`h-3.5 w-3.5 transition-transform ${showExamples ? 'rotate-180' : ''}`}
+                className={`size-3.5 transition-transform ${showExamples ? 'rotate-180' : ''}`}
               />
             </button>
 
@@ -279,9 +279,9 @@ export const QueryFAB = () => {
               className="flex items-center gap-1.5 rounded-md bg-gradient-to-r from-cyan-500 to-teal-500 px-4 py-1.5 text-sm font-medium text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
             >
               {isRunning ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="size-3.5 animate-spin" />
               ) : (
-                <Play className="h-3.5 w-3.5" />
+                <Play className="size-3.5" />
               )}
               <span>Run</span>
               <kbd className="ml-1 rounded bg-white/20 px-1 py-0.5 text-[10px]">⌘↵</kbd>
@@ -351,6 +351,7 @@ export const QueryFAB = () => {
                 </thead>
                 <tbody>
                   {queryResult.rows.slice(0, 50).map((row, i) => (
+                    // OK: query result rows have no stable id — dynamic Cypher output
                     <tr key={i} className="transition-colors hover:bg-hover/50">
                       {Object.values(row).map((val, j) => (
                         <td

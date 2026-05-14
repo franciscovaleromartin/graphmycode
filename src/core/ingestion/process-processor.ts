@@ -381,7 +381,7 @@ const deduplicateTraces = (traces: string[][]): string[][] => {
   if (traces.length === 0) return [];
   
   // Sort by length descending
-  const sorted = [...traces].sort((a, b) => b.length - a.length);
+  const sorted = traces.toSorted((a, b) => b.length - a.length);
   const unique: string[][] = [];
   
   for (const trace of sorted) {

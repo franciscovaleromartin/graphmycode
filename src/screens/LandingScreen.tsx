@@ -668,11 +668,17 @@ export const LandingScreen = () => {
     const prefetch = () =>
       languageWasms.forEach(url => fetch(url).catch(() => { }));
 
+    let timeoutId: number | undefined;
+    let idleId: number | undefined;
     if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(prefetch, { timeout: 10_000 });
+      idleId = (window as any).requestIdleCallback(prefetch, { timeout: 10_000 });
     } else {
-      setTimeout(prefetch, 3_000);
+      timeoutId = window.setTimeout(prefetch, 3_000);
     }
+    return () => {
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+      if (idleId !== undefined) (window as any).cancelIdleCallback?.(idleId);
+    };
   }, []);
 
   const runPipeline = useCallback(
@@ -816,6 +822,8 @@ export const LandingScreen = () => {
         {/* ZIP drop zone */}
         {mode === 'zip' && (
           <div
+            role="button"
+            tabIndex={0}
             className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed py-14 transition-all ${isDragging
                 ? 'border-accent bg-accent/8 scale-[1.01]'
                 : 'border-border-default bg-surface hover:border-accent/50 hover:bg-elevated'
@@ -824,6 +832,7 @@ export const LandingScreen = () => {
             onDragLeave={onDragLeave}
             onDrop={onDrop}
             onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
           >
             <svg
               className={`mb-4 size-10 transition-colors ${isDragging ? 'text-accent' : 'text-text-muted'}`}

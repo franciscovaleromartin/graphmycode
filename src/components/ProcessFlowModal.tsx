@@ -233,9 +233,10 @@ export const ProcessFlowModal = ({
       ref={containerRef}
       role="button"
       aria-label="Close modal"
-      tabIndex={-1}
+      tabIndex={0}
       className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/20"
       onClick={handleBackdropClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') onClose(); }}
       data-testid="process-modal"
     >
       {/* Glassmorphism Modal */}

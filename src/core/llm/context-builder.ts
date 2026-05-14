@@ -125,23 +125,12 @@ export async function getHotspots(
     const results = await executeQuery(query);
 
     return results
-      .map((row) => {
-        if (Array.isArray(row)) {
-          return {
-            name: row[0],
-            type: row[1],
-            filePath: row[2],
-            connections: row[3],
-          };
-        }
-        return {
-          name: row.name,
-          type: row.type,
-          filePath: row.filePath,
-          connections: row.connections,
-        };
-      })
-      .filter((h) => h.name && h.type);
+      .flatMap((row) => {
+        const h = Array.isArray(row)
+          ? { name: row[0], type: row[1], filePath: row[2], connections: row[3] }
+          : { name: row.name, type: row.type, filePath: row.filePath, connections: row.connections };
+        return h.name && h.type ? [h] : [];
+      });
   } catch (error) {
     console.error('Failed to get hotspots:', error);
     return [];
@@ -162,11 +151,7 @@ export async function getFolderTree(
     const results = await executeQuery(query);
 
     const paths = results
-      .map((row) => {
-        if (Array.isArray(row)) return row[0];
-        return row.path;
-      })
-      .filter(Boolean);
+      .flatMap((row) => { const p = Array.isArray(row) ? row[0] : row.path; return p ? [p] : []; });
 
     if (paths.length === 0) return '';
 

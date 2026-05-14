@@ -692,9 +692,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
       const updateMessage = () => {
         // Build content from steps for backwards compatibility
         const contentParts = stepsForMessage
-          .filter((s) => s.type === 'reasoning' || s.type === 'content')
-          .map((s) => s.content)
-          .filter(Boolean);
+          .flatMap((s) => (s.type === 'reasoning' || s.type === 'content') && s.content ? [s.content] : []);
         const content = contentParts.join('\n\n');
 
         setChatMessages((prev) => {
@@ -918,8 +916,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
                   if (highlightMatch) {
                     const rawIds = highlightMatch[1]
                       .split(',')
-                      .map((id: string) => id.trim())
-                      .filter(Boolean);
+                      .flatMap((id: string) => { const t = id.trim(); return t ? [t] : []; });
                     if (rawIds.length > 0 && graph) {
                       const matchedIds = new Set<string>();
                       const graphNodeIdSet = new Set(graph.nodes.map((n) => n.id));
@@ -950,8 +947,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
                   if (impactMatch) {
                     const rawIds = impactMatch[1]
                       .split(',')
-                      .map((id: string) => id.trim())
-                      .filter(Boolean);
+                      .flatMap((id: string) => { const t = id.trim(); return t ? [t] : []; });
                     if (rawIds.length > 0 && graph) {
                       const matchedIds = new Set<string>();
                       const graphNodeIdSet = new Set(graph.nodes.map((n) => n.id));
@@ -1000,17 +996,17 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
         if (graphViewType === 'city' && graph) {
           const rels = graph.relationships;
           cityTopDebtNodes = graph.nodes
-            .filter(n => n.label !== 'Community' && n.label !== 'Process')
-            .map(node => {
+            .flatMap(node => {
+              if (node.label === 'Community' || node.label === 'Process') return [];
               const value = cityMetric === 'degree'
                 ? rels.filter(r => r.sourceId === node.id || r.targetId === node.id).length
                 : (node.properties.filePath ?? '').split('/').length - 1;
-              return {
+              return [{
                 name: node.properties.name ?? node.id,
                 label: node.label as string,
                 filePath: node.properties.filePath ?? '',
                 value,
-              };
+              }];
             })
             .sort((a, b) => b.value - a.value)
             .slice(0, 20);
