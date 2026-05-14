@@ -43,7 +43,7 @@ function CopyButton({ text }: { text: string }) {
           : 'text-text-muted hover:bg-white/5 hover:text-text-primary'
       } `}
     >
-      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
     </button>
   );
 }
@@ -70,11 +70,11 @@ function TerminalWindow({
       {/* Title bar */}
       <div className="flex items-center gap-2 border-b border-border-subtle bg-deep px-4 py-2.5">
         <div className="flex gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-full bg-red-500/60" />
-          <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/60" />
-          <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/60" />
+          <div className="size-2.5 rounded-full bg-red-500/60" />
+          <div className="size-2.5 rounded-full bg-yellow-500/60" />
+          <div className="size-2.5 rounded-full bg-emerald-500/60" />
         </div>
-        <span className="flex-1 text-center font-mono text-[11px] text-text-muted">{label}</span>
+        <span className="flex-1 text-center font-mono text-[12px] text-text-muted">{label}</span>
         <CopyButton text={command} />
       </div>
       {/* Command body */}
@@ -192,7 +192,7 @@ function PollingBar() {
             <span className="animate-pulse">...</span>
           </span>
         </p>
-        <p className="mt-0.5 text-[11px] text-text-muted">Will auto-connect when detected</p>
+        <p className="mt-0.5 text-[12px] text-text-muted">Will auto-connect when detected</p>
       </div>
     </div>
   );
@@ -224,8 +224,8 @@ export const OnboardingGuide = ({ isPolling }: OnboardingGuideProps) => {
       <div className="relative mb-6">
         <div className="text-center">
           <div className="mb-2 inline-flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-accent/70" />
-            <span className="text-[11px] font-medium tracking-widest text-accent/80 uppercase">
+            <Sparkles className="size-3.5 text-accent/70" />
+            <span className="text-[12px] font-medium tracking-widest text-accent/80 uppercase">
               GraphMy<span className="text-cyan-400">Code</span>
             </span>
           </div>
@@ -262,7 +262,7 @@ export const OnboardingGuide = ({ isPolling }: OnboardingGuideProps) => {
             <>
               <div className="my-3 flex items-center gap-3">
                 <div className="h-px flex-1 bg-border-subtle" />
-                <span className="text-[11px] tracking-widest text-text-muted uppercase">
+                <span className="text-[12px] tracking-widest text-text-muted uppercase">
                   or install globally
                 </span>
                 <div className="h-px flex-1 bg-border-subtle" />

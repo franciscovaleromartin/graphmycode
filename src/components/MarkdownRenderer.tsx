@@ -212,9 +212,9 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             title="Copy to clipboard"
           >
             {copied ? (
-              <Check className="h-3.5 w-3.5 text-emerald-400" />
+              <Check className="size-3.5 text-emerald-400" />
             ) : (
-              <Copy className="h-3.5 w-3.5" />
+              <Copy className="size-3.5" />
             )}
             <span>{copied ? 'Copied' : 'Copy'}</span>
           </button>

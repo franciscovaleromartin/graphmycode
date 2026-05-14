@@ -145,7 +145,7 @@ export const MermaidDiagram = ({ code }: MermaidDiagramProps) => {
               className="rounded p-1 text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
               title="Expand"
             >
-              <Maximize2 className="h-3.5 w-3.5" />
+              <Maximize2 className="size-3.5" />
             </button>
           </div>
 

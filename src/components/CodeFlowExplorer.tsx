@@ -99,9 +99,9 @@ const TreeItem = ({ node, depth, selectedPath, expandedPaths, onToggle, onSelect
       >
         {hasChildren ? (
           isExpanded ? (
-            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-text-muted" />
+            <ChevronDown className="size-3.5 shrink-0 text-text-muted" />
           ) : (
-            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-text-muted" />
+            <ChevronRight className="size-3.5 shrink-0 text-text-muted" />
           )
         ) : (
           <span className="w-3.5" />

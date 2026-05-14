@@ -101,7 +101,7 @@ function AnalyzeButton({
     >
       {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
       <span>{isLoading ? 'Starting analysis…' : 'Analyze Repository'}</span>
-      {canSubmit && !isLoading && <ArrowRight className="h-3.5 w-3.5" />}
+      {canSubmit && !isLoading && <ArrowRight className="size-3.5" />}
     </button>
   );
 }
@@ -291,9 +291,9 @@ export const RepoAnalyzer = ({ variant, onComplete, onCancel }: RepoAnalyzerProp
             {githubUrl.length > 10 && (
               <div className="shrink-0">
                 {isValidGithubUrl(githubUrl) ? (
-                  <Check className="h-3.5 w-3.5 text-emerald-400" />
+                  <Check className="size-3.5 text-emerald-400" />
                 ) : (
-                  <AlertCircle className="h-3.5 w-3.5 text-text-muted" />
+                  <AlertCircle className="size-3.5 text-text-muted" />
                 )}
               </div>
             )}
@@ -341,7 +341,7 @@ export const RepoAnalyzer = ({ variant, onComplete, onCancel }: RepoAnalyzerProp
               className="flex-1 border-none bg-transparent font-mono text-sm text-text-primary outline-none placeholder:text-text-muted disabled:opacity-50"
             />
             {localPath.trim().length > 1 && (
-              <Check className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+              <Check className="size-3.5 shrink-0 text-emerald-400" />
             )}
           </div>
           {/* Native folder picker + Browse button — below the input */}
@@ -370,7 +370,7 @@ export const RepoAnalyzer = ({ variant, onComplete, onCancel }: RepoAnalyzerProp
             disabled={isLoading}
             className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-border-subtle bg-elevated px-3 py-2 text-xs font-medium text-text-secondary transition-all duration-150 hover:bg-hover hover:text-text-primary disabled:opacity-50"
           >
-            <FolderOpen className="h-3.5 w-3.5" />
+            <FolderOpen className="size-3.5" />
             Browse for folder
           </button>
         </div>

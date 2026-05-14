@@ -432,7 +432,7 @@ export const CodeFlowView = forwardRef<CodeFlowViewHandle, CodeFlowViewProps>(
               onClick={handleBack}
               className="flex items-center gap-1 rounded px-2 py-1 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
             >
-              <ChevronRight className="h-3.5 w-3.5 rotate-180" />
+              <ChevronRight className="size-3.5 rotate-180" />
               Explorador
             </button>
             <div className="h-4 w-px bg-border-subtle" />

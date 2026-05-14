@@ -548,12 +548,12 @@ const ProcessItem = ({
           <span className="animate-pulse">Loading…</span>
         ) : isSelected ? (
           <>
-            <Eye className="h-3.5 w-3.5" />
+            <Eye className="size-3.5" />
             Viewing
           </>
         ) : (
           <>
-            <Eye className="h-3.5 w-3.5" />
+            <Eye className="size-3.5" />
             View
           </>
         )}

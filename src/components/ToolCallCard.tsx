@@ -178,7 +178,7 @@ export const ToolCallCard = ({ toolCall, defaultExpanded = false }: ToolCallCard
 
           {/* Loading state for in-progress */}
           {toolCall.status === 'running' && !toolCall.result && (
-            <div className="flex items-center gap-2 px-3 py-3 text-xs text-text-muted">
+            <div className="flex items-center gap-2 p-3 text-xs text-text-muted">
               <Loader2 className="size-3 animate-spin" />
               <span>Executing…</span>
             </div>

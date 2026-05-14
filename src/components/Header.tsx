@@ -187,7 +187,7 @@ export const Header = ({
                   : 'border-border-subtle bg-surface text-text-secondary hover:border-border-default hover:bg-hover'
               } `}
             >
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-node-function" />
+              <span className="size-1.5 animate-pulse rounded-full bg-node-function" />
               <span className="max-w-[160px] truncate">{projectName}</span>
               <ChevronDown
                 className={`size-3 text-text-muted transition-transform duration-200 ${isRepoDropdownOpen ? 'rotate-180' : ''}`}
@@ -232,7 +232,7 @@ export const Header = ({
                               }}
                               className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
                             >
-                              <FolderOpen className="h-3.5 w-3.5 shrink-0 text-node-folder" />
+                              <FolderOpen className="size-3.5 shrink-0 text-node-folder" />
                               <span className="flex-1 truncate font-mono text-sm text-text-primary">
                                 {repo.name}
                               </span>
@@ -293,7 +293,7 @@ export const Header = ({
                               }
                             >
                               <RefreshCw
-                                className={`h-3.5 w-3.5 ${reanalyzing === repo.name ? 'animate-spin' : ''}`}
+                                className={`size-3.5 ${reanalyzing === repo.name ? 'animate-spin' : ''}`}
                               />
                             </button>
                             {/* Delete */}
@@ -325,7 +325,7 @@ export const Header = ({
                               className="cursor-pointer rounded p-1 text-text-muted/0 transition-all group-hover:text-text-muted hover:!text-red-400"
                               title={`Delete ${repo.name}`}
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <Trash2 className="size-3.5" />
                             </button>
                           </div>
                         ))}
@@ -363,7 +363,7 @@ export const Header = ({
                         disabled={!!reanalyzing}
                         className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        <Sparkles className="h-3.5 w-3.5 shrink-0 text-accent" />
+                        <Sparkles className="size-3.5 shrink-0 text-accent" />
                         <span className="text-sm text-text-secondary">
                           Analyze a new repository...
                         </span>
@@ -420,7 +420,7 @@ export const Header = ({
                     }`}
                   >
                     <span
-                      className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                      className="size-2.5 flex-shrink-0 rounded-full"
                       style={{ backgroundColor: NODE_TYPE_COLORS[node.label] || '#6b7280' }}
                     />
                     <span className="flex-1 truncate text-sm font-medium">
@@ -470,7 +470,7 @@ export const Header = ({
         >
           <Github className="size-4" />
           <span className="hidden sm:inline">Star if cool</span>
-          <Star className="h-3.5 w-3.5 transition-all group-hover:fill-yellow-300 group-hover:text-yellow-300" />
+          <Star className="size-3.5 transition-all group-hover:fill-yellow-300 group-hover:text-yellow-300" />
           <span className="hidden sm:inline">✨</span>
         </a>
 
@@ -491,14 +491,14 @@ export const Header = ({
           className="flex size-9 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="AI Settings"
         >
-          <Settings className="h-4.5 w-4.5" />
+          <Settings className="size-4.5" />
         </button>
         <button
           title="Help"
           onClick={() => setHelpDialogBoxOpen(true)}
           className="flex size-9 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
         >
-          <HelpCircle className="h-4.5 w-4.5" />
+          <HelpCircle className="size-4.5" />
         </button>
 
         {/* AI Button */}

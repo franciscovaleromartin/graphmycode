@@ -136,9 +136,9 @@ const TreeItem = ({
         {/* Expand/collapse icon */}
         {hasChildren ? (
           isExpanded ? (
-            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-text-muted" />
+            <ChevronDown className="size-3.5 shrink-0 text-text-muted" />
           ) : (
-            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-text-muted" />
+            <ChevronRight className="size-3.5 shrink-0 text-text-muted" />
           )
         ) : (
           <span className="w-3.5" />
@@ -376,7 +376,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
           {/* Search */}
           <div className="border-b border-border-subtle px-3 py-2">
             <div className="relative">
-              <Search className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" />
+              <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-text-muted" />
               <input
                 type="text"
                 placeholder="Search files..."
@@ -415,7 +415,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
             <h3 className="mb-2 text-xs font-medium tracking-wide text-text-secondary uppercase">
               Node Types
             </h3>
-            <p className="mb-3 text-[11px] text-text-muted">
+            <p className="mb-3 text-[12px] text-text-muted">
               Toggle visibility of node types in the graph
             </p>
           </div>
@@ -455,7 +455,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
             <h3 className="mb-2 text-xs font-medium tracking-wide text-text-secondary uppercase">
               Edge Types
             </h3>
-            <p className="mb-3 text-[11px] text-text-muted">
+            <p className="mb-3 text-[12px] text-text-muted">
               Toggle visibility of relationship types
             </p>
 
@@ -494,7 +494,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
               <Target className="mr-1.5 inline size-3" />
               Focus Depth
             </h3>
-            <p className="mb-3 text-[11px] text-text-muted">
+            <p className="mb-3 text-[12px] text-text-muted">
               Show nodes within N hops of selection
             </p>
 
@@ -547,7 +547,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
               ).map((label) => (
                 <div key={label} className="flex items-center gap-1.5">
                   <div
-                    className="h-2.5 w-2.5 rounded-full"
+                    className="size-2.5 rounded-full"
                     style={{ backgroundColor: NODE_COLORS[label] }}
                   />
                   <span className="text-[10px] text-text-muted">{label}</span>

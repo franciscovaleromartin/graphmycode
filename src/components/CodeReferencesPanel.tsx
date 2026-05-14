@@ -35,7 +35,7 @@ const customTheme = {
     background: '#0a0a10',
     margin: 0,
     padding: '12px 0',
-    fontSize: '11px',
+    fontSize: '12px',
     lineHeight: '1.5',
   },
   'code[class*="language-"]': {
@@ -331,7 +331,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border-subtle bg-gradient-to-r from-elevated/60 to-surface/60 px-2.5 py-1.5">
         <div className="flex items-center gap-1.5">
-          <Code className="h-3.5 w-3.5 text-cyan-400" />
+          <Code className="size-3.5 text-cyan-400" />
           <span className="text-xs font-semibold text-text-primary">Code Inspector</span>
         </div>
         <div className="flex items-center gap-1">
@@ -341,7 +341,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
               className="rounded p-1 text-text-muted transition-colors hover:bg-red-500/10 hover:text-red-400"
               title="Clear AI citations"
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 className="size-3.5" />
             </button>
           )}
           <button
@@ -349,7 +349,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
             className="rounded p-1 text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
             title="Collapse Panel"
           >
-            <PanelLeftClose className="h-3.5 w-3.5" />
+            <PanelLeftClose className="size-3.5" />
           </button>
         </div>
       </div>
@@ -360,13 +360,13 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
           <div className={`${showCitations ? 'h-[42%]' : 'flex-1'} flex min-h-0 flex-col`}>
             <div className="flex items-center gap-1.5 border-b border-amber-500/20 bg-gradient-to-r from-amber-500/8 to-orange-500/5 px-2.5 py-1.5">
               <div className="flex items-center gap-1 rounded border border-amber-500/25 bg-amber-500/15 px-1.5 py-0.5">
-                <MousePointerClick className="h-2.5 w-2.5 text-amber-400" />
+                <MousePointerClick className="size-2.5 text-amber-400" />
                 <span className="text-[9px] font-semibold tracking-wide text-amber-300 uppercase">
                   Selected
                 </span>
               </div>
               <FileCode className="size-3 text-amber-400/70" />
-              <span className="flex-1 truncate font-mono text-[11px] text-text-primary">
+              <span className="flex-1 truncate font-mono text-[12px] text-text-primary">
                 {selectedNode?.properties?.filePath?.split('/').pop() ??
                   selectedNode?.properties?.name}
               </span>
@@ -381,7 +381,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
             <div ref={selectedViewerRef} className="scrollbar-thin min-h-0 flex-1 overflow-auto">
               {isLoadingFile ? (
                 <div className="flex items-center justify-center gap-2 py-8 text-text-muted">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className="size-3.5 animate-spin" />
                   <span className="text-xs">Loading source…</span>
                 </div>
               ) : selectedFileContent ? (
@@ -445,12 +445,12 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
             {/* AI Citations Section Header */}
             <div className="flex items-center gap-1.5 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-500/8 to-teal-500/5 px-2.5 py-1.5">
               <div className="flex items-center gap-1 rounded border border-cyan-500/25 bg-cyan-500/15 px-1.5 py-0.5">
-                <Sparkles className="h-2.5 w-2.5 text-cyan-400" />
+                <Sparkles className="size-2.5 text-cyan-400" />
                 <span className="text-[9px] font-semibold tracking-wide text-cyan-300 uppercase">
                   AI Citations
                 </span>
               </div>
-              <span className="text-[11px] text-text-muted">
+              <span className="text-[12px] text-text-muted">
                 {aiReferences.length} reference{aiReferences.length !== 1 ? 's' : ''}
               </span>
             </div>
@@ -489,7 +489,7 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
                           {ref.label ?? 'Code'}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <div className="truncate text-[11px] font-medium text-text-primary">
+                          <div className="truncate text-[12px] font-medium text-text-primary">
                             {ref.name ?? ref.filePath.split('/').pop() ?? ref.filePath}
                           </div>
                           <div className="truncate font-mono text-[10px] text-text-muted">

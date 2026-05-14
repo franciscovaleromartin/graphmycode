@@ -226,7 +226,7 @@ export const RightPanel = () => {
                 : 'text-text-muted hover:bg-hover hover:text-text-primary'
             }`}
           >
-            <Sparkles className="h-3.5 w-3.5" />
+            <Sparkles className="size-3.5" />
             <span>{t.aiTab}</span>
           </button>
 
@@ -239,7 +239,7 @@ export const RightPanel = () => {
                 : 'text-text-muted hover:bg-hover hover:text-text-primary'
             }`}
           >
-            <GitBranch className="h-3.5 w-3.5" />
+            <GitBranch className="size-3.5" />
             <span>{t.processesTab}</span>
             <span className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
               NEW
@@ -271,12 +271,12 @@ export const RightPanel = () => {
           <div className="flex items-center gap-2.5 border-b border-border-subtle bg-elevated/50 px-4 py-3">
             <div className="ml-auto flex items-center gap-2">
               {!isAgentReady && (
-                <span className="rounded-full border border-amber-500/30 bg-amber-500/15 px-2 py-1 text-[11px] text-amber-300">
+                <span className="rounded-full border border-amber-500/30 bg-amber-500/15 px-2 py-1 text-[12px] text-amber-300">
                   {t.configureAI}
                 </span>
               )}
               {isAgentInitializing && (
-                <span className="flex items-center gap-1 rounded-full border border-border-subtle bg-surface px-2 py-1 text-[11px] text-text-muted">
+                <span className="flex items-center gap-1 rounded-full border border-border-subtle bg-surface px-2 py-1 text-[12px] text-text-muted">
                   <Loader2 className="size-3 animate-spin" /> {t.connecting}
                 </span>
               )}
@@ -285,8 +285,8 @@ export const RightPanel = () => {
 
           {/* Privacy warning when AI is active */}
           {isAgentReady && (
-            <div className="flex items-center gap-2 border-b border-amber-500/20 bg-amber-500/8 px-4 py-2 text-[11px] text-amber-300/80">
-              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            <div className="flex items-center gap-2 border-b border-amber-500/20 bg-amber-500/8 px-4 py-2 text-[12px] text-amber-300/80">
+              <AlertTriangle className="size-3.5 shrink-0" />
               <span>{t.aiPrivacyWarning}</span>
             </div>
           )}
@@ -427,7 +427,7 @@ export const RightPanel = () => {
                   className="flex size-9 items-center justify-center rounded-md bg-red-500/80 text-white transition-all hover:bg-red-500"
                   title="Stop response"
                 >
-                  <Square className="h-3.5 w-3.5 fill-current" />
+                  <Square className="size-3.5 fill-current" />
                 </button>
               ) : (
                 <button
@@ -435,13 +435,13 @@ export const RightPanel = () => {
                   disabled={!chatInput.trim() || isAgentInitializing}
                   className="flex size-9 items-center justify-center rounded-md bg-accent text-white transition-all hover:bg-accent-dim disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Send className="h-3.5 w-3.5" />
+                  <Send className="size-3.5" />
                 </button>
               )}
             </div>
             {!isAgentReady && !isAgentInitializing && (
               <div className="mt-2 flex items-center gap-2 text-xs text-amber-200">
-                <AlertTriangle className="h-3.5 w-3.5" />
+                <AlertTriangle className="size-3.5" />
                 <span>
                   {isProviderConfigured()
                     ? t.initializingAgent

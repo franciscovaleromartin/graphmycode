@@ -72,7 +72,7 @@ export const AnalyzeProgress = ({ progress, onCancel }: AnalyzeProgressProps) =>
           onClick={onCancel}
           className="flex items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-1.5 text-xs text-red-400 transition-all duration-200 hover:bg-red-500/20"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="size-3.5" />
           Cancel
         </button>
       </div>

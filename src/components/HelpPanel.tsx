@@ -95,11 +95,11 @@ const getStatusItems = (nodeCount: number, edgeCount: number) => [
     title: 'AI index status',
     desc: 'Repo is fully indexed for AI queries',
   },
-  // { badge: <span style={{ fontSize: 11, fontWeight: 500, color: '#9ca3af', flexShrink: 0 }}>typescript</span>, title: 'Language', desc: 'Primary language detected in the repo' },
+  // { badge: <span style={{ fontSize: 12, fontWeight: 500, color: '#9ca3af', flexShrink: 0 }}>typescript</span>, title: 'Language', desc: 'Primary language detected in the repo' },
 ];
 
 const kbdStyle: React.CSSProperties = {
-  fontSize: 11,
+  fontSize: 12,
   background: 'rgba(255,255,255,0.08)',
   borderRadius: 4,
   padding: '2px 8px',
@@ -128,7 +128,7 @@ function TabContent({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <p
           style={{
-            fontSize: 11,
+            fontSize: 12,
             color: '#6b7280',
             margin: '0 0 4px',
             textTransform: 'uppercase',
@@ -217,7 +217,7 @@ function TabContent({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <p
           style={{
-            fontSize: 11,
+            fontSize: 12,
             color: '#6b7280',
             margin: '0 0 4px',
             textTransform: 'uppercase',
@@ -272,7 +272,7 @@ function TabContent({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <p
           style={{
-            fontSize: 11,
+            fontSize: 12,
             color: '#6b7280',
             margin: '0 0 4px',
             textTransform: 'uppercase',
@@ -329,7 +329,7 @@ function TabContent({
             >
               <code
                 style={{
-                  fontSize: 11,
+                  fontSize: 12,
                   color: '#a78bfa',
                   background: 'rgba(167,139,250,0.1)',
                   borderRadius: 4,
@@ -352,7 +352,7 @@ function TabContent({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <p
           style={{
-            fontSize: 11,
+            fontSize: 12,
             color: '#6b7280',
             margin: '0 0 4px',
             textTransform: 'uppercase',
@@ -426,7 +426,7 @@ function TabContent({
         >
           <span
             style={{
-              fontSize: 11,
+              fontSize: 12,
               color: '#6b7280',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
@@ -436,7 +436,7 @@ function TabContent({
           </span>
           <span
             style={{
-              fontSize: 11,
+              fontSize: 12,
               color: '#6b7280',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
@@ -447,7 +447,7 @@ function TabContent({
           </span>
           <span
             style={{
-              fontSize: 11,
+              fontSize: 12,
               color: '#93c5fd',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
@@ -488,7 +488,7 @@ function TabContent({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <p
           style={{
-            fontSize: 11,
+            fontSize: 12,
             color: '#6b7280',
             margin: '0 0 4px',
             textTransform: 'uppercase',
@@ -703,14 +703,14 @@ export const HelpPanel = ({ isOpen, onClose, nodeCount, edgeCount }: HelpPanelPr
             background: 'rgba(255,255,255,0.01)',
           }}
         >
-          <span style={{ fontSize: 11, color: '#4b5563' }}>
+          <span style={{ fontSize: 12, color: '#4b5563' }}>
             GitNexus — open source codebase graph explorer
           </span>
           <a
             href="https://github.com/abhigyanpatwari/GitNexus"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ fontSize: 11, color: '#a78bfa', textDecoration: 'none' }}
+            style={{ fontSize: 12, color: '#a78bfa', textDecoration: 'none' }}
           >
             Docs & GitHub ↗
           </a>

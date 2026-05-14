@@ -387,7 +387,7 @@ export const SettingsPanel = ({
           {/* Local Server */}
           {backendUrl !== undefined && onBackendUrlChange && (
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-text-secondary">Local Server</label>
+              <label htmlFor="backend-url" className="block text-sm font-medium text-text-secondary">Local Server</label>
               <div className="space-y-2">
                 <div className="mb-2 flex items-center gap-2">
                   <Server className="size-4 text-text-muted" />
@@ -400,6 +400,7 @@ export const SettingsPanel = ({
                   </span>
                 </div>
                 <input
+                  id="backend-url"
                   type="url"
                   value={backendUrl}
                   onChange={(e) => onBackendUrlChange(e.target.value)}
@@ -486,11 +487,12 @@ export const SettingsPanel = ({
               }}
             >
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+                <label htmlFor="openai-base-url" className="flex items-center gap-2 text-sm font-medium text-text-secondary">
                   <Server className="size-4" />
                   Base URL <span className="font-normal text-text-muted">(optional)</span>
                 </label>
                 <input
+                  id="openai-base-url"
                   type="url"
                   value={settings.openai?.baseUrl ?? ''}
                   onChange={(e) =>
@@ -574,12 +576,13 @@ export const SettingsPanel = ({
           {settings.activeProvider === 'azure-openai' && (
             <div className="animate-fade-in space-y-4">
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+                <label htmlFor="azure-api-key" className="flex items-center gap-2 text-sm font-medium text-text-secondary">
                   <Key className="size-4" />
                   API Key
                 </label>
                 <div className="relative">
                   <input
+                    id="azure-api-key"
                     type={showApiKey['azure'] ? 'text' : 'password'}
                     value={settings.azureOpenAI?.apiKey ?? ''}
                     onChange={(e) =>
@@ -763,6 +766,7 @@ export const SettingsPanel = ({
                 )}
 
                 <input
+                  id="ollama-model"
                   type="text"
                   value={settings.ollama?.model ?? ''}
                   onChange={(e) =>
@@ -865,12 +869,13 @@ export const SettingsPanel = ({
           {settings.activeProvider === 'glm' && (
             <div className="animate-fade-in space-y-4">
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+                <label htmlFor="glm-api-key" className="flex items-center gap-2 text-sm font-medium text-text-secondary">
                   <Key className="size-4" />
                   API Key
                 </label>
                 <div className="relative">
                   <input
+                    id="glm-api-key"
                     type={showApiKey['glm'] ? 'text' : 'password'}
                     value={settings.glm?.apiKey ?? ''}
                     onChange={(e) =>
@@ -908,8 +913,9 @@ export const SettingsPanel = ({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-text-secondary">Model</label>
+                <label htmlFor="glm-model" className="text-sm font-medium text-text-secondary">Model</label>
                 <select
+                  id="glm-model"
                   value={settings.glm?.model ?? 'GLM-5'}
                   onChange={(e) =>
                     setSettings((prev) => ({
@@ -928,8 +934,9 @@ export const SettingsPanel = ({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-text-secondary">Base URL</label>
+                <label htmlFor="glm-base-url" className="text-sm font-medium text-text-secondary">Base URL</label>
                 <input
+                  id="glm-base-url"
                   type="text"
                   value={settings.glm?.baseUrl ?? 'https://api.z.ai/api/coding/paas/v4'}
                   onChange={(e) =>
