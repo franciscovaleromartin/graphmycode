@@ -92,7 +92,7 @@ function SuccessCard() {
             {[0, 1, 2].map((dot) => (
               <div
                 key={dot}
-                className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400/60"
+                className="size-1.5 animate-pulse rounded-full bg-emerald-400/60"
                 style={{ animationDelay: `${dot * 200}ms` }}
               />
             ))}

@@ -60,28 +60,28 @@ const getStatusDisplay = (status: ToolCallInfo['status']) => {
   switch (status) {
     case 'running':
       return {
-        icon: <Loader2 className="h-3.5 w-3.5 animate-spin" />,
+        icon: <Loader2 className="size-3.5 animate-spin" />,
         color: 'text-amber-400',
         bgColor: 'bg-amber-500/10',
         borderColor: 'border-amber-500/30',
       };
     case 'completed':
       return {
-        icon: <Check className="h-3.5 w-3.5" />,
+        icon: <Check className="size-3.5" />,
         color: 'text-emerald-400',
         bgColor: 'bg-emerald-500/10',
         borderColor: 'border-emerald-500/30',
       };
     case 'error':
       return {
-        icon: <AlertCircle className="h-3.5 w-3.5" />,
+        icon: <AlertCircle className="size-3.5" />,
         color: 'text-rose-400',
         bgColor: 'bg-rose-500/10',
         borderColor: 'border-rose-500/30',
       };
     default:
       return {
-        icon: <Sparkles className="h-3.5 w-3.5" />,
+        icon: <Sparkles className="size-3.5" />,
         color: 'text-text-muted',
         bgColor: 'bg-surface',
         borderColor: 'border-border-subtle',

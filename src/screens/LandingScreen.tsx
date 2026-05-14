@@ -508,14 +508,8 @@ const TopBar = () => {
             color: '#94a3b8', fontSize: '12px', fontWeight: 500,
             textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
           }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLAnchorElement).style.color = '#f1f5f9';
-            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.08)';
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLAnchorElement).style.color = '#94a3b8';
-            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.04)';
-          }}
+          onMouseEnter={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#f1f5f9', background: 'rgba(255,255,255,0.08)' })}
+          onMouseLeave={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#94a3b8', background: 'rgba(255,255,255,0.04)' })}
         >
           {/* GitHub mark */}
           <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -540,14 +534,8 @@ const TopBar = () => {
             background: 'rgba(255,255,255,0.04)',
             color: '#94a3b8', textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
           }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLAnchorElement).style.color = '#f1f5f9';
-            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.08)';
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLAnchorElement).style.color = '#94a3b8';
-            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.04)';
-          }}
+          onMouseEnter={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#f1f5f9', background: 'rgba(255,255,255,0.08)' })}
+          onMouseLeave={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#94a3b8', background: 'rgba(255,255,255,0.04)' })}
           title="Portfolio"
         >
           <Globe size={16} />
@@ -565,14 +553,8 @@ const TopBar = () => {
             background: 'rgba(255,255,255,0.04)',
             color: '#94a3b8', textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
           }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLAnchorElement).style.color = '#f1f5f9';
-            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.08)';
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLAnchorElement).style.color = '#94a3b8';
-            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.04)';
-          }}
+          onMouseEnter={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#f1f5f9', background: 'rgba(255,255,255,0.08)' })}
+          onMouseLeave={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#94a3b8', background: 'rgba(255,255,255,0.04)' })}
           title="LinkedIn"
         >
           <Linkedin size={16} />
@@ -894,7 +876,7 @@ export const LandingScreen = () => {
 
         {/* Privacy badge */}
         <p className="mt-6 text-center text-xs text-text-muted">
-          <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-node-function align-middle" />
+          <span className="mr-1.5 inline-block size-1.5 rounded-full bg-node-function align-middle" />
           {t.privacy}
         </p>
       </div>

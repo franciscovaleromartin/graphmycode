@@ -196,8 +196,7 @@ export const RightPanel = () => {
     setChatInput('');
     // Reset textarea height after sending
     if (textareaRef.current) {
-      textareaRef.current.style.height = '36px';
-      textareaRef.current.style.overflowY = 'hidden';
+      Object.assign(textareaRef.current.style, { height: '36px', overflowY: 'hidden' });
     }
     await sendChatMessage(text);
   };

@@ -119,7 +119,7 @@ const TreeItem = ({
   // Check if this node matches search
   const matchesSearch = searchQuery && node.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const handleClick = () => {
+  const handleSelectNode = () => {
     if (hasChildren) {
       toggleExpanded(node.path);
     }
@@ -129,7 +129,7 @@ const TreeItem = ({
   return (
     <div>
       <button
-        onClick={handleClick}
+        onClick={handleSelectNode}
         className={`relative flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-sm transition-colors hover:bg-hover ${isSelected ? 'border-l-2 border-amber-400 bg-amber-500/15 text-amber-300' : 'border-l-2 border-transparent text-text-secondary hover:text-text-primary'} ${matchesSearch ? 'bg-accent/10' : ''} `}
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
       >
