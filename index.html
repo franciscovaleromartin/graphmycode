@@ -79,8 +79,32 @@
       "audience": { "@type": "Audience", "audienceType": "Software Developers" },
       "speakable": {
         "@type": "SpeakableSpecification",
-        "cssSelector": ["h1", "[data-speakable]"]
+        "cssSelector": ["h1", "p.lead"]
       }
+    }
+    </script>
+
+    <!-- Schema: VideoObject -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      "name": "GraphMyCode — Demo de visualización de dependencias de código",
+      "description": "Demostración de GraphMyCode: convierte cualquier repositorio en un grafo interactivo 3D de dependencias. Muestra los modos de visualización estructural, heatmap, Technical Debt City, agrupación semántica y Code Flow, todo ejecutándose en el navegador sin instalación.",
+      "contentUrl": "https://graphmycode.com/anuncio_GraphMyCode.mp4",
+      "thumbnailUrl": "https://graphmycode.com/og-image.png",
+      "uploadDate": "2026-05-02",
+      "author": {
+        "@type": "Person",
+        "name": "Francisco Valero",
+        "url": "https://francisco-valero.com"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "GraphMyCode",
+        "url": "https://graphmycode.com"
+      },
+      "inLanguage": "es"
     }
     </script>
 
@@ -152,6 +176,101 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- Contenido estático para crawlers que no ejecutan JavaScript -->
+    <noscript>
+      <style>
+        .noscript-page { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 40px 24px; color: #334155; line-height: 1.7; }
+        .noscript-page h1 { font-size: 2rem; font-weight: 700; color: #0f172a; margin-bottom: 16px; }
+        .noscript-page p.lead { font-size: 1.1rem; color: #475569; margin-bottom: 32px; }
+        .noscript-page h2 { font-size: 1.2rem; font-weight: 600; color: #1e293b; margin: 28px 0 10px; }
+        .noscript-page ul { padding-left: 20px; color: #475569; }
+        .noscript-page ul li { margin-bottom: 6px; }
+        .noscript-page nav a { margin-right: 16px; color: #6366f1; text-decoration: none; }
+        .noscript-page .stat { background: #f1f5f9; border-radius: 8px; padding: 12px 16px; margin: 8px 0; font-size: 0.95rem; }
+      </style>
+      <main class="noscript-page">
+        <h1>GraphMyCode — Visualiza y entiende tu código como un grafo</h1>
+        <p class="lead">
+          GraphMyCode convierte cualquier repositorio en un grafo interactivo de dependencias 3D.
+          Analiza imports, exportaciones, clases y funciones directamente en el navegador,
+          sin instalación, sin servidores y sin subir tu código a ningún servicio externo.
+        </p>
+
+        <h2>¿Qué es GraphMyCode?</h2>
+        <p>
+          GraphMyCode es una herramienta web de visualización estática de código que genera grafos
+          navegables de las relaciones entre archivos, módulos, clases y funciones de cualquier
+          repositorio. El análisis se ejecuta íntegramente en el navegador usando WebAssembly
+          (tree-sitter) para el parsing y modelos de embeddings locales (HuggingFace Transformers)
+          para la agrupación semántica. No requiere registro ni configuración.
+        </p>
+
+        <h2>Modos de visualización</h2>
+        <ul>
+          <li><strong>Grafo estructural:</strong> muestra todos los imports y exports entre archivos, clases y funciones con layout ForceAtlas2.</li>
+          <li><strong>Agrupación semántica 3D:</strong> agrupa código por similitud funcional usando embeddings locales y UMAP, incluso sin dependencias directas.</li>
+          <li><strong>Technical Debt City:</strong> representa cada archivo como un edificio 3D cuya altura indica su complejidad y acoplamiento.</li>
+          <li><strong>Heatmap de dependencias:</strong> colorea los nodos según el número de imports entrantes para detectar acoplamiento excesivo y dependencias circulares.</li>
+          <li><strong>Code Flow:</strong> genera un flowchart interactivo del flujo de ejecución de cualquier archivo, exportable como SVG.</li>
+        </ul>
+
+        <h2>Export Project Context — Contexto para agentes de IA</h2>
+        <p>
+          El botón "⬇ Export Project Context" genera un fichero <code>project-context.md</code>
+          que resume el grafo del proyecto: nodos más conectados, estructura de carpetas, dependencias
+          externas y grupos de código. Está diseñado para pegarse en un <code>CLAUDE.md</code> o
+          como system prompt de cualquier agente de IA.
+        </p>
+        <div class="stat">
+          En un proyecto de ~90 archivos, reduce el contexto necesario para Claude Code de
+          <strong>~100.000 tokens a ~2.000 tokens</strong>. El agente llega al problema real
+          más rápido y con menos alucinaciones sobre la estructura del proyecto.
+        </div>
+
+        <h2>Privacidad y procesamiento local</h2>
+        <p>
+          Tu código nunca sale de tu navegador. GraphMyCode usa WebAssembly y Web Workers para
+          ejecutar todo el análisis localmente. El único dato que viaja a servidores externos es
+          el contexto relevante cuando activas el chat IA con un proveedor externo (OpenAI, Gemini,
+          Anthropic u Ollama), y solo el fragmento de código relevante para tu pregunta.
+        </p>
+
+        <h2>Lenguajes soportados</h2>
+        <p>TypeScript, JavaScript, Python, Go, Rust, Java, PHP, C, C++, C#, Swift, Kotlin, Ruby.</p>
+
+        <h2>Casos de uso principales</h2>
+        <ul>
+          <li>Onboarding en proyectos nuevos: entiende la arquitectura en minutos en lugar de días.</li>
+          <li>Análisis de repositorios GitHub: analiza cualquier repo público sin clonarlo.</li>
+          <li>Detección de acoplamiento excesivo y dependencias circulares.</li>
+          <li>Planificación de refactorizaciones con análisis de impacto visual.</li>
+          <li>Code reviews con visión global de la arquitectura del PR.</li>
+          <li>Generación de contexto comprimido para Claude Code, Cursor y Copilot.</li>
+          <li>Consultas Cypher (Neo4j) sobre la arquitectura del proyecto.</li>
+        </ul>
+
+        <h2>Tecnología</h2>
+        <p>
+          Construido con React 19, Vite, Tailwind CSS, Three.js, Sigma.js y Graphology.
+          El análisis usa tree-sitter WASM para el parsing AST, HuggingFace Transformers.js
+          para embeddings locales, y LangChain para la integración multi-proveedor de IA.
+        </p>
+
+        <nav aria-label="Navegación principal">
+          <a href="/como-funciona">Cómo funciona</a>
+          <a href="/casos-de-uso">Casos de uso</a>
+          <a href="/privacy">Política de privacidad</a>
+          <a href="https://github.com/franciscovaleromartin/graphmycode">GitHub</a>
+        </nav>
+
+        <p style="margin-top:24px;font-size:0.85rem;color:#94a3b8;">
+          Creado por <a href="https://francisco-valero.com">Francisco Valero</a> ·
+          Licencia PolyForm Noncommercial 1.0.0 (gratuito para uso no comercial)
+        </p>
+      </main>
+    </noscript>
+
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
