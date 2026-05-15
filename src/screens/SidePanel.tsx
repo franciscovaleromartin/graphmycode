@@ -8,7 +8,7 @@ import { NODE_COLORS } from '../lib/constants';
 import type { NodeLabel } from 'gitnexus-shared';
 import { useT } from '../lib/i18n';
 import { detectAgentCode } from '../lib/agent-detection';
-import { exportAgentContext } from '../lib/agent-context-export';
+import { exportAgentContext } from '../lib/agent-context';
 
 // Labels to show in legend (most useful ones)
 const LEGEND_LABELS: NodeLabel[] = [

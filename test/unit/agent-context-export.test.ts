@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createKnowledgeGraph } from '../../src/core/graph/graph';
 import { createFileNode, createFunctionNode } from '../fixtures/graph';
-import { buildAgentContext } from '../../src/lib/agent-context-export';
+import { buildAgentContext } from '../../src/lib/agent-context';
 import type { GraphRelationship } from 'gitnexus-shared';
 
 function importsRel(from: string, to: string): GraphRelationship {
