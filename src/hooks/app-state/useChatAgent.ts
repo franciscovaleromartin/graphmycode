@@ -43,7 +43,23 @@ interface ChatAgentDeps {
   setBlastRadiusNodeIds: (ids: Set<string>) => void;
 }
 
-export function useChatAgent(deps: ChatAgentDeps) {
+export function useChatAgent({
+  repoRef,
+  projectName,
+  graph,
+  embeddingStatus,
+  graphViewType,
+  cityMetric,
+  semanticClusterData,
+  selectedNodeName,
+  resolveFilePath,
+  findFileNodeId,
+  addCodeReference,
+  clearAICodeReferences,
+  clearAIToolHighlights,
+  setAIToolHighlightedNodeIds,
+  setBlastRadiusNodeIds,
+}: ChatAgentDeps) {
   const [llmSettings, setLLMSettings] = useState<LLMSettings>(loadSettings);
   const [isAgentReady, setIsAgentReady] = useState(false);
   const [isAgentInitializing, setIsAgentInitializing] = useState(false);
@@ -75,8 +91,8 @@ export function useChatAgent(deps: ChatAgentDeps) {
       setAgentError(null);
 
       try {
-        const effectiveProjectName = overrideProjectName || deps.projectName || 'project';
-        const repo = deps.repoRef.current;
+        const effectiveProjectName = overrideProjectName || projectName || 'project';
+        const repo = repoRef.current;
 
         const { createGraphRAGAgent } = await import('../../core/llm/agent');
         const { buildCodebaseContext } = await import('../../core/llm/context-builder');
@@ -104,13 +120,13 @@ export function useChatAgent(deps: ChatAgentDeps) {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [deps.projectName],
+    [projectName],
   );
 
   const sendChatMessage = useCallback(
     async (message: string): Promise<void> => {
-      deps.clearAICodeReferences();
-      deps.clearAIToolHighlights();
+      clearAICodeReferences();
+      clearAIToolHighlights();
 
       if (!isAgentReady) {
         await initializeAgent();
@@ -125,7 +141,7 @@ export function useChatAgent(deps: ChatAgentDeps) {
       };
       setChatMessages((prev) => [...prev, userMessage]);
 
-      if (deps.embeddingStatus === 'indexing') {
+      if (embeddingStatus === 'indexing') {
         const assistantMessage: ChatMessage = {
           id: `assistant-${Date.now()}`,
           role: 'assistant',
@@ -260,15 +276,15 @@ export function useChatAgent(deps: ChatAgentDeps) {
                   const startLine1 = fileMatch[2] ? parseInt(fileMatch[2], 10) : undefined;
                   const endLine1 = fileMatch[3] ? parseInt(fileMatch[3], 10) : startLine1;
 
-                  const resolvedPath = deps.resolveFilePath(rawPath);
+                  const resolvedPath = resolveFilePath(rawPath);
                   if (!resolvedPath) continue;
 
                   const startLine0 =
                     startLine1 !== undefined ? Math.max(0, startLine1 - 1) : undefined;
                   const endLine0 = endLine1 !== undefined ? Math.max(0, endLine1 - 1) : startLine0;
-                  const nodeId = deps.findFileNodeId(resolvedPath);
+                  const nodeId = findFileNodeId(resolvedPath);
 
-                  deps.addCodeReference({
+                  addCodeReference({
                     filePath: resolvedPath,
                     startLine: startLine0,
                     endLine: endLine0,
@@ -285,16 +301,16 @@ export function useChatAgent(deps: ChatAgentDeps) {
                   const nodeType = nodeMatch[1];
                   const nodeName = nodeMatch[2].trim();
 
-                  if (!deps.graph) continue;
-                  const node = deps.graph.nodes.find(
+                  if (!graph) continue;
+                  const node = graph.nodes.find(
                     (n) => n.label === nodeType && n.properties.name === nodeName,
                   );
                   if (!node || !node.properties.filePath) continue;
 
-                  const resolvedPath = deps.resolveFilePath(node.properties.filePath);
+                  const resolvedPath = resolveFilePath(node.properties.filePath);
                   if (!resolvedPath) continue;
 
-                  deps.addCodeReference({
+                  addCodeReference({
                     filePath: resolvedPath,
                     startLine: node.properties.startLine
                       ? node.properties.startLine - 1
@@ -365,14 +381,14 @@ export function useChatAgent(deps: ChatAgentDeps) {
                 if (tc.result) {
                   const highlightMatch = tc.result.match(/\[HIGHLIGHT_NODES:([^\]]+)\]/);
                   if (highlightMatch) {
-                    const matched = parseNodeIds(highlightMatch[1], deps.graph);
-                    if (matched.size > 0) deps.setAIToolHighlightedNodeIds(matched);
+                    const matched = parseNodeIds(highlightMatch[1], graph);
+                    if (matched.size > 0) setAIToolHighlightedNodeIds(matched);
                   }
 
                   const impactMatch = tc.result.match(/\[IMPACT:([^\]]+)\]/);
                   if (impactMatch) {
-                    const matched = parseNodeIds(impactMatch[1], deps.graph);
-                    if (matched.size > 0) deps.setBlastRadiusNodeIds(matched);
+                    const matched = parseNodeIds(impactMatch[1], graph);
+                    if (matched.size > 0) setBlastRadiusNodeIds(matched);
                   }
                 }
               }
@@ -389,13 +405,13 @@ export function useChatAgent(deps: ChatAgentDeps) {
         };
 
         let cityTopDebtNodes: Array<{ name: string; label: string; filePath: string; value: number }> | undefined;
-        if (deps.graphViewType === 'city' && deps.graph) {
-          const rels = deps.graph.relationships;
-          cityTopDebtNodes = deps.graph.nodes
+        if (graphViewType === 'city' && graph) {
+          const rels = graph.relationships;
+          cityTopDebtNodes = graph.nodes
             .flatMap((node) => {
               if (node.label === 'Community' || node.label === 'Process') return [];
               const value =
-                deps.cityMetric === 'degree'
+                cityMetric === 'degree'
                   ? rels.filter((r) => r.sourceId === node.id || r.targetId === node.id).length
                   : (node.properties.filePath ?? '').split('/').length - 1;
               return [{ name: node.properties.name ?? node.id, label: node.label as string, filePath: node.properties.filePath ?? '', value }];
@@ -405,8 +421,8 @@ export function useChatAgent(deps: ChatAgentDeps) {
         }
 
         let heatmapTopNodes: Array<{ name: string; filePath: string; degree: number; bidirectionalCount: number }> | undefined;
-        if (deps.graphViewType === 'heatmap' && deps.graph) {
-          const heatmapData = computeHeatmapData(deps.graph);
+        if (graphViewType === 'heatmap' && graph) {
+          const heatmapData = computeHeatmapData(graph);
           heatmapTopNodes = heatmapData.nodes
             .sort((a, b) => b.degree - a.degree)
             .slice(0, 20)
@@ -421,10 +437,10 @@ export function useChatAgent(deps: ChatAgentDeps) {
         }
 
         const uiContextBlock = buildUIContext(
-          deps.graphViewType,
-          deps.semanticClusterData,
-          deps.selectedNodeName,
-          deps.cityMetric,
+          graphViewType,
+          semanticClusterData,
+          selectedNodeName,
+          cityMetric,
           cityTopDebtNodes,
           heatmapTopNodes,
         );
@@ -450,7 +466,13 @@ export function useChatAgent(deps: ChatAgentDeps) {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chatMessages, isAgentReady, initializeAgent, deps],
+    [
+      chatMessages, isAgentReady, initializeAgent,
+      embeddingStatus, graph, graphViewType, cityMetric, semanticClusterData, selectedNodeName,
+      resolveFilePath, findFileNodeId, addCodeReference,
+      clearAICodeReferences, clearAIToolHighlights,
+      setAIToolHighlightedNodeIds, setBlastRadiusNodeIds,
+    ],
   );
 
   const stopChatResponse = useCallback(() => {
