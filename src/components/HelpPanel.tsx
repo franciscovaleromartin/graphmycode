@@ -130,20 +130,24 @@ const getStatusItems = (nodeCount: number, edgeCount: number) => [
 ];
 
 const kbdStyle: React.CSSProperties = {
-  fontSize: 12,
-  background: 'rgba(255,255,255,0.08)',
-  borderRadius: 4,
-  padding: '2px 8px',
-  color: '#e2e2e8',
-  fontFamily: 'monospace',
-  border: '0.5px solid rgba(255,255,255,0.12)',
-  whiteSpace: 'nowrap',
+  fontSize: 12, background: 'rgba(255,255,255,0.08)', borderRadius: 4,
+  padding: '2px 8px', color: '#e2e2e8', fontFamily: 'monospace',
+  border: '0.5px solid rgba(255,255,255,0.12)', whiteSpace: 'nowrap',
 };
+const kbdWinStyle: React.CSSProperties = { ...kbdStyle, color: '#93c5fd' };
 
-const kbdWinStyle: React.CSSProperties = {
-  ...kbdStyle,
-  color: '#93c5fd',
+// ── Shared style constants ────────────────────────────────────────────────────
+const CARD: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '12px 14px',
 };
+const SECTION_LABEL: React.CSSProperties = {
+  fontSize: 12, color: '#6b7280', margin: '0 0 4px',
+  textTransform: 'uppercase', letterSpacing: '0.08em',
+};
+const TAB_COL: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: 10 };
+const ITEM_TITLE: React.CSSProperties = { fontSize: 13, fontWeight: 500, color: '#e2e2e8', margin: '0 0 4px' };
+const ITEM_BODY: React.CSSProperties = { fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 };
+const DIVIDER: React.CSSProperties = { borderTop: '0.5px solid rgba(255,255,255,0.08)', margin: '4px 0' };
 
 function TabContent({
   active,
@@ -156,221 +160,79 @@ function TabContent({
 }) {
   if (active === 'overview')
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p
-          style={{
-            fontSize: 12,
-            color: '#6b7280',
-            margin: '0 0 4px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-          }}
-        >
-          Getting started
-        </p>
-
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.04)',
-            borderRadius: 10,
-            padding: '12px 14px',
-            borderLeft: '2px solid #a78bfa',
-          }}
-        >
-          <p style={{ fontSize: 13, fontWeight: 500, color: '#e2e2e8', margin: '0 0 4px' }}>
-            What is GitNexus?
-          </p>
-          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
-            An interactive graph explorer for your codebase. Every file, function, and import
-            becomes a node you can explore, query, and navigate visually.
+      <div style={TAB_COL}>
+        <p style={SECTION_LABEL}>Getting started</p>
+        <div style={{ ...CARD, borderLeft: '2px solid #a78bfa' }}>
+          <p style={ITEM_TITLE}>What is GitNexus?</p>
+          <p style={ITEM_BODY}>An interactive graph explorer for your codebase. Every file, function, and import becomes a node you can explore, query, and navigate visually.</p>
+        </div>
+        <div style={{ ...CARD, borderLeft: '2px solid #34d399' }}>
+          <p style={ITEM_TITLE}>Your current repo</p>
+          <p style={ITEM_BODY}>Loaded: <span style={{ color: '#a78bfa', fontFamily: 'monospace' }}></span> {nodeCount} nodes · {edgeCount} edges</p>
+        </div>
+        <div style={{ ...CARD, borderLeft: '2px solid #60a5fa' }}>
+          <p style={ITEM_TITLE}>Three ways to explore</p>
+          <p style={ITEM_BODY}>
+            <strong style={{ color: '#e2e2e8', fontWeight: 500 }}>1.</strong> Click nodes to inspect<br />
+            <strong style={{ color: '#e2e2e8', fontWeight: 500 }}>2.</strong> Search by name or type<br />
+            <strong style={{ color: '#e2e2e8', fontWeight: 500 }}>3.</strong> Ask Nexus AI a natural language question
           </p>
         </div>
-
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.04)',
-            borderRadius: 10,
-            padding: '12px 14px',
-            borderLeft: '2px solid #34d399',
-          }}
-        >
-          <p style={{ fontSize: 13, fontWeight: 500, color: '#e2e2e8', margin: '0 0 4px' }}>
-            Your current repo
-          </p>
-          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
-            Loaded: <span style={{ color: '#a78bfa', fontFamily: 'monospace' }}></span> {nodeCount}{' '}
-            nodes · {edgeCount} edges
-          </p>
-        </div>
-
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.04)',
-            borderRadius: 10,
-            padding: '12px 14px',
-            borderLeft: '2px solid #60a5fa',
-          }}
-        >
-          <p style={{ fontSize: 13, fontWeight: 500, color: '#e2e2e8', margin: '0 0 4px' }}>
-            Three ways to explore
-          </p>
-          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
-            <strong style={{ color: '#e2e2e8', fontWeight: 500 }}>1.</strong> Click nodes to inspect
-            <br />
-            <strong style={{ color: '#e2e2e8', fontWeight: 500 }}>2.</strong> Search by name or type
-            <br />
-            <strong style={{ color: '#e2e2e8', fontWeight: 500 }}>3.</strong> Ask Nexus AI a natural
-            language question
-          </p>
-        </div>
-
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.04)',
-            borderRadius: 10,
-            padding: '12px 14px',
-            borderLeft: '2px solid #fbbf24',
-          }}
-        >
-          <p style={{ fontSize: 13, fontWeight: 500, color: '#e2e2e8', margin: '0 0 4px' }}>
-            Navigation
-          </p>
-          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
-            · Scroll to zoom <br />
-            · Click and drag to pan <br />· Double-click a node to focus its subgraph
-          </p>
+        <div style={{ ...CARD, borderLeft: '2px solid #fbbf24' }}>
+          <p style={ITEM_TITLE}>Navigation</p>
+          <p style={ITEM_BODY}>· Scroll to zoom <br />· Click and drag to pan <br />· Double-click a node to focus its subgraph</p>
         </div>
       </div>
     );
 
   if (active === 'graph')
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <p
-          style={{
-            fontSize: 12,
-            color: '#6b7280',
-            margin: '0 0 4px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-          }}
-        >
-          Node color legend
-        </p>
-
+      <div style={{ ...TAB_COL, gap: 12 }}>
+        <p style={SECTION_LABEL}>Node color legend</p>
         {nodeColors.map(({ color, label, desc }) => (
           <div key={label} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <span
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                background: color,
-                flexShrink: 0,
-                marginTop: 2,
-              }}
-            />
+            <span style={{ width: 12, height: 12, borderRadius: '50%', background: color, flexShrink: 0, marginTop: 2 }} />
             <div>
-              <p style={{ fontSize: 12, fontWeight: 500, color: '#e2e2e8', margin: '0 0 2px' }}>
-                {label} nodes
-              </p>
+              <p style={{ fontSize: 12, fontWeight: 500, color: '#e2e2e8', margin: '0 0 2px' }}>{label} nodes</p>
               <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>{desc}</p>
             </div>
           </div>
         ))}
-
-        <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.08)', margin: '4px 0' }} />
-
-        <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
-          Node <strong style={{ color: '#e2e2e8', fontWeight: 500 }}>size</strong> reflects
-          connection count; larger nodes are depended on by more files. Edges point from importer →
-          imported.
-        </p>
-
-        <div
-          style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px' }}
-        >
-          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
-            Click any node to open its detail panel, showing imports, exports, and reverse
-            dependencies.
-          </p>
+        <div style={DIVIDER} />
+        <p style={ITEM_BODY}>Node <strong style={{ color: '#e2e2e8', fontWeight: 500 }}>size</strong> reflects connection count; larger nodes are depended on by more files. Edges point from importer → imported.</p>
+        <div style={{ ...CARD, padding: '10px 14px' }}>
+          <p style={ITEM_BODY}>Click any node to open its detail panel, showing imports, exports, and reverse dependencies.</p>
         </div>
       </div>
     );
 
   if (active === 'search')
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p
-          style={{
-            fontSize: 12,
-            color: '#6b7280',
-            margin: '0 0 4px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-          }}
-        >
-          Search & filter
-        </p>
-
-        <div
-          style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '12px 14px' }}
-        >
+      <div style={TAB_COL}>
+        <p style={SECTION_LABEL}>Search & filter</p>
+        <div style={CARD}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <kbd style={kbdStyle}>⌘K</kbd>/<kbd style={kbdStyle}>Ctrl K</kbd>
-            <p style={{ fontSize: 12, fontWeight: 500, color: '#e2e2e8', margin: 0 }}>
-              Search nodes
-            </p>
+            <p style={{ fontSize: 12, fontWeight: 500, color: '#e2e2e8', margin: 0 }}>Search nodes</p>
           </div>
-          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
-            Search by filename, function name, or import path. Matching nodes are highlighted live
-            in the graph.
-          </p>
+          <p style={ITEM_BODY}>Search by filename, function name, or import path. Matching nodes are highlighted live in the graph.</p>
         </div>
-
-        <div
-          style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '12px 14px' }}
-        >
+        <div style={CARD}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <Filter style={{ width: 14, height: 14, color: '#a78bfa', flexShrink: 0 }} />
-            <p style={{ fontSize: 12, fontWeight: 500, color: '#e2e2e8', margin: 0 }}>
-              Filter panel
-            </p>
+            <p style={{ fontSize: 12, fontWeight: 500, color: '#e2e2e8', margin: 0 }}>Filter panel</p>
           </div>
-          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
-            Use the filter icon in the left sidebar to isolate specific node types, hide leaf nodes,
-            or focus on a depth range from a selected root.
-          </p>
+          <p style={ITEM_BODY}>Use the filter icon in the left sidebar to isolate specific node types, hide leaf nodes, or focus on a depth range from a selected root.</p>
         </div>
-
-        <div
-          style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '12px 14px' }}
-        >
-          <p style={{ fontSize: 12, fontWeight: 500, color: '#e2e2e8', margin: '0 0 6px' }}>
-            Search syntax
-          </p>
+        <div style={CARD}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: '#e2e2e8', margin: '0 0 6px' }}>Search syntax</p>
           {[
             { query: 'auth', hint: 'match by name fragment' },
             { query: './utils/', hint: 'match by path prefix' },
             { query: 'type:config', hint: 'filter by node type' },
           ].map(({ query, hint }) => (
-            <div
-              key={query}
-              style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}
-            >
-              <code
-                style={{
-                  fontSize: 12,
-                  color: '#a78bfa',
-                  background: 'rgba(167,139,250,0.1)',
-                  borderRadius: 4,
-                  padding: '1px 6px',
-                  fontFamily: 'monospace',
-                  flexShrink: 0,
-                }}
-              >
-                {query}
-              </code>
+            <div key={query} style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+              <code style={{ fontSize: 12, color: '#a78bfa', background: 'rgba(167,139,250,0.1)', borderRadius: 4, padding: '1px 6px', fontFamily: 'monospace', flexShrink: 0 }}>{query}</code>
               <span style={{ fontSize: 12, color: '#6b7280' }}>{hint}</span>
             </div>
           ))}
@@ -380,36 +242,12 @@ function TabContent({
 
   if (active === 'ai')
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <p
-          style={{
-            fontSize: 12,
-            color: '#6b7280',
-            margin: '0 0 4px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-          }}
-        >
-          Nexus AI
-        </p>
-
-        <div
-          style={{
-            background: 'rgba(167,139,250,0.08)',
-            border: '0.5px solid rgba(167,139,250,0.25)',
-            borderRadius: 10,
-            padding: '12px 14px',
-          }}
-        >
-          <p style={{ fontSize: 12, fontWeight: 500, color: '#a78bfa', margin: '0 0 4px' }}>
-            ✓ Semantic Ready
-          </p>
-          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
-            Your repo is indexed and ready for semantic queries. Nexus AI understands code structure
-            and relationships, not just file names.
-          </p>
+      <div style={TAB_COL}>
+        <p style={SECTION_LABEL}>Nexus AI</p>
+        <div style={{ background: 'rgba(167,139,250,0.08)', border: '0.5px solid rgba(167,139,250,0.25)', borderRadius: 10, padding: '12px 14px' }}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: '#a78bfa', margin: '0 0 4px' }}>✓ Semantic Ready</p>
+          <p style={ITEM_BODY}>Your repo is indexed and ready for semantic queries. Nexus AI understands code structure and relationships, not just file names.</p>
         </div>
-
         <p style={{ fontSize: 12, color: '#9ca3af', margin: '4px 0 2px' }}>Try asking:</p>
         {[
           '"Which files depend on the auth module?"',
@@ -417,134 +255,45 @@ function TabContent({
           '"What are the most connected components?"',
           '"Show me all files that import useEffect"',
         ].map((q) => (
-          <div
-            key={q}
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              borderRadius: 8,
-              padding: '8px 12px',
-              fontSize: 12,
-              color: '#e2e2e8',
-              fontStyle: 'italic',
-            }}
-          >
-            {q}
-          </div>
+          <div key={q} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#e2e2e8', fontStyle: 'italic' }}>{q}</div>
         ))}
-
-        <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.08)', margin: '4px 0' }} />
-
+        <div style={DIVIDER} />
         <p style={{ fontSize: 12, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>
-          Open the prompt via the <span style={{ color: '#e2e2e8' }}>Nexus AI</span> button
-          (top-right).
+          Open the prompt via the <span style={{ color: '#e2e2e8' }}>Nexus AI</span> button (top-right).
         </p>
       </div>
     );
 
-  if (active === 'shortcuts')
+  if (active === 'shortcuts') {
+    const COL = { display: 'grid', gridTemplateColumns: '1fr 80px 88px', gap: 8 } as const;
+    const LABEL_BASE = { fontSize: 12, textTransform: 'uppercase' as const, letterSpacing: '0.08em' };
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-        {/* Column headers */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 80px 88px',
-            gap: 8,
-            padding: '0 0 8px',
-            borderBottom: '0.5px solid rgba(255,255,255,0.08)',
-            marginBottom: 4,
-          }}
-        >
-          <span
-            style={{
-              fontSize: 12,
-              color: '#6b7280',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-            }}
-          >
-            Action
-          </span>
-          <span
-            style={{
-              fontSize: 12,
-              color: '#6b7280',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              textAlign: 'center',
-            }}
-          >
-            Mac
-          </span>
-          <span
-            style={{
-              fontSize: 12,
-              color: '#93c5fd',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              textAlign: 'center',
-            }}
-          >
-            Windows
-          </span>
+        <div style={{ ...COL, padding: '0 0 8px', borderBottom: '0.5px solid rgba(255,255,255,0.08)', marginBottom: 4 }}>
+          <span style={{ ...LABEL_BASE, color: '#6b7280' }}>Action</span>
+          <span style={{ ...LABEL_BASE, color: '#6b7280', textAlign: 'center' }}>Mac</span>
+          <span style={{ ...LABEL_BASE, color: '#93c5fd', textAlign: 'center' }}>Windows</span>
         </div>
-
         {shortcuts.map(({ label, mac, win }, i) => (
-          <div
-            key={label}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 80px 88px',
-              gap: 8,
-              alignItems: 'center',
-              padding: '8px 0',
-              borderBottom:
-                i < shortcuts.length - 1 ? '0.5px solid rgba(255,255,255,0.05)' : 'none',
-            }}
-          >
+          <div key={label} style={{ ...COL, alignItems: 'center', padding: '8px 0', borderBottom: i < shortcuts.length - 1 ? '0.5px solid rgba(255,255,255,0.05)' : 'none' }}>
             <span style={{ fontSize: 12, color: '#9ca3af' }}>{label}</span>
-            <span style={{ display: 'flex', justifyContent: 'center' }}>
-              <kbd style={kbdStyle}>{mac}</kbd>
-            </span>
-            <span style={{ display: 'flex', justifyContent: 'center' }}>
-              <kbd style={kbdWinStyle}>{win}</kbd>
-            </span>
+            <span style={{ display: 'flex', justifyContent: 'center' }}><kbd style={kbdStyle}>{mac}</kbd></span>
+            <span style={{ display: 'flex', justifyContent: 'center' }}><kbd style={kbdWinStyle}>{win}</kbd></span>
           </div>
         ))}
       </div>
     );
+  }
 
   if (active === 'status')
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <p
-          style={{
-            fontSize: 12,
-            color: '#6b7280',
-            margin: '0 0 4px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-          }}
-        >
-          Status bar explained
-        </p>
+      <div style={{ ...TAB_COL, gap: 8 }}>
+        <p style={SECTION_LABEL}>Status bar explained</p>
         {getStatusItems(nodeCount, edgeCount).map(({ badge, title, desc }) => (
-          <div
-            key={title}
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              borderRadius: 10,
-              padding: '10px 14px',
-              display: 'flex',
-              gap: 12,
-              alignItems: 'center',
-            }}
-          >
+          <div key={title} style={{ ...CARD, padding: '10px 14px', display: 'flex', gap: 12, alignItems: 'center' }}>
             {badge}
             <div>
-              <p style={{ fontSize: 12, fontWeight: 500, color: '#e2e2e8', margin: '0 0 2px' }}>
-                {title}
-              </p>
+              <p style={{ fontSize: 12, fontWeight: 500, color: '#e2e2e8', margin: '0 0 2px' }}>{title}</p>
               <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>{desc}</p>
             </div>
           </div>

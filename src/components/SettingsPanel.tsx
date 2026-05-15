@@ -29,6 +29,13 @@ import type { LLMSettings, LLMProvider } from '../core/llm/types';
 import { DEFAULT_OLLAMA_BASE_URL } from '../config/ui-constants';
 import { ProviderConfigCard } from './settings/ProviderConfigCard';
 
+const INPUT_CLS = 'w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20';
+
+const PROVIDER_ICONS: Record<string, string> = {
+  openai: '🤖', gemini: '💎', anthropic: '🧠', ollama: '🦙',
+  openrouter: '🌐', minimax: '⚡', glm: '🔮', 'azure-openai': '☁️',
+};
+
 interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -405,7 +412,7 @@ export const SettingsPanel = ({
                   value={backendUrl}
                   onChange={(e) => onBackendUrlChange(e.target.value)}
                   placeholder="http://localhost:4747"
-                  className="w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 font-mono text-sm text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  className={`${INPUT_CLS} font-mono text-sm`}
                 />
                 <p className="text-xs text-text-muted">
                   Run <code className="rounded bg-elevated px-1 py-0.5">gitnexus serve</code> to
@@ -432,21 +439,7 @@ export const SettingsPanel = ({
                   <div
                     className={`flex size-8 items-center justify-center rounded-lg text-lg ${settings.activeProvider === provider ? 'bg-accent/20' : 'bg-surface'} `}
                   >
-                    {provider === 'openai'
-                      ? '🤖'
-                      : provider === 'gemini'
-                        ? '💎'
-                        : provider === 'anthropic'
-                          ? '🧠'
-                          : provider === 'ollama'
-                            ? '🦙'
-                            : provider === 'openrouter'
-                              ? '🌐'
-                              : provider === 'minimax'
-                                ? '⚡'
-                                : provider === 'glm'
-                                  ? '🔮'
-                                  : '☁️'}
+                    {PROVIDER_ICONS[provider] ?? "☁️"}
                   </div>
                   <span className="font-medium">{getProviderDisplayName(provider)}</span>
                 </button>
@@ -502,7 +495,7 @@ export const SettingsPanel = ({
                     }))
                   }
                   placeholder="https://api.openai.com/v1 (default)"
-                  className="w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  className={INPUT_CLS}
                 />
                 <p className="text-xs text-text-muted">
                   Leave empty to use the default OpenAI API. Set a custom URL for proxies or
@@ -592,7 +585,7 @@ export const SettingsPanel = ({
                       }))
                     }
                     placeholder="Enter your Azure OpenAI API key"
-                    className="w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 pr-12 text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
+                    className={`${INPUT_CLS} pr-12`}
                   />
                   <button
                     type="button"
@@ -624,7 +617,7 @@ export const SettingsPanel = ({
                     }))
                   }
                   placeholder="https://your-resource.openai.azure.com"
-                  className="w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  className={INPUT_CLS}
                 />
               </div>
 
@@ -641,7 +634,7 @@ export const SettingsPanel = ({
                     }))
                   }
                   placeholder="e.g., gpt-4o-deployment"
-                  className="w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  className={INPUT_CLS}
                 />
               </div>
 
@@ -659,7 +652,7 @@ export const SettingsPanel = ({
                       }))
                     }
                     placeholder="gpt-4o"
-                    className="w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
+                    className={INPUT_CLS}
                   />
                 </div>
 
@@ -676,7 +669,7 @@ export const SettingsPanel = ({
                       }))
                     }
                     placeholder="2024-08-01-preview"
-                    className="w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
+                    className={INPUT_CLS}
                   />
                 </div>
               </div>
@@ -734,7 +727,7 @@ export const SettingsPanel = ({
                       }))
                     }
                     placeholder={DEFAULT_OLLAMA_BASE_URL}
-                    className="flex-1 rounded-xl border border-border-subtle bg-elevated px-4 py-3 font-mono text-sm text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
+                    className={`flex-1 ${INPUT_CLS.replace("w-full ", "")} font-mono text-sm`}
                   />
                   <button
                     type="button"
@@ -776,7 +769,7 @@ export const SettingsPanel = ({
                     }))
                   }
                   placeholder="e.g., llama3.2, mistral, codellama"
-                  className="w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 font-mono text-sm text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  className={`${INPUT_CLS} font-mono text-sm`}
                 />
                 <p className="text-xs text-text-muted">
                   Pull a model with{' '}
@@ -885,7 +878,7 @@ export const SettingsPanel = ({
                       }))
                     }
                     placeholder="Enter your Z.AI API key"
-                    className="w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 pr-12 text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
+                    className={`${INPUT_CLS} pr-12`}
                   />
                   <button
                     type="button"
@@ -923,7 +916,7 @@ export const SettingsPanel = ({
                       glm: { ...prev.glm!, model: e.target.value },
                     }))
                   }
-                  className="w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 font-mono text-sm text-text-primary transition-all outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  className={`${INPUT_CLS} font-mono text-sm`}
                 >
                   {getAvailableModels('glm').map((model) => (
                     <option key={model} value={model}>
@@ -946,7 +939,7 @@ export const SettingsPanel = ({
                     }))
                   }
                   placeholder="https://api.z.ai/api/coding/paas/v4"
-                  className="w-full rounded-xl border border-border-subtle bg-elevated px-4 py-3 font-mono text-sm text-text-primary transition-all outline-none placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  className={`${INPUT_CLS} font-mono text-sm`}
                 />
                 <p className="text-xs text-text-muted">
                   Coding API (default). Use https://api.z.ai/api/paas/v4 for the general API.

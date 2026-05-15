@@ -289,6 +289,42 @@ const assertOk = async (response: Response): Promise<void> => {
 
 const repoParam = (repo?: string): string => (repo ? `repo=${encodeURIComponent(repo)}` : '');
 
+const apiGet = async <T>(url: string, timeoutMs?: number): Promise<T> => {
+  const response = await fetchWithTimeout(url, {}, timeoutMs);
+  await assertOk(response);
+  return response.json() as T;
+};
+
+const apiPost = async <T>(url: string, body: unknown, timeoutMs?: number): Promise<T> => {
+  const response = await fetchWithTimeout(
+    url,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+    timeoutMs,
+  );
+  await assertOk(response);
+  return response.json() as T;
+};
+
+const apiDelete = async (url: string): Promise<void> => {
+  const response = await fetchWithTimeout(url, { method: 'DELETE' });
+  await assertOk(response);
+};
+
+const jobStreamUrl = (prefix: string, jobId: string) =>
+  `${_backendUrl}${prefix}/${encodeURIComponent(jobId)}`;
+
+const streamJobProgress = (
+  url: string,
+  onProgress: (progress: JobProgress) => void,
+  onComplete: (data: { repoName?: string }) => void,
+  onError: (error: string) => void,
+): AbortController =>
+  streamSSE<JobProgress>(`${url}/progress`, {
+    onMessage: onProgress,
+    onComplete: onComplete as (data: unknown) => void,
+    onError,
+  });
+
 // ── API Methods ────────────────────────────────────────────────────────────
 
 /** Server info from /api/info. */
@@ -299,11 +335,8 @@ export interface ServerInfo {
 }
 
 /** Fetch server info (version, launch context). */
-export const fetchServerInfo = async (): Promise<ServerInfo> => {
-  const response = await fetchWithTimeout(`${_backendUrl}/api/info`);
-  await assertOk(response);
-  return response.json() as Promise<ServerInfo>;
-};
+export const fetchServerInfo = async (): Promise<ServerInfo> =>
+  apiGet<ServerInfo>(`${_backendUrl}/api/info`);
 
 /**
  * Connect an SSE heartbeat to the backend. Fires `onDisconnect` when the
@@ -350,15 +383,8 @@ export const connectHeartbeat = (onConnect: () => void, onDisconnect: () => void
 };
 
 /** Delete a repo's index and unregister it. */
-export const deleteRepo = async (repoName: string): Promise<void> => {
-  const response = await fetchWithTimeout(
-    `${_backendUrl}/api/repo?repo=${encodeURIComponent(repoName)}`,
-    {
-      method: 'DELETE',
-    },
-  );
-  await assertOk(response);
-};
+export const deleteRepo = async (repoName: string): Promise<void> =>
+  apiDelete(`${_backendUrl}/api/repo?repo=${encodeURIComponent(repoName)}`);
 
 /** Probe the backend. Returns true if reachable. */
 export const probeBackend = async (): Promise<boolean> => {
@@ -371,19 +397,15 @@ export const probeBackend = async (): Promise<boolean> => {
 };
 
 /** Fetch list of indexed repositories. */
-export const fetchRepos = async (): Promise<BackendRepo[]> => {
-  const response = await fetchWithTimeout(`${_backendUrl}/api/repos`);
-  await assertOk(response);
-  return response.json() as Promise<BackendRepo[]>;
-};
+export const fetchRepos = async (): Promise<BackendRepo[]> =>
+  apiGet<BackendRepo[]>(`${_backendUrl}/api/repos`);
 
 /** Fetch repo metadata. */
 export const fetchRepoInfo = async (repo?: string): Promise<BackendRepo> => {
-  const url = `${_backendUrl}/api/repo${repo ? `?${repoParam(repo)}` : ''}`;
-  const response = await fetchWithTimeout(url);
-  await assertOk(response);
-  const data = await response.json();
-  return { ...data, repoPath: data.repoPath ?? data.path };
+  const data = await apiGet<BackendRepo>(
+    `${_backendUrl}/api/repo${repo ? `?${repoParam(repo)}` : ''}`,
+  );
+  return { ...data, repoPath: (data as any).repoPath ?? (data as any).path };
 };
 
 /** Fetch the graph (nodes + relationships). Content stripped by default. */
@@ -435,14 +457,8 @@ export const runQuery = async (
   cypher: string,
   repo?: string,
 ): Promise<Record<string, unknown>[]> => {
-  const response = await fetchWithTimeout(`${_backendUrl}/api/query`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ cypher, repo }),
-  });
-  await assertOk(response);
-  const body = await response.json();
-  return (body.result ?? body) as Record<string, unknown>[];
+  const body = await apiPost<{ result?: unknown } | unknown[]>(`${_backendUrl}/api/query`, { cypher, repo });
+  return ((body as any).result ?? body) as Record<string, unknown>[];
 };
 
 /** Search with optional enrichment and mode selection. */
@@ -450,20 +466,11 @@ export const search = async (
   query: string,
   opts?: { limit?: number; mode?: 'hybrid' | 'semantic' | 'bm25'; enrich?: boolean; repo?: string },
 ): Promise<EnrichedSearchResult[]> => {
-  const response = await fetchWithTimeout(`${_backendUrl}/api/search`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query,
-      limit: opts?.limit,
-      mode: opts?.mode,
-      enrich: opts?.enrich,
-      repo: opts?.repo,
-    }),
-  });
-  await assertOk(response);
-  const body = await response.json();
-  return (body.results ?? []) as EnrichedSearchResult[];
+  const body = await apiPost<{ results?: EnrichedSearchResult[] }>(
+    `${_backendUrl}/api/search`,
+    { query, limit: opts?.limit, mode: opts?.mode, enrich: opts?.enrich, repo: opts?.repo },
+  );
+  return body.results ?? [];
 };
 
 /** Grep across file contents in the indexed repo. */
@@ -472,17 +479,10 @@ export const grep = async (
   repo?: string,
   limit?: number,
 ): Promise<GrepResult[]> => {
-  const params = [
-    `pattern=${encodeURIComponent(pattern)}`,
-    repoParam(repo),
-    limit ? `limit=${limit}` : '',
-  ]
-    .filter(Boolean)
-    .join('&');
-  const response = await fetchWithTimeout(`${_backendUrl}/api/grep?${params}`);
-  await assertOk(response);
-  const body = await response.json();
-  return (body.results ?? []) as GrepResult[];
+  const params = [`pattern=${encodeURIComponent(pattern)}`, repoParam(repo), limit ? `limit=${limit}` : '']
+    .filter(Boolean).join('&');
+  const body = await apiGet<{ results?: GrepResult[] }>(`${_backendUrl}/api/grep?${params}`);
+  return body.results ?? [];
 };
 
 /** Result from reading a file, optionally with line range. */
@@ -503,49 +503,25 @@ export const readFile = async (
     repoParam(options?.repo),
     options?.startLine !== undefined ? `startLine=${options.startLine}` : '',
     options?.endLine !== undefined ? `endLine=${options.endLine}` : '',
-  ]
-    .filter(Boolean)
-    .join('&');
-  const response = await fetchWithTimeout(`${_backendUrl}/api/file?${params}`);
-  await assertOk(response);
-  return response.json() as Promise<ReadFileResult>;
+  ].filter(Boolean).join('&');
+  return apiGet<ReadFileResult>(`${_backendUrl}/api/file?${params}`);
 };
 
 /** Fetch all processes for a repo. */
-export const fetchProcesses = async (repo?: string): Promise<unknown> => {
-  const response = await fetchWithTimeout(
-    `${_backendUrl}/api/processes${repo ? `?${repoParam(repo)}` : ''}`,
-  );
-  await assertOk(response);
-  return response.json();
-};
+export const fetchProcesses = async (repo?: string): Promise<unknown> =>
+  apiGet(`${_backendUrl}/api/processes${repo ? `?${repoParam(repo)}` : ''}`);
 
 /** Fetch detail for a single process. */
-export const fetchProcessDetail = async (repo: string, name: string): Promise<unknown> => {
-  const response = await fetchWithTimeout(
-    `${_backendUrl}/api/process?${repoParam(repo)}&name=${encodeURIComponent(name)}`,
-  );
-  await assertOk(response);
-  return response.json();
-};
+export const fetchProcessDetail = async (repo: string, name: string): Promise<unknown> =>
+  apiGet(`${_backendUrl}/api/process?${repoParam(repo)}&name=${encodeURIComponent(name)}`);
 
 /** Fetch all clusters for a repo. */
-export const fetchClusters = async (repo?: string): Promise<unknown> => {
-  const response = await fetchWithTimeout(
-    `${_backendUrl}/api/clusters${repo ? `?${repoParam(repo)}` : ''}`,
-  );
-  await assertOk(response);
-  return response.json();
-};
+export const fetchClusters = async (repo?: string): Promise<unknown> =>
+  apiGet(`${_backendUrl}/api/clusters${repo ? `?${repoParam(repo)}` : ''}`);
 
 /** Fetch detail for a single cluster. */
-export const fetchClusterDetail = async (repo: string, name: string): Promise<unknown> => {
-  const response = await fetchWithTimeout(
-    `${_backendUrl}/api/cluster?${repoParam(repo)}&name=${encodeURIComponent(name)}`,
-  );
-  await assertOk(response);
-  return response.json();
-};
+export const fetchClusterDetail = async (repo: string, name: string): Promise<unknown> =>
+  apiGet(`${_backendUrl}/api/cluster?${repoParam(repo)}&name=${encodeURIComponent(name)}`);
 
 // ── Analyze API ────────────────────────────────────────────────────────────
 
@@ -555,37 +531,16 @@ export const startAnalyze = async (request: {
   path?: string;
   force?: boolean;
   embeddings?: boolean;
-}): Promise<{ jobId: string; status: string }> => {
-  const response = await fetchWithTimeout(
-    `${_backendUrl}/api/analyze`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-    },
-    30_000,
-  );
-  await assertOk(response);
-  return response.json() as Promise<{ jobId: string; status: string }>;
-};
+}): Promise<{ jobId: string; status: string }> =>
+  apiPost<{ jobId: string; status: string }>(`${_backendUrl}/api/analyze`, request, 30_000);
 
 /** Poll analysis job status. */
-export const getAnalyzeStatus = async (jobId: string): Promise<JobStatus> => {
-  const response = await fetchWithTimeout(
-    `${_backendUrl}/api/analyze/${encodeURIComponent(jobId)}`,
-  );
-  await assertOk(response);
-  return response.json() as Promise<JobStatus>;
-};
+export const getAnalyzeStatus = async (jobId: string): Promise<JobStatus> =>
+  apiGet<JobStatus>(jobStreamUrl('/api/analyze', jobId));
 
 /** Cancel a running analysis job. */
-export const cancelAnalyze = async (jobId: string): Promise<void> => {
-  const response = await fetchWithTimeout(
-    `${_backendUrl}/api/analyze/${encodeURIComponent(jobId)}`,
-    { method: 'DELETE' },
-  );
-  await assertOk(response);
-};
+export const cancelAnalyze = async (jobId: string): Promise<void> =>
+  apiDelete(jobStreamUrl('/api/analyze', jobId));
 
 /** Stream analysis progress via SSE. */
 export const streamAnalyzeProgress = (
@@ -593,48 +548,22 @@ export const streamAnalyzeProgress = (
   onProgress: (progress: JobProgress) => void,
   onComplete: (data: { repoName?: string }) => void,
   onError: (error: string) => void,
-): AbortController => {
-  return streamSSE<JobProgress>(
-    `${_backendUrl}/api/analyze/${encodeURIComponent(jobId)}/progress`,
-    {
-      onMessage: onProgress,
-      onComplete: onComplete as (data: unknown) => void,
-      onError,
-    },
-  );
-};
+): AbortController =>
+  streamJobProgress(jobStreamUrl('/api/analyze', jobId), onProgress, onComplete, onError);
 
 // ── Embed API ──────────────────────────────────────────────────────────────
 
 /** Start server-side embedding generation. */
-export const startEmbeddings = async (repo: string): Promise<{ jobId: string; status: string }> => {
-  const response = await fetchWithTimeout(
-    `${_backendUrl}/api/embed`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ repo }),
-    },
-    30_000,
-  );
-  await assertOk(response);
-  return response.json() as Promise<{ jobId: string; status: string }>;
-};
+export const startEmbeddings = async (repo: string): Promise<{ jobId: string; status: string }> =>
+  apiPost<{ jobId: string; status: string }>(`${_backendUrl}/api/embed`, { repo }, 30_000);
 
 /** Poll embedding job status. */
-export const getEmbedStatus = async (jobId: string): Promise<JobStatus> => {
-  const response = await fetchWithTimeout(`${_backendUrl}/api/embed/${encodeURIComponent(jobId)}`);
-  await assertOk(response);
-  return response.json() as Promise<JobStatus>;
-};
+export const getEmbedStatus = async (jobId: string): Promise<JobStatus> =>
+  apiGet<JobStatus>(jobStreamUrl('/api/embed', jobId));
 
 /** Cancel a running embedding job. */
-export const cancelEmbeddings = async (jobId: string): Promise<void> => {
-  const response = await fetchWithTimeout(`${_backendUrl}/api/embed/${encodeURIComponent(jobId)}`, {
-    method: 'DELETE',
-  });
-  await assertOk(response);
-};
+export const cancelEmbeddings = async (jobId: string): Promise<void> =>
+  apiDelete(jobStreamUrl('/api/embed', jobId));
 
 /** Stream embedding progress via SSE. */
 export const streamEmbeddingProgress = (
@@ -642,13 +571,8 @@ export const streamEmbeddingProgress = (
   onProgress: (progress: JobProgress) => void,
   onComplete: (data: { repoName?: string }) => void,
   onError: (error: string) => void,
-): AbortController => {
-  return streamSSE<JobProgress>(`${_backendUrl}/api/embed/${encodeURIComponent(jobId)}/progress`, {
-    onMessage: onProgress,
-    onComplete: onComplete as (data: unknown) => void,
-    onError,
-  });
-};
+): AbortController =>
+  streamJobProgress(jobStreamUrl('/api/embed', jobId), onProgress, onComplete, onError);
 
 // ── Convenience: connect to server ─────────────────────────────────────────
 
