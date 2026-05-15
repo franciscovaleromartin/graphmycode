@@ -3,7 +3,6 @@
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Globe, Linkedin } from '@/lib/lucide-icons';
 import * as Comlink from 'comlink';
 import { useAppState } from '../hooks/useAppState';
 import { useT } from '../lib/i18n';
@@ -11,6 +10,8 @@ import { extractZip } from '../services/zip';
 import { createKnowledgeGraph } from '../core/graph/graph';
 import { getWorkerApi } from '../services/ingestion-worker';
 import type { PipelineProgress } from '../types/pipeline';
+import { GraphAnimation } from '../components/landing/GraphAnimation';
+import { TopBar } from '../components/landing/TopBar';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -69,161 +70,6 @@ async function fetchGitHubFiles(
   return entries.filter(Boolean) as { path: string; content: string }[];
 }
 
-// ── GraphAnimation ────────────────────────────────────────────────────────────
-
-const HEAT_STOPS = [
-  [59, 130, 246],
-  [34, 197, 94],
-  [245, 158, 11],
-  [239, 68, 68],
-] as const;
-
-function graphHeatColor(t: number, alpha = 1): string {
-  const clamped = Math.max(0, Math.min(1, t));
-  const seg = Math.min(Math.floor(clamped * 3), 2);
-  const lo = HEAT_STOPS[seg];
-  const hi = HEAT_STOPS[seg + 1];
-  const r2 = clamped * 3 - seg;
-  const r = Math.round(lo[0] + (hi[0] - lo[0]) * r2);
-  const g = Math.round(lo[1] + (hi[1] - lo[1]) * r2);
-  const b = Math.round(lo[2] + (hi[2] - lo[2]) * r2);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
-const GRAPH_LABELS = [
-  'index.ts', 'utils.py', 'App.tsx', 'router.go',
-  'main.rs', 'api.js', 'auth.ts', 'models.py', 'store.ts', 'helpers.rb',
-];
-
-interface AnimNode {
-  x: number; y: number;
-  vx: number; vy: number;
-  r: number; heat: number;
-  phase: number; speed: number;
-}
-
-interface AnimEdge { i: number; j: number; bidir: boolean; }
-
-function buildAnimData(W: number, H: number): { nodes: AnimNode[]; edges: AnimEdge[] } {
-  const nodes: AnimNode[] = Array.from({ length: 40 }, () => {
-    const heat = Math.random();
-    return {
-      x: 60 + Math.random() * (W - 120),
-      y: 20 + Math.random() * (H - 40),
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: (Math.random() - 0.5) * 0.5,
-      r: 3 + heat * 5,
-      heat,
-      phase: Math.random() * Math.PI * 2,
-      speed: 0.015 + Math.random() * 0.01,
-    };
-  });
-  const edges: AnimEdge[] = [];
-  nodes.forEach((a, i) => {
-    nodes.forEach((b, j) => {
-      if (j <= i) return;
-      const d = Math.hypot(a.x - b.x, a.y - b.y);
-      if (d < 160 && Math.random() < 0.28) {
-        edges.push({ i, j, bidir: a.heat > 0.55 && b.heat > 0.55 && Math.random() < 0.4 });
-      }
-    });
-  });
-  return { nodes, edges };
-}
-
-const GraphAnimation = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef = useRef<number>(0);
-  const dataRef = useRef<{ nodes: AnimNode[]; edges: AnimEdge[] } | null>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const W = canvas.width;
-    const H = canvas.height;
-    dataRef.current = buildAnimData(W, H);
-
-    function draw() {
-      if (!canvas || !ctx || !dataRef.current) return;
-      const { nodes, edges } = dataRef.current;
-
-      ctx.clearRect(0, 0, W, H);
-      const bg = ctx.createLinearGradient(0, 0, W, H);
-      bg.addColorStop(0, '#080d18');
-      bg.addColorStop(1, '#050a0f');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, W, H);
-
-      nodes.forEach(n => {
-        n.phase += n.speed;
-        n.x += n.vx; n.y += n.vy;
-        if (n.x < 20 || n.x > W - 20) n.vx *= -1;
-        if (n.y < 10 || n.y > H - 10) n.vy *= -1;
-      });
-
-      edges.forEach(({ i, j, bidir }) => {
-        const a = nodes[i], b = nodes[j];
-        const d = Math.hypot(a.x - b.x, a.y - b.y);
-        if (d > 180) return;
-        const fade = 1 - d / 180;
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.strokeStyle = bidir
-          ? `rgba(249,115,22,${fade * 0.7})`
-          : `rgba(30,41,59,${fade * 2})`;
-        ctx.lineWidth = bidir ? 1.8 : 1;
-        ctx.stroke();
-      });
-
-      nodes.forEach((n, idx) => {
-        const pulse = 1 + Math.sin(n.phase) * 0.12;
-        const r = n.r * pulse;
-        if (n.heat > 0.6) {
-          const grd = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r + 8);
-          grd.addColorStop(0, graphHeatColor(n.heat, 0.15));
-          grd.addColorStop(1, 'transparent');
-          ctx.beginPath();
-          ctx.arc(n.x, n.y, r + 8, 0, Math.PI * 2);
-          ctx.fillStyle = grd;
-          ctx.fill();
-        }
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
-        ctx.fillStyle = graphHeatColor(n.heat, 0.88);
-        ctx.fill();
-        if (n.heat > 0.68) {
-          ctx.font = '9px monospace';
-          ctx.fillStyle = 'rgba(100,116,139,0.55)';
-          ctx.fillText(GRAPH_LABELS[idx % GRAPH_LABELS.length], n.x + r + 4, n.y + 3);
-        }
-      });
-
-      rafRef.current = requestAnimationFrame(draw);
-    }
-
-    rafRef.current = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, []);
-
-  return (
-    <div style={{ position: 'relative', height: '150px', overflow: 'hidden' }}>
-      <canvas
-        ref={canvasRef}
-        width={1120}
-        height={300}
-        style={{ width: '100%', height: '100%', display: 'block' }}
-      />
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: '70px',
-        background: 'linear-gradient(to bottom, transparent, #0c111d)',
-        pointerEvents: 'none',
-      }} />
-    </div>
-  );
-};
 
 // ── LandingCards ──────────────────────────────────────────────────────────────
 
@@ -391,25 +237,7 @@ const LandingCards = () => {
   );
 };
 
-// ── TopBar ────────────────────────────────────────────────────────────────────
-
-const TOPBAR_STYLE: React.CSSProperties = {
-  position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  padding: '10px 24px',
-  borderBottom: '1px solid rgba(255,255,255,0.06)',
-  background: 'rgba(8,13,24,0.85)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-};
-
-const SOCIAL_ICON_STYLE: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  width: '32px', height: '32px', borderRadius: '8px',
-  border: '1px solid rgba(255,255,255,0.08)',
-  background: 'rgba(255,255,255,0.04)',
-  color: '#94a3b8', textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
-};
+// ── Remaining internal styles ─────────────────────────────────────────────────
 
 const AI_WARNING_STYLE: React.CSSProperties = {
   marginTop: '10px', fontSize: '10px', lineHeight: 1.5,
@@ -417,93 +245,11 @@ const AI_WARNING_STYLE: React.CSSProperties = {
   border: '1px solid rgba(245,158,11,.2)', borderRadius: '7px', padding: '6px 9px',
 };
 
-const GITHUB_LINK_STYLE: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: '7px',
-  padding: '5px 12px', borderRadius: '8px',
-  border: '1px solid rgba(255,255,255,0.08)',
-  background: 'rgba(255,255,255,0.04)',
-  color: '#94a3b8', fontSize: '12px', fontWeight: 500,
-  textDecoration: 'none', transition: 'color 0.15s, background 0.15s',
-};
-
 const CYPHER_CODE_STYLE: React.CSSProperties = {
   display: 'block', fontSize: '10px', color: '#34d399',
   background: 'rgba(52,211,153,.06)', border: '1px solid rgba(52,211,153,.15)',
   borderRadius: '7px', padding: '7px 10px', fontFamily: 'monospace',
   letterSpacing: '0.01em',
-};
-
-function formatStars(n: number): string {
-  return n >= 1000 ? `${(n / 1000).toFixed(1).replace('.0', '')}k` : String(n);
-}
-
-const TopBar = () => {
-  const [stars, setStars] = useState<number | null>(null);
-
-  useEffect(() => {
-    fetch('https://api.github.com/repos/franciscovaleromartin/graphmycode')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => d?.stargazers_count != null && setStars(d.stargazers_count))
-      .catch(() => { });
-  }, []);
-
-  return (
-    <div style={TOPBAR_STYLE}>
-      {/* Logo */}
-      <span style={{ fontSize: '16px', fontWeight: 600, letterSpacing: '-0.02em', color: '#f1f5f9' }}>
-        <span style={{ color: '#e879f9' }}>Graph</span>My<span style={{ color: '#22d3ee' }}>Code</span>
-      </span>
-
-      {/* Icons container */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {/* GitHub stars */}
-        <a
-          href="https://github.com/franciscovaleromartin/graphmycode"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={GITHUB_LINK_STYLE}
-          onMouseEnter={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#f1f5f9', background: 'rgba(255,255,255,0.08)' })}
-          onMouseLeave={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#94a3b8', background: 'rgba(255,255,255,0.04)' })}
-        >
-          {/* GitHub mark */}
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-          </svg>
-          {/* Star icon */}
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-          <span>{stars !== null ? formatStars(stars) : '—'}</span>
-        </a>
-
-        {/* Portfolio */}
-        <a
-          href="https://francisco-valero.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={SOCIAL_ICON_STYLE}
-          onMouseEnter={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#f1f5f9', background: 'rgba(255,255,255,0.08)' })}
-          onMouseLeave={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#94a3b8', background: 'rgba(255,255,255,0.04)' })}
-          title="Portfolio"
-        >
-          <Globe size={16} />
-        </a>
-
-        {/* LinkedIn */}
-        <a
-          href="https://www.linkedin.com/in/francisco-valero/"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={SOCIAL_ICON_STYLE}
-          onMouseEnter={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#f1f5f9', background: 'rgba(255,255,255,0.08)' })}
-          onMouseLeave={e => Object.assign((e.currentTarget as HTMLAnchorElement).style, { color: '#94a3b8', background: 'rgba(255,255,255,0.04)' })}
-          title="LinkedIn"
-        >
-          <Linkedin size={16} />
-        </a>
-      </div>
-    </div>
-  );
 };
 
 // ── LandingFooter ─────────────────────────────────────────────────────────────
