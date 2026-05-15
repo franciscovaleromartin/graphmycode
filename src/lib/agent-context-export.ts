@@ -1006,7 +1006,7 @@ function buildClaudeMd(
   const boundaryLines = detectBoundaries(cleanNodes);
   const pointerLines = detectPointers(cleanNodes);
 
-  // Purpose: explicit description → domain inference from node names → stack fallback
+  // Purpose: explicit description → domain inference from node names → TODO placeholder
   const projectNode = cleanNodes.find((n) => n.label === 'Project');
   let purpose = projectNode?.properties.description as string | undefined;
   if (!purpose) {
@@ -1038,18 +1038,8 @@ function buildClaudeMd(
       purpose = stackPrefix
         ? `${stackPrefix} ${domainPart}application${withClause}`
         : `${domainPart}application${withClause}`;
-    } else if (stack.isFullstack) {
-      const backendFw = stack.pyBackend[0] ?? langDisplay;
-      const frontendFw = stack.jsFrontend[0] ?? stack.jsServer[0] ?? '';
-      purpose = frontendFw
-        ? `Fullstack ${backendFw} + ${frontendFw} application`
-        : `${backendFw} application`;
-    } else if (stack.frameworks.length > 0) {
-      purpose = `A ${stack.frameworks.slice(0, 2).join(' + ')} application.`;
-    } else if (stack.primaryLang) {
-      purpose = `A ${langDisplay} project.`;
     } else {
-      purpose = 'A software project.';
+      purpose = 'TODO: describe what this project does in one line.';
     }
   }
 
