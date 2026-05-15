@@ -2,13 +2,6 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
-/**
- * Graph RAG Agent Factory
- *
- * Creates a LangChain agent configured for code graph analysis.
- * Supports Azure OpenAI and Google Gemini providers.
- */
-
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { SystemMessage } from '@langchain/core/messages';
 import { ChatOpenAI, AzureChatOpenAI } from '@langchain/openai';
@@ -128,149 +121,121 @@ When generating diagrams:
 BAD:  A[User's Data] --> B(Process & Save)
 GOOD: A["User Data"] --> B["Process and Save"]
 `;
-export const createChatModel = (config: ProviderConfig): BaseChatModel => {
-  switch (config.provider) {
-    case 'openai': {
-      const openaiConfig = config as OpenAIConfig;
-
-      if (!openaiConfig.apiKey || openaiConfig.apiKey.trim() === '') {
-        throw new Error('OpenAI API key is required but was not provided');
-      }
-
-      return new ChatOpenAI({
-        apiKey: openaiConfig.apiKey,
-        modelName: openaiConfig.model,
-        temperature: openaiConfig.temperature ?? 0.1,
-        maxTokens: openaiConfig.maxTokens,
-        configuration: {
-          apiKey: openaiConfig.apiKey,
-          ...(openaiConfig.baseUrl ? { baseURL: openaiConfig.baseUrl } : {}),
-        },
-        streaming: true,
-      });
-    }
-
-    case 'azure-openai': {
-      const azureConfig = config as AzureOpenAIConfig;
-      return new AzureChatOpenAI({
-        azureOpenAIApiKey: azureConfig.apiKey,
-        azureOpenAIApiInstanceName: extractInstanceName(azureConfig.endpoint),
-        azureOpenAIApiDeploymentName: azureConfig.deploymentName,
-        azureOpenAIApiVersion: azureConfig.apiVersion ?? '2024-12-01-preview',
-        // Note: gpt-5.2-chat only supports temperature=1 (default)
-        streaming: true,
-      });
-    }
-
-    case 'gemini': {
-      const geminiConfig = config as GeminiConfig;
-      return new ChatGoogleGenerativeAI({
-        apiKey: geminiConfig.apiKey,
-        model: geminiConfig.model,
-        temperature: geminiConfig.temperature ?? 0.1,
-        maxOutputTokens: geminiConfig.maxTokens,
-        streaming: true,
-      });
-    }
-
-    case 'anthropic': {
-      const anthropicConfig = config as AnthropicConfig;
-      return new ChatAnthropic({
-        anthropicApiKey: anthropicConfig.apiKey,
-        model: anthropicConfig.model,
-        temperature: anthropicConfig.temperature ?? 0.1,
-        maxTokens: anthropicConfig.maxTokens ?? 8192,
-        streaming: true,
-      });
-    }
-
-    case 'ollama': {
-      const ollamaConfig = config as OllamaConfig;
-      return new ChatOllama({
-        baseUrl: ollamaConfig.baseUrl ?? DEFAULT_OLLAMA_BASE_URL,
-        model: ollamaConfig.model,
-        temperature: ollamaConfig.temperature ?? 0.1,
-        streaming: true,
-        // Allow longer responses (Ollama default is often 128-2048)
-        numPredict: 30000,
-        // Increase context window (Ollama default is only 2048!)
-        // This is critical for agentic workflows with tool calls
-        numCtx: 32768,
-      });
-    }
-
-    case 'openrouter': {
-      const openRouterConfig = config as OpenRouterConfig;
-
-      // Debug logging
-      if (import.meta.env.DEV) {
-        console.log('🌐 OpenRouter config:', {
-          hasApiKey: !!openRouterConfig.apiKey,
-          model: openRouterConfig.model,
-          baseUrl: openRouterConfig.baseUrl,
-        });
-      }
-
-      if (!openRouterConfig.apiKey || openRouterConfig.apiKey.trim() === '') {
-        throw new Error('OpenRouter API key is required but was not provided');
-      }
-
-      return new ChatOpenAI({
-        openAIApiKey: openRouterConfig.apiKey,
-        apiKey: openRouterConfig.apiKey, // Fallback for some versions
-        modelName: openRouterConfig.model,
-        temperature: openRouterConfig.temperature ?? 0.1,
-        maxTokens: openRouterConfig.maxTokens,
-        configuration: {
-          apiKey: openRouterConfig.apiKey, // Ensure client receives it
-          baseURL: openRouterConfig.baseUrl ?? DEFAULT_OPENROUTER_BASE_URL,
-        },
-        streaming: true,
-      });
-    }
-
-    case 'minimax': {
-      const minimaxConfig = config as MiniMaxConfig;
-
-      if (!minimaxConfig.apiKey || minimaxConfig.apiKey.trim() === '') {
-        throw new Error('MiniMax API key is required but was not provided');
-      }
-
-      return new ChatAnthropic({
-        anthropicApiKey: minimaxConfig.apiKey,
-        model: minimaxConfig.model,
-        temperature: minimaxConfig.temperature ?? 0.1,
-        maxTokens: minimaxConfig.maxTokens ?? 8192,
-        streaming: true,
-        clientOptions: {
-          baseURL: 'https://api.minimax.io/anthropic',
-        },
-      });
-    }
-
-    case 'glm': {
-      const glmConfig = config as GLMConfig;
-
-      if (!glmConfig.apiKey || glmConfig.apiKey.trim() === '') {
-        throw new Error('GLM API key is required but was not provided');
-      }
-
-      return new ChatOpenAI({
-        apiKey: glmConfig.apiKey,
-        modelName: glmConfig.model,
-        temperature: glmConfig.temperature ?? 0.1,
-        maxTokens: glmConfig.maxTokens,
-        configuration: {
-          apiKey: glmConfig.apiKey,
-          baseURL: glmConfig.baseUrl ?? 'https://api.z.ai/api/coding/paas/v4',
-        },
-        streaming: true,
-      });
-    }
-
-    default:
-      throw new Error(`Unsupported provider: ${(config as any).provider}`);
+const requireApiKey = (apiKey: string | undefined, provider: string) => {
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error(`${provider} API key is required but was not provided`);
   }
+};
+
+type ProviderFactory = (config: ProviderConfig) => BaseChatModel;
+
+const PROVIDER_FACTORIES: Record<string, ProviderFactory> = {
+  openai: (config) => {
+    const c = config as OpenAIConfig;
+    requireApiKey(c.apiKey, 'OpenAI');
+    return new ChatOpenAI({
+      apiKey: c.apiKey,
+      modelName: c.model,
+      temperature: c.temperature ?? 0.1,
+      maxTokens: c.maxTokens,
+      configuration: { apiKey: c.apiKey, ...(c.baseUrl ? { baseURL: c.baseUrl } : {}) },
+      streaming: true,
+    });
+  },
+
+  'azure-openai': (config) => {
+    const c = config as AzureOpenAIConfig;
+    return new AzureChatOpenAI({
+      azureOpenAIApiKey: c.apiKey,
+      azureOpenAIApiInstanceName: extractInstanceName(c.endpoint),
+      azureOpenAIApiDeploymentName: c.deploymentName,
+      azureOpenAIApiVersion: c.apiVersion ?? '2024-12-01-preview',
+      streaming: true,
+    });
+  },
+
+  gemini: (config) => {
+    const c = config as GeminiConfig;
+    return new ChatGoogleGenerativeAI({
+      apiKey: c.apiKey,
+      model: c.model,
+      temperature: c.temperature ?? 0.1,
+      maxOutputTokens: c.maxTokens,
+      streaming: true,
+    });
+  },
+
+  anthropic: (config) => {
+    const c = config as AnthropicConfig;
+    return new ChatAnthropic({
+      anthropicApiKey: c.apiKey,
+      model: c.model,
+      temperature: c.temperature ?? 0.1,
+      maxTokens: c.maxTokens ?? 8192,
+      streaming: true,
+    });
+  },
+
+  ollama: (config) => {
+    const c = config as OllamaConfig;
+    return new ChatOllama({
+      baseUrl: c.baseUrl ?? DEFAULT_OLLAMA_BASE_URL,
+      model: c.model,
+      temperature: c.temperature ?? 0.1,
+      streaming: true,
+      numPredict: 30000,
+      numCtx: 32768,
+    });
+  },
+
+  openrouter: (config) => {
+    const c = config as OpenRouterConfig;
+    if (import.meta.env.DEV) {
+      console.log('🌐 OpenRouter config:', { hasApiKey: !!c.apiKey, model: c.model, baseUrl: c.baseUrl });
+    }
+    requireApiKey(c.apiKey, 'OpenRouter');
+    return new ChatOpenAI({
+      openAIApiKey: c.apiKey,
+      apiKey: c.apiKey,
+      modelName: c.model,
+      temperature: c.temperature ?? 0.1,
+      maxTokens: c.maxTokens,
+      configuration: { apiKey: c.apiKey, baseURL: c.baseUrl ?? DEFAULT_OPENROUTER_BASE_URL },
+      streaming: true,
+    });
+  },
+
+  minimax: (config) => {
+    const c = config as MiniMaxConfig;
+    requireApiKey(c.apiKey, 'MiniMax');
+    return new ChatAnthropic({
+      anthropicApiKey: c.apiKey,
+      model: c.model,
+      temperature: c.temperature ?? 0.1,
+      maxTokens: c.maxTokens ?? 8192,
+      streaming: true,
+      clientOptions: { baseURL: 'https://api.minimax.io/anthropic' },
+    });
+  },
+
+  glm: (config) => {
+    const c = config as GLMConfig;
+    requireApiKey(c.apiKey, 'GLM');
+    return new ChatOpenAI({
+      apiKey: c.apiKey,
+      modelName: c.model,
+      temperature: c.temperature ?? 0.1,
+      maxTokens: c.maxTokens,
+      configuration: { apiKey: c.apiKey, baseURL: c.baseUrl ?? 'https://api.z.ai/api/coding/paas/v4' },
+      streaming: true,
+    });
+  },
+};
+
+export const createChatModel = (config: ProviderConfig): BaseChatModel => {
+  const factory = PROVIDER_FACTORIES[config.provider];
+  if (!factory) throw new Error(`Unsupported provider: ${config.provider}`);
+  return factory(config);
 };
 
 /**
