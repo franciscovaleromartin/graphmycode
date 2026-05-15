@@ -6,28 +6,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { MermaidDiagram } from './MermaidDiagram';
 import { ToolCallCard } from './ToolCallCard';
 import { Copy, Check } from '@/lib/lucide-icons';
+import { markdownCodeTheme } from '../lib/syntax-theme';
 
-// Custom syntax theme
-const customTheme = {
-  ...vscDarkPlus,
-  'pre[class*="language-"]': {
-    ...vscDarkPlus['pre[class*="language-"]'],
-    background: '#0a0a10',
-    margin: 0,
-    padding: '16px 0',
-    fontSize: '13px',
-    lineHeight: '1.6',
-  },
-  'code[class*="language-"]': {
-    ...vscDarkPlus['code[class*="language-"]'],
-    background: 'transparent',
-    fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-  },
-};
+const customTheme = markdownCodeTheme;
 
 interface MarkdownRendererProps {
   content: string;

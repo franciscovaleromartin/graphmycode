@@ -15,34 +15,15 @@ import {
   MousePointerClick,
   Loader2,
 } from '@/lib/lucide-icons';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useAppState } from '../hooks/useAppState';
 import { type GraphNode, getSyntaxLanguageFromFilename } from 'gitnexus-shared';
 import { NODE_COLORS } from '../lib/constants';
 import { readFile, type ReadFileResult } from '../services/backend-client';
+import { CodeViewer } from './CodeViewer';
 
 const getSyntaxLanguage = (filePath: string | undefined): string => {
   if (!filePath) return 'text';
   return getSyntaxLanguageFromFilename(filePath);
-};
-
-// Match the code theme used elsewhere in the app
-const customTheme = {
-  ...vscDarkPlus,
-  'pre[class*="language-"]': {
-    ...vscDarkPlus['pre[class*="language-"]'],
-    background: '#0a0a10',
-    margin: 0,
-    padding: '12px 0',
-    fontSize: '12px',
-    lineHeight: '1.5',
-  },
-  'code[class*="language-"]': {
-    ...vscDarkPlus['code[class*="language-"]'],
-    background: 'transparent',
-    fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-  },
 };
 
 export interface CodeReferencesPanelProps {
@@ -386,39 +367,18 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
                   <span className="text-xs">Loading source…</span>
                 </div>
               ) : selectedFileContent ? (
-                <SyntaxHighlighter
+                <CodeViewer
+                  content={selectedFileContent}
                   language={getSyntaxLanguage(selectedFilePath)}
-                  style={customTheme as any}
-                  showLineNumbers
                   startingLineNumber={fileStartLine + 1}
-                  lineNumberStyle={{
-                    minWidth: '3em',
-                    paddingRight: '1em',
-                    color: '#5a5a70',
-                    textAlign: 'right',
-                    userSelect: 'none',
-                  }}
-                  lineProps={(lineNumber) => {
+                  highlightRange={(() => {
                     const symStart = selectedNode?.properties?.startLine;
                     const symEnd = selectedNode?.properties?.endLine ?? symStart;
-                    const isHighlighted =
-                      typeof symStart === 'number' &&
-                      lineNumber >= symStart + 1 &&
-                      lineNumber <= (symEnd ?? symStart) + 1;
-                    return {
-                      style: {
-                        display: 'block',
-                        backgroundColor: isHighlighted ? 'rgba(6, 182, 212, 0.14)' : 'transparent',
-                        borderLeft: isHighlighted ? '3px solid #06b6d4' : '3px solid transparent',
-                        paddingLeft: '12px',
-                        paddingRight: '16px',
-                      },
-                    };
-                  }}
-                  wrapLines
-                >
-                  {selectedFileContent}
-                </SyntaxHighlighter>
+                    return typeof symStart === 'number'
+                      ? { start: symStart + 1, end: (symEnd ?? symStart) + 1 }
+                      : undefined;
+                  })()}
+                />
               ) : (
                 <div className="px-2.5 py-2 text-xs text-text-muted">
                   {selectedIsFile ? (
@@ -537,41 +497,16 @@ export const CodeReferencesPanel = ({ onFocusNode }: CodeReferencesPanelProps) =
 
                       <div className="overflow-x-auto">
                         {content ? (
-                          <SyntaxHighlighter
+                          <CodeViewer
+                            content={content}
                             language={language}
-                            style={customTheme as any}
-                            showLineNumbers
                             startingLineNumber={start + 1}
-                            lineNumberStyle={{
-                              minWidth: '3em',
-                              paddingRight: '1em',
-                              color: '#5a5a70',
-                              textAlign: 'right',
-                              userSelect: 'none',
-                            }}
-                            lineProps={(lineNumber) => {
-                              const isHighlighted =
-                                hasRange &&
-                                lineNumber >= start + highlightStart + 1 &&
-                                lineNumber <= start + highlightEnd + 1;
-                              return {
-                                style: {
-                                  display: 'block',
-                                  backgroundColor: isHighlighted
-                                    ? 'rgba(6, 182, 212, 0.14)'
-                                    : 'transparent',
-                                  borderLeft: isHighlighted
-                                    ? '3px solid #06b6d4'
-                                    : '3px solid transparent',
-                                  paddingLeft: '12px',
-                                  paddingRight: '16px',
-                                },
-                              };
-                            }}
-                            wrapLines
-                          >
-                            {content}
-                          </SyntaxHighlighter>
+                            highlightRange={
+                              hasRange
+                                ? { start: start + highlightStart + 1, end: start + highlightEnd + 1 }
+                                : undefined
+                            }
+                          />
                         ) : (
                           <div className="px-2.5 py-2 text-xs text-text-muted">
                             Code not available in memory for{' '}

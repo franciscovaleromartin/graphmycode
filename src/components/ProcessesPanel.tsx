@@ -26,8 +26,34 @@ import { useAppState } from '../hooks/useAppState';
 import { ProcessFlowModal } from './ProcessFlowModal';
 import type { ProcessData, ProcessStep } from '../lib/mermaid-generator';
 
-/** Validate that an ID contains only expected node identifier characters (no Cypher metacharacters or spaces) */
 const isSafeId = (id: string): boolean => /^[a-zA-Z0-9_:.\-/@]+$/.test(id);
+
+const mapRowToStep = (row: any): ProcessStep => ({
+  id: row.id || row[0],
+  name: row.name || row[1] || 'Unknown',
+  filePath: row.filePath || row[2],
+  stepNumber: row.stepNumber || row.step || row[3] || 0,
+});
+
+const fetchCallsEdges = async (
+  stepIds: string[],
+  runQuery: (q: string) => Promise<any[]>,
+): Promise<Array<{ from: string; to: string; type: string }>> => {
+  if (stepIds.length === 0) return [];
+  const idList = stepIds.map((id) => `'${id.replace(/'/g, "''")}'`).join(',');
+  try {
+    const rows = await runQuery(`
+      MATCH (from)-[r:CodeRelation {type: 'CALLS'}]->(to)
+      WHERE from.id IN [${idList}] AND to.id IN [${idList}]
+      RETURN from.id AS fromId, to.id AS toId, r.type AS type
+    `);
+    return rows
+      .map((row) => ({ from: row.fromId || row[0], to: row.toId || row[1], type: row.type || row[2] || 'CALLS' }))
+      .filter((e) => e.from !== e.to);
+  } catch {
+    return [];
+  }
+};
 
 export const ProcessesPanel = () => {
   const { graph, runQuery, setHighlightedNodeIds, highlightedNodeIds } = useAppState();
@@ -121,47 +147,13 @@ export const ProcessesPanel = () => {
       const stepsResult = await runQuery(allStepsQuery);
 
       for (const row of stepsResult) {
-        const stepId = row.id || row[0];
-        if (!allStepsMap.has(stepId)) {
-          allStepsMap.set(stepId, {
-            id: stepId,
-            name: row.name || row[1] || 'Unknown',
-            filePath: row.filePath || row[2],
-            stepNumber: row.stepNumber || row.step || row[3] || 0,
-          });
-        }
+        const step = mapRowToStep(row);
+        if (!allStepsMap.has(step.id)) allStepsMap.set(step.id, step);
       }
 
       const allSteps = Array.from(allStepsMap.values());
-      const stepIds: string[] = [];
-      for (const s of allSteps) {
-        if (isSafeId(s.id)) stepIds.push(s.id);
-      }
-
-      // Query for all CALLS edges between the combined steps
-      if (stepIds.length > 0) {
-        // Batch query if too many steps
-        const edgesQuery = `
-                    MATCH (from)-[r:CodeRelation {type: 'CALLS'}]->(to)
-                    WHERE from.id IN [${stepIds.map((id) => `'${id.replace(/'/g, "''")}'`).join(',')}]
-                      AND to.id IN [${stepIds.map((id) => `'${id.replace(/'/g, "''")}'`).join(',')}]
-                    RETURN from.id AS fromId, to.id AS toId, r.type AS type
-                `;
-
-        try {
-          const edgesResult = await runQuery(edgesQuery);
-          for (const row of edgesResult) {
-            const edge = {
-              from: row.fromId || row[0],
-              to: row.toId || row[1],
-              type: row.type || row[2] || 'CALLS',
-            };
-            if (edge.from !== edge.to) allEdges.push(edge);
-          }
-        } catch (err) {
-          console.warn('Could not fetch combined edges:', err);
-        }
-      }
+      const stepIds = allSteps.filter((s) => isSafeId(s.id)).map((s) => s.id);
+      allEdges.push(...(await fetchCallsEdges(stepIds, runQuery)));
 
       const combinedProcessData: ProcessData = {
         id: 'combined-all',
@@ -195,46 +187,9 @@ export const ProcessesPanel = () => {
       `;
 
         const stepsResult = await runQuery(stepsQuery);
-
-        const steps: ProcessStep[] = stepsResult.map((row: any) => ({
-          id: row.id || row[0],
-          name: row.name || row[1] || 'Unknown',
-          filePath: row.filePath || row[2],
-          stepNumber: row.stepNumber || row.step || row[3] || 0,
-        }));
-
-        // Get step IDs for edge query
-        const stepIds: string[] = [];
-        for (const s of steps) {
-          if (isSafeId(s.id)) stepIds.push(s.id);
-        }
-
-        // Query for CALLS edges between the steps in this process
-        let edges: Array<{ from: string; to: string; type: string }> = [];
-        if (stepIds.length > 0) {
-          const edgesQuery = `
-          MATCH (from)-[r:CodeRelation {type: 'CALLS'}]->(to)
-          WHERE from.id IN [${stepIds.map((id) => `'${id.replace(/'/g, "''")}'`).join(',')}]
-            AND to.id IN [${stepIds.map((id) => `'${id.replace(/'/g, "''")}'`).join(',')}]
-          RETURN from.id AS fromId, to.id AS toId, r.type AS type
-        `;
-
-          try {
-            const edgesResult = await runQuery(edgesQuery);
-            edges = [];
-            for (const row of edgesResult) {
-              const edge = {
-                from: row.fromId || row[0],
-                to: row.toId || row[1],
-                type: row.type || row[2] || 'CALLS',
-              };
-              if (edge.from !== edge.to) edges.push(edge); // Remove self-loops
-            }
-          } catch (err) {
-            console.warn('Could not fetch edges:', err);
-            // Continue with empty edges - will fallback to linear
-          }
-        }
+        const steps: ProcessStep[] = stepsResult.map(mapRowToStep);
+        const stepIds = steps.filter((s) => isSafeId(s.id)).map((s) => s.id);
+        const edges = await fetchCallsEdges(stepIds, runQuery);
 
         // Get clusters for this process
         const processNode = graph?.nodes.find((n) => n.id === processId);

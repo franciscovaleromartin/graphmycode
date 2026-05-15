@@ -105,19 +105,15 @@ const TreeItem = ({
   const isSelected = selectedPath === node.path;
   const hasChildren = node.children.length > 0;
 
-  // Filter children based on search (recursive)
   const filteredChildren = useMemo(() => {
     if (!searchQuery) return node.children;
     const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = (node: TreeNode, query: string): boolean => {
-      if (node.name.toLowerCase().includes(query)) return true;
-      return node.children?.some((child) => matchesSearch(child, query)) ?? false;
-    };
-    return node.children.filter((child) => matchesSearch(child, searchLower));
+    const nodeMatchesSearch = (n: TreeNode, query: string): boolean =>
+      n.name.toLowerCase().includes(query) || (n.children?.some((c) => nodeMatchesSearch(c, query)) ?? false);
+    return node.children.filter((child) => nodeMatchesSearch(child, searchLower));
   }, [node.children, searchQuery]);
 
-  // Check if this node matches search
-  const matchesSearch = searchQuery && node.name.toLowerCase().includes(searchQuery.toLowerCase());
+  const isMatchingSearch = searchQuery && node.name.toLowerCase().includes(searchQuery.toLowerCase());
 
   const handleSelectNode = () => {
     if (hasChildren) {
@@ -130,7 +126,7 @@ const TreeItem = ({
     <div>
       <button
         onClick={handleSelectNode}
-        className={`relative flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-sm transition-colors hover:bg-hover ${isSelected ? 'border-l-2 border-amber-400 bg-amber-500/15 text-amber-300' : 'border-l-2 border-transparent text-text-secondary hover:text-text-primary'} ${matchesSearch ? 'bg-accent/10' : ''} `}
+        className={`relative flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-sm transition-colors hover:bg-hover ${isSelected ? 'border-l-2 border-amber-400 bg-amber-500/15 text-amber-300' : 'border-l-2 border-transparent text-text-secondary hover:text-text-primary'} ${isMatchingSearch ? 'bg-accent/10' : ''} `}
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
       >
         {/* Expand/collapse icon */}
