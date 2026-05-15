@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cómo funciona GraphMyCode — Visualización de dependencias en el navegador</title>
   <meta name="description" content="GraphMyCode analiza tu repositorio en el navegador con WebAssembly y tree-sitter, construye un grafo de dependencias y lo visualiza en 3D. Sin servidores, sin uploads. Descubre el pipeline completo." />
-  <meta name="author" content="Francisco Alejandro Valero Martin" />
+  <meta name="author" content="Francisco Valero" />
   <link rel="canonical" href="https://graphmycode.com/como-funciona" />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://graphmycode.com/como-funciona" />
@@ -14,6 +14,10 @@
   <meta property="og:image" content="https://graphmycode.com/og-image.png" />
   <meta property="og:site_name" content="GraphMyCode" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://graphmycode.com/como-funciona" />
+  <meta name="twitter:title" content="Cómo funciona GraphMyCode — Visualización de dependencias en el navegador" />
+  <meta name="twitter:description" content="Pipeline completo: upload → AST parsing con tree-sitter WASM → grafo de dependencias → visualización 3D → agrupación semántica → chat IA. Todo en el navegador." />
+  <meta name="twitter:image" content="https://graphmycode.com/og-image.png" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <script type="application/ld+json">
   {
@@ -24,9 +28,10 @@
     "description": "GraphMyCode analiza repositorios de código en el navegador usando WebAssembly y tree-sitter, construye un grafo de dependencias y lo visualiza en 3D con soporte para 15+ lenguajes.",
     "url": "https://graphmycode.com/como-funciona",
     "datePublished": "2026-05-02",
+    "dateModified": "2026-05-15",
     "author": {
       "@type": "Person",
-      "name": "Francisco Alejandro Valero Martin",
+      "name": "Francisco Valero",
       "url": "https://francisco-valero.com"
     },
     "publisher": {
@@ -40,6 +45,90 @@
       "url": "https://graphmycode.com"
     },
     "keywords": "code visualization, dependency graph, tree-sitter, WebAssembly, AST parsing, 3D graph, code analysis"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Cómo visualizar un repositorio de código con GraphMyCode",
+    "description": "GraphMyCode convierte cualquier repositorio en un grafo interactivo de dependencias directamente en el navegador, sin instalación ni servidores. Sigue estos pasos para analizar tu código.",
+    "url": "https://graphmycode.com/como-funciona",
+    "tool": [
+      { "@type": "HowToTool", "name": "Navegador web moderno (Chrome, Firefox, Edge, Safari)" },
+      { "@type": "HowToTool", "name": "Repositorio de código en ZIP o URL pública de GitHub" }
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "Sube tu repositorio",
+        "text": "Arrastra un ZIP de tu proyecto o pega la URL de un repositorio público de GitHub. GraphMyCode descarga o descomprime los archivos directamente en la memoria del navegador. Ningún byte llega a un servidor externo. Límite: hasta 250 archivos de código fuente por sesión, con un máximo de 200 KB por archivo.",
+        "url": "https://graphmycode.com/como-funciona#paso-1"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "Análisis AST con WebAssembly",
+        "text": "Cada archivo pasa por tree-sitter, un parser incremental compilado a WebAssembly. GraphMyCode incluye gramáticas WASM para cada lenguaje soportado y las ejecuta localmente sin llamadas a red. El parser extrae la estructura sintáctica completa: funciones, clases, interfaces, imports, exports y sus relaciones.",
+        "url": "https://graphmycode.com/como-funciona#paso-2"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "Construcción del grafo de conocimiento",
+        "text": "Los símbolos extraídos y sus relaciones forman un grafo de conocimiento. Los nodos representan archivos, módulos, clases y funciones. Las aristas representan dependencias: imports, herencia, llamadas entre funciones. El grafo detecta automáticamente dependencias circulares, módulos altamente acoplados y puntos de entrada del proyecto.",
+        "url": "https://graphmycode.com/como-funciona#paso-3"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "Layout y visualización",
+        "text": "ForceAtlas2 calcula el layout del grafo mediante simulación de fuerzas: los nodos más relacionados se atraen entre sí, los independientes se repelen. El resultado revela la arquitectura real del proyecto. GraphMyCode ofrece cinco modos de visualización: grafo estructural, agrupación semántica 3D, Technical Debt City, heatmap de dependencias y Code Flow.",
+        "url": "https://graphmycode.com/como-funciona#paso-4"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 5,
+        "name": "Agrupación semántica (opcional)",
+        "text": "HuggingFace Transformers ejecuta un modelo de embeddings directamente en el navegador para generar representaciones vectoriales de cada símbolo. UMAP proyecta esos vectores en 3D para agrupar código funcionalmente similar, incluso cuando no hay dependencias directas entre archivos.",
+        "url": "https://graphmycode.com/como-funciona#paso-5"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 6,
+        "name": "Chat con IA sobre tu código (opcional)",
+        "text": "Conecta tu proveedor LLM preferido — OpenAI, Gemini, Anthropic u Ollama local — y haz preguntas sobre tu codebase en lenguaje natural. GraphMyCode construye el contexto a partir del grafo: qué archivos son relevantes para tu pregunta, cómo se relacionan y qué funciones están implicadas.",
+        "url": "https://graphmycode.com/como-funciona#paso-6"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 7,
+        "name": "Exporta el contexto del proyecto",
+        "text": "El botón '⬇ Export Project Context' genera un fichero project-context.md directamente en el navegador. Contiene: un resumen narrativo de los puntos de entrada más conectados, la estructura de directorios, los diez nodos con más conexiones, las dependencias externas detectadas y los grupos de código. En un proyecto de ~90 archivos reduce el contexto de ~100k tokens a ~2k tokens.",
+        "url": "https://graphmycode.com/como-funciona#paso-7"
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "GraphMyCode",
+        "item": "https://graphmycode.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Cómo funciona",
+        "item": "https://graphmycode.com/como-funciona"
+      }
+    ]
   }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />

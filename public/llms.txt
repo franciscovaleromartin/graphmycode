@@ -4,16 +4,19 @@
 
 ## Producto
 
-GraphMyCode analiza repositorios de código y genera grafos interactivos navegables que muestran las relaciones entre archivos, módulos, clases y funciones. El análisis se ejecuta íntegramente en el navegador usando WebAssembly (tree-sitter) para el parsing y modelos de embeddings locales (HuggingFace Transformers) para la agrupación semántica.
+GraphMyCode es una herramienta web de visualización de código que analiza repositorios y genera grafos interactivos navegables que muestran las relaciones entre archivos, módulos, clases y funciones. El análisis se ejecuta íntegramente en el navegador usando WebAssembly (tree-sitter) para el parsing y modelos de embeddings locales (HuggingFace Transformers) para la agrupación semántica. No requiere instalación, registro ni servidor propio.
 
 ## Funcionalidades principales
 
 - Grafo estructural de dependencias: visualización de imports/exports entre archivos, clases y funciones
 - Agrupación semántica 3D: similitud de código representada en espacio tridimensional con UMAP
-- Technical Debt City: vista 3D estilo mapa de ciudad para identificar zonas de deuda técnica
+- Technical Debt City: vista 3D estilo mapa de ciudad para identificar zonas de deuda técnica (la altura de cada "edificio" refleja la complejidad del archivo)
 - Heatmap de dependencias: detección visual de imports circulares y acoplamiento alto
+- Code Flow: flowchart interactivo del flujo de ejecución de cualquier archivo, exportable como SVG
 - Chat IA integrado: preguntas en lenguaje natural sobre el código con soporte a OpenAI, Gemini, Anthropic y Ollama
 - Análisis de impacto: qué archivos se ven afectados al modificar uno dado
+- Consultas Cypher: lenguaje de consultas compatible con Neo4j para interrogar el grafo del codebase
+- Export Project Context: genera un fichero project-context.md que reduce el contexto necesario para agentes IA de ~100k tokens a ~2k tokens
 
 ## Lenguajes soportados
 
@@ -21,20 +24,40 @@ TypeScript, JavaScript, Python, Go, Rust, Java, PHP, C, C++, C#, Swift, Kotlin, 
 
 ## Tecnología
 
-- Frontend: React 19, Vite, Tailwind CSS, Three.js, Sigma.js
-- Análisis: tree-sitter WASM, AST parsing, análisis semántico
-- IA: HuggingFace Transformers (local), LangChain (multi-proveedor: OpenAI, Gemini, Anthropic, Ollama)
+- Frontend: React 19, Vite, Tailwind CSS, Three.js, Sigma.js, Graphology
+- Análisis: tree-sitter WASM, AST parsing, análisis semántico con embeddings locales
+- IA: HuggingFace Transformers.js (local), LangChain (multi-proveedor: OpenAI, Gemini, Anthropic, Ollama)
+- Layout: ForceAtlas2, UMAP, Dagre (Sugiyama)
 - Sin backend requerido para análisis básico
 
 ## Privacidad
 
-Tu código nunca sale de tu navegador salvo cuando activas el chat IA con un proveedor externo, en cuyo caso el contexto relevante viaja al proveedor seleccionado. No hay servidor propio que almacene código.
+Tu código nunca sale de tu navegador salvo cuando activas el chat IA con un proveedor externo, en cuyo caso el contexto relevante viaja al proveedor seleccionado. No hay servidor propio que almacene código. Todos los datos se borran al cerrar el navegador.
+
+## Casos de uso principales
+
+1. Onboarding en proyectos nuevos: entiende la arquitectura de un codebase desconocido en minutos
+2. Análisis de repositorios GitHub: analiza repos públicos directamente desde la URL
+3. Detección de acoplamiento excesivo y dependencias circulares
+4. Planificación de refactorizaciones con análisis de impacto
+5. Code reviews con visión global de la arquitectura
+6. Visualización de deuda técnica con Technical Debt City
+7. Generación de contexto para agentes de IA (Claude Code, Cursor, Copilot)
+8. Consultas Cypher sobre la arquitectura del proyecto
+
+## Pages
+
+- https://graphmycode.com/ — Homepage: descripción del producto, demo, características principales y llamadas a la acción
+- https://graphmycode.com/como-funciona — Pipeline técnico completo: upload → AST parsing con tree-sitter WASM → grafo de conocimiento → layout ForceAtlas2 → modos de visualización → agrupación semántica → chat IA → export de contexto
+- https://graphmycode.com/casos-de-uso — 10 casos de uso detallados: onboarding, análisis GitHub, acoplamiento, refactoring, code review, open-source, deuda técnica, Code Flow, contexto para IA, consultas Cypher
+- https://graphmycode.com/privacy — Política de privacidad: procesamiento 100% local, sin almacenamiento de código, analytics anónimos con Vercel Analytics
 
 ## Autor
 
-Francisco Alejandro Valero Martin
+Francisco Valero — Software Developer
 - Portfolio: https://francisco-valero.com
 - GitHub: https://github.com/franciscovaleromartin
+- Email: correodefranciscovalero@gmail.com
 
 ## Repositorio
 

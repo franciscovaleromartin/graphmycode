@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Casos de uso de GraphMyCode — Para qué sirve la visualización de dependencias</title>
   <meta name="description" content="GraphMyCode ayuda en el onboarding de proyectos, análisis de repos de GitHub, detección de acoplamiento, planificación de refactorizaciones, code reviews y exploración de proyectos open-source." />
-  <meta name="author" content="Francisco Alejandro Valero Martin" />
+  <meta name="author" content="Francisco Valero" />
   <link rel="canonical" href="https://graphmycode.com/casos-de-uso" />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://graphmycode.com/casos-de-uso" />
@@ -14,6 +14,10 @@
   <meta property="og:image" content="https://graphmycode.com/og-image.png" />
   <meta property="og:site_name" content="GraphMyCode" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://graphmycode.com/casos-de-uso" />
+  <meta name="twitter:title" content="Casos de uso de GraphMyCode — Para qué sirve la visualización de dependencias" />
+  <meta name="twitter:description" content="Onboarding, análisis de repositorios GitHub, detección de acoplamiento, refactorizaciones, code reviews y más. Descubre para qué usar GraphMyCode." />
+  <meta name="twitter:image" content="https://graphmycode.com/og-image.png" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <script type="application/ld+json">
   {
@@ -24,9 +28,10 @@
     "description": "GraphMyCode ayuda en el onboarding de proyectos, análisis de repositorios GitHub, detección de acoplamiento excesivo, planificación de refactorizaciones y exploración de proyectos open-source.",
     "url": "https://graphmycode.com/casos-de-uso",
     "datePublished": "2026-05-02",
+    "dateModified": "2026-05-15",
     "author": {
       "@type": "Person",
-      "name": "Francisco Alejandro Valero Martin",
+      "name": "Francisco Valero",
       "url": "https://francisco-valero.com"
     },
     "publisher": {
@@ -40,6 +45,114 @@
       "url": "https://graphmycode.com"
     },
     "keywords": "code visualization, dependency graph, onboarding, refactoring, code review, GitHub analysis, technical debt, open source"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Para qué sirve GraphMyCode en el onboarding de proyectos nuevos?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Cuando te incorporas a un codebase desconocido, GraphMyCode genera el grafo de dependencias en minutos y te permite ver de un vistazo los módulos principales, los puntos de entrada de la aplicación y las capas de la arquitectura. En lugar de leer archivo por archivo, navegas visualmente desde los nodos más conectados hacia los detalles, reduciendo drásticamente el tiempo de onboarding."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo se usa GraphMyCode para analizar repositorios de GitHub?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Basta con pegar la URL de cualquier repositorio público de GitHub. GraphMyCode descarga los archivos fuente directamente en el navegador para analizarlos, sin necesidad de clonar el repositorio ni instalar nada. Es especialmente útil para evaluar librerías open-source antes de adoptarlas: puedes ver si tienen muchas dependencias internas, si el código está bien modularizado o si hay acoplamiento excesivo."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo detecta GraphMyCode el acoplamiento excesivo en el código?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "El heatmap de dependencias colorea los nodos según el número de imports entrantes. Los archivos más calientes son candidatos prioritarios a refactorización. Las dependencias circulares entre módulos aparecen visualmente resaltadas, facilitando su identificación y resolución antes de que se conviertan en deuda técnica acumulada."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo ayuda GraphMyCode a planificar una refactorización?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Antes de mover un módulo, extraer una librería o dividir un servicio, GraphMyCode muestra exactamente qué archivos se verán afectados por el cambio. El análisis de impacto sobre el grafo evita romper dependencias inesperadas y permite validar visualmente que el plan no introduce nuevas dependencias circulares ni aumenta el acoplamiento."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Para qué sirve GraphMyCode en un code review?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "La vista de grafo estructural hace evidente si un Pull Request introduce dependencias circulares, acopla módulos que deberían estar separados o añade imports hacia capas de la arquitectura en la dirección incorrecta. En lugar de revisar el diff línea a línea sin contexto global, el grafo muestra el impacto estructural del PR de un vistazo."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo se visualiza la deuda técnica con GraphMyCode?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "El modo Technical Debt City representa cada archivo como un edificio en una ciudad 3D. La altura del edificio refleja la complejidad del archivo: el número de dependencias, su tamaño y su centralidad en el grafo. Las 'torres' del mapa son los puntos de mayor deuda técnica: archivos que han crecido demasiado o que concentran demasiadas responsabilidades."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Qué es Code Flow en GraphMyCode?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Code Flow genera un flowchart interactivo del flujo de ejecución de cualquier archivo JS, TS, JSX, TSX o Python. El diagrama muestra funciones, clases, bloques if/else, bucles y bloques try/catch con sus conexiones reales extraídas del AST. El flowchart se puede exportar como SVG para incluirlo en wikis, Confluence, Notion o cualquier herramienta de documentación."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo ayuda GraphMyCode a dar contexto a agentes de IA como Claude?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "GraphMyCode genera un fichero project-context.md con los nodos más conectados del proyecto, la estructura de carpetas, las dependencias externas detectadas y los grupos de código. Este fichero se pega en CLAUDE.md o como system prompt. En un proyecto de ~90 archivos, reduce el contexto necesario de ~100k tokens a ~2k tokens, permitiendo que el agente llegue al problema real mucho más rápido y con menos alucinaciones sobre la estructura del proyecto."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Se pueden hacer consultas Cypher sobre el código con GraphMyCode?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí. El grafo estructural que genera GraphMyCode es compatible con Cypher, el lenguaje de consultas de Neo4j. Puedes escribir queries para interrogar las relaciones entre nodos del codebase: encontrar dependencias circulares, localizar todos los archivos que importan un módulo concreto, encontrar funciones sin ningún caller, o detectar nodos que actúan como hubs de alto acoplamiento."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo se usa GraphMyCode para explorar proyectos open-source?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Puedes analizar el código fuente de cualquier proyecto popular como React, Next.js o FastAPI sin salir del navegador. Es una forma práctica de aprender de codebases de referencia: observar cómo los equipos más experimentados organizan sus dependencias, definen sus interfaces y modularizan sus responsabilidades."
+        }
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "GraphMyCode",
+        "item": "https://graphmycode.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Casos de uso",
+        "item": "https://graphmycode.com/casos-de-uso"
+      }
+    ]
   }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
