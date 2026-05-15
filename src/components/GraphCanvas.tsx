@@ -15,11 +15,8 @@ import {
   LightbulbOff,
   Sparkles,
   Layers,
-  Brain,
-  Building2,
   GitBranch,
   Globe,
-  Share2,
   Download,
   List,
   Zap,
@@ -28,6 +25,7 @@ import {
 import { CityView, type CityViewHandle } from './CityView';
 import { HeatmapView, type HeatmapViewHandle } from './HeatmapView';
 import { CodeFlowView, type CodeFlowViewHandle } from './CodeFlowView';
+import { GraphViewToggle } from './GraphViewToggle';
 import { useSigma } from '../hooks/useSigma';
 import { useAppState } from '../hooks/useAppState';
 import { isProviderConfigured } from '../core/llm/settings-service';
@@ -303,6 +301,19 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
     }
   }, [openChatPanel, setSettingsPanelOpen]);
 
+  const delegateZoom = useCallback(
+    (action: 'zoomIn' | 'zoomOut' | 'resetZoom') => {
+      if (graphViewType === 'semantic') semanticRef.current?.[action]();
+      else if (graphViewType === 'city') cityRef.current?.[action]();
+      else if (graphViewType === 'heatmap') heatmapRef.current?.[action]();
+      else if (graphViewType === 'codeflow') codeFlowRef.current?.[action]();
+      else if (action === 'zoomIn') zoomIn();
+      else if (action === 'zoomOut') zoomOut();
+      else resetZoom();
+    },
+    [graphViewType, zoomIn, zoomOut, resetZoom],
+  );
+
   return (
     <div className="relative h-full min-w-0 flex-1 bg-void">
       {/* Background gradient */}
@@ -318,76 +329,18 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
         />
       </div>
 
-      {/* Toggle Structural / Semantic — top-left, desplazado según el sidebar */}
       {graph && (
-        <div
-          className={`absolute top-4 z-20 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm transition-all duration-300 ${isSidebarCollapsed ? 'left-14' : 'left-60'}`}
-        >
-          <button
-            onClick={() => setGraphViewType('structural')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
-              graphViewType === 'structural'
-                ? 'bg-elevated text-text-primary'
-                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
-            }`}
-            title="Vista estructural (grafo 2D)"
-          >
-            <Layers className="size-3" />
-            Structural
-          </button>
-          <div className="w-px bg-border-subtle" />
-          <button
-            onClick={() => { setGraphViewType('semantic'); setHasSemanticBeenActivated(true); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
-              graphViewType === 'semantic'
-                ? 'bg-elevated text-text-primary'
-                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
-            }`}
-            title="Vista semántica 3D (similitud de código)"
-          >
-            <Brain className="size-3" />
-            Semantic
-          </button>
-          <div className="w-px bg-border-subtle" />
-          <button
-            onClick={() => { setGraphViewType('city'); setHasCityBeenActivated(true); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
-              graphViewType === 'city'
-                ? 'bg-elevated text-text-primary'
-                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
-            }`}
-            title="Vista ciudad 3D (deuda técnica)"
-          >
-            <Building2 className="size-3" />
-            Technical Debt
-          </button>
-          <div className="w-px bg-border-subtle" />
-          <button
-            onClick={() => { setGraphViewType('heatmap'); setHasHeatmapBeenActivated(true); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
-              graphViewType === 'heatmap'
-                ? 'bg-elevated text-text-primary'
-                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
-            }`}
-            title="Mapa de calor de acoplamiento entre ficheros"
-          >
-            <GitBranch className="size-3" />
-            Dependency Heatmap
-          </button>
-          <div className="w-px bg-border-subtle" />
-          <button
-            onClick={() => { setGraphViewType('codeflow'); setHasCodeFlowBeenActivated(true); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
-              graphViewType === 'codeflow'
-                ? 'bg-elevated text-text-primary'
-                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
-            }`}
-            title="Flujo de ejecución del archivo seleccionado"
-          >
-            <Share2 className="size-3" />
-            Code Flow
-          </button>
-        </div>
+        <GraphViewToggle
+          currentView={graphViewType}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onViewChange={setGraphViewType}
+          onViewActivated={(view) => {
+            if (view === 'semantic') setHasSemanticBeenActivated(true);
+            else if (view === 'city') setHasCityBeenActivated(true);
+            else if (view === 'heatmap') setHasHeatmapBeenActivated(true);
+            else if (view === 'codeflow') setHasCodeFlowBeenActivated(true);
+          }}
+        />
       )}
 
       {/* Selector de vecinos cercanos — solo en vista semántica */}
@@ -651,21 +604,21 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
       {/* Graph Controls - Bottom Right */}
       <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-1">
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomIn() : graphViewType === 'city' ? cityRef.current?.zoomIn() : graphViewType === 'heatmap' ? heatmapRef.current?.zoomIn() : graphViewType === 'codeflow' ? codeFlowRef.current?.zoomIn() : zoomIn()}
+          onClick={() => delegateZoom('zoomIn')}
           className="flex size-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom In"
         >
           <ZoomIn className="size-4" />
         </button>
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.zoomOut() : graphViewType === 'city' ? cityRef.current?.zoomOut() : graphViewType === 'heatmap' ? heatmapRef.current?.zoomOut() : graphViewType === 'codeflow' ? codeFlowRef.current?.zoomOut() : zoomOut()}
+          onClick={() => delegateZoom('zoomOut')}
           className="flex size-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Zoom Out"
         >
           <ZoomOut className="size-4" />
         </button>
         <button
-          onClick={() => graphViewType === 'semantic' ? semanticRef.current?.resetZoom() : graphViewType === 'city' ? cityRef.current?.resetZoom() : graphViewType === 'heatmap' ? heatmapRef.current?.resetZoom() : graphViewType === 'codeflow' ? codeFlowRef.current?.resetZoom() : resetZoom()}
+          onClick={() => delegateZoom('resetZoom')}
           className="flex size-9 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           title="Fit to Screen"
         >
