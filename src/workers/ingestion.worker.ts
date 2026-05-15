@@ -38,56 +38,46 @@ const getLbugAdapter = async (): Promise<typeof import('../core/lbug/lbug-adapte
   throw new Error('LadybugDB disabled');
 };
 
-// Embedding state
-let embeddingProgress: EmbeddingProgress | null = null;
-let isEmbeddingComplete = false;
+// ── Worker state ───────────────────────────────────────────────────────────────
 
-/**
- * Shared post-pipeline logic: store results, build BM25 index, load LadybugDB,
- * and queue enrichment config. Used by both runPipeline and runPipelineFromFiles.
- */
+const state = {
+  embeddingProgress: null as EmbeddingProgress | null,
+  isEmbeddingComplete: false,
+  storedFileContents: new Map<string, string>(),
+  currentAgent: null as ReturnType<typeof createGraphRAGAgent> | null,
+  currentProviderConfig: null as ProviderConfig | null,
+  currentGraphResult: null as PipelineResult | null,
+  pendingEnrichmentConfig: null as ProviderConfig | null,
+  enrichmentCancelled: false,
+  chatCancelled: false,
+};
+
+const assertEmbeddingReady = () => {
+  if (!state.isEmbeddingComplete) {
+    throw new Error('Embeddings not ready. Please wait for embedding pipeline to complete.');
+  }
+};
+
 const finalizePipeline = async (
   result: PipelineResult,
   onProgress: (progress: PipelineProgress) => void,
   clusteringConfig?: ProviderConfig
 ): Promise<SerializablePipelineResult> => {
-  currentGraphResult = result;
+  state.currentGraphResult = result;
+  state.storedFileContents = result.fileContents;
 
-  // Store file contents for grep/read tools (full content, not truncated)
-  storedFileContents = result.fileContents;
-
-  // Build BM25 index for keyword search (instant, ~100ms)
-  const bm25DocCount = buildBM25Index(storedFileContents);
+  const bm25DocCount = buildBM25Index(state.storedFileContents);
   if (import.meta.env.DEV) {
     console.log(`🔍 BM25 index built: ${bm25DocCount} documents`);
   }
 
-  // LadybugDB skipped (chat/query features not present)
-
-  // Store clustering config for background enrichment (runs after graph loads)
   if (clusteringConfig) {
-    pendingEnrichmentConfig = clusteringConfig;
+    state.pendingEnrichmentConfig = clusteringConfig;
     console.log('📋 Clustering config saved for background enrichment');
   }
 
-  // Convert to serializable format for transfer back to main thread
   return serializePipelineResult(result);
 };
-
-// File contents state - stores full file contents for grep/read tools
-let storedFileContents: Map<string, string> = new Map();
-
-// Agent state
-let currentAgent: ReturnType<typeof createGraphRAGAgent> | null = null;
-let currentProviderConfig: ProviderConfig | null = null;
-let currentGraphResult: PipelineResult | null = null;
-
-// Pending enrichment config (for background processing)
-let pendingEnrichmentConfig: ProviderConfig | null = null;
-let enrichmentCancelled = false;
-
-// Chat cancellation flag
-let chatCancelled = false;
 
 // ============================================================
 // HTTP helpers for backend mode
@@ -228,12 +218,12 @@ const workerApi = {
     }
 
     // Replace (not accumulate) stored file contents for grep/read tools
-    storedFileContents = fileMap;
+    state.storedFileContents = fileMap;
 
     // Track graph result for downstream APIs (enrichCommunities, etc.)
-    currentGraphResult = { graph, fileContents: fileMap };
-    isEmbeddingComplete = false;
-    embeddingProgress = null;
+    state.currentGraphResult = { graph, fileContents: fileMap };
+    state.isEmbeddingComplete = false;
+    state.embeddingProgress = null;
 
     // Load graph into LadybugDB and build BM25 index (optional - gracefully degrades)
     try {
@@ -246,7 +236,7 @@ const workerApi = {
       if (import.meta.env.DEV) {
         const stats = await lbug.getLbugStats();
         console.log('LadybugDB loaded from server:', stats);
-        console.log('📁 Stored', storedFileContents.size, 'files for grep/read tools');
+        console.log('📁 Stored', state.storedFileContents.size, 'files for grep/read tools');
       }
     } catch (err) {
       if (import.meta.env.DEV) {
@@ -337,13 +327,13 @@ const workerApi = {
     }
 
     // Reset state
-    embeddingProgress = null;
-    isEmbeddingComplete = false;
+    state.embeddingProgress = null;
+    state.isEmbeddingComplete = false;
 
     const progressCallback: EmbeddingProgressCallback = (progress) => {
-      embeddingProgress = progress;
+      state.embeddingProgress = progress;
       if (progress.phase === 'ready') {
-        isEmbeddingComplete = true;
+        state.isEmbeddingComplete = true;
       }
       onProgress(progress);
     };
@@ -364,7 +354,7 @@ const workerApi = {
   async startBackgroundEnrichment(
     onProgress?: (current: number, total: number) => void
   ): Promise<{ enriched: number; skipped: boolean }> {
-    if (!pendingEnrichmentConfig) {
+    if (!state.pendingEnrichmentConfig) {
       console.log('⏭️ No pending enrichment config, skipping');
       return { enriched: 0, skipped: true };
     }
@@ -372,15 +362,15 @@ const workerApi = {
     console.log('✨ Starting background LLM enrichment...');
     try {
       await workerApi.enrichCommunities(
-        pendingEnrichmentConfig,
+        state.pendingEnrichmentConfig,
         onProgress ?? (() => {})
       );
-      pendingEnrichmentConfig = null; // Clear after running
+      state.pendingEnrichmentConfig = null; // Clear after running
       console.log('✅ Background enrichment completed');
       return { enriched: 1, skipped: false };
     } catch (err) {
       console.error('❌ Background enrichment failed:', err);
-      pendingEnrichmentConfig = null;
+      state.pendingEnrichmentConfig = null;
       return { enriched: 0, skipped: false };
     }
   },
@@ -389,8 +379,8 @@ const workerApi = {
    * Cancel the current enrichment operation
    */
   async cancelEnrichment(): Promise<void> {
-    enrichmentCancelled = true;
-    pendingEnrichmentConfig = null;
+    state.enrichmentCancelled = true;
+    state.pendingEnrichmentConfig = null;
     console.log('⏸️ Enrichment cancelled by user');
   },
 
@@ -410,7 +400,7 @@ const workerApi = {
     if (!lbug.isLbugReady()) {
       throw new Error('Database not ready. Please load a repository first.');
     }
-    if (!isEmbeddingComplete) {
+    if (!state.isEmbeddingComplete) {
       throw new Error('Embeddings not ready. Please wait for embedding pipeline to complete.');
     }
 
@@ -434,7 +424,7 @@ const workerApi = {
     if (!lbug.isLbugReady()) {
       throw new Error('Database not ready. Please load a repository first.');
     }
-    if (!isEmbeddingComplete) {
+    if (!state.isEmbeddingComplete) {
       throw new Error('Embeddings not ready. Please wait for embedding pipeline to complete.');
     }
 
@@ -462,7 +452,7 @@ const workerApi = {
     
     // Get semantic results if embeddings are ready
     let semanticResults: SemanticSearchResult[] = [];
-    if (isEmbeddingComplete) {
+    if (state.isEmbeddingComplete) {
       try {
         const lbug = await getLbugAdapter();
         if (lbug.isLbugReady()) {
@@ -502,14 +492,14 @@ const workerApi = {
    * Check if embeddings are fully generated and indexed
    */
   isEmbeddingComplete(): boolean {
-    return isEmbeddingComplete;
+    return state.isEmbeddingComplete;
   },
 
   /**
    * Get current embedding progress
    */
   getEmbeddingProgress(): EmbeddingProgress | null {
-    return embeddingProgress;
+    return state.embeddingProgress;
   },
 
   /**
@@ -517,8 +507,8 @@ const workerApi = {
    */
   async disposeEmbeddingModel(): Promise<void> {
     await disposeEmbedder();
-    isEmbeddingComplete = false;
-    embeddingProgress = null;
+    state.isEmbeddingComplete = false;
+    state.embeddingProgress = null;
   },
 
   /**
@@ -550,37 +540,24 @@ const workerApi = {
         return { success: false, error: 'Database not ready. Please load a repository first.' };
       }
 
-      // Create semantic search wrappers that handle embedding state
       const semanticSearchWrapper = async (query: string, k?: number, maxDistance?: number) => {
-        if (!isEmbeddingComplete) {
-          throw new Error('Embeddings not ready');
-        }
+        assertEmbeddingReady();
         return doSemanticSearch(lbug.executeQuery, query, k, maxDistance);
       };
 
       const semanticSearchWithContextWrapper = async (query: string, k?: number, hops?: number) => {
-        if (!isEmbeddingComplete) {
-          throw new Error('Embeddings not ready');
-        }
+        assertEmbeddingReady();
         return doSemanticSearchWithContext(lbug.executeQuery, query, k, hops);
       };
 
-      // Hybrid search wrapper - combines BM25 + semantic
       const hybridSearchWrapper = async (query: string, k?: number) => {
-        // Get BM25 results (always available after ingestion)
         const bm25Results = searchBM25(query, (k ?? 10) * 3);
-
-        // Get semantic results if embeddings are ready
         let semanticResults: any[] = [];
-        if (isEmbeddingComplete) {
+        if (state.isEmbeddingComplete) {
           try {
             semanticResults = await doSemanticSearch(lbug.executeQuery, query, (k ?? 10) * 3, 0.5);
-          } catch {
-            // Semantic search failed, continue with BM25 only
-          }
+          } catch { /* continue with BM25 only */ }
         }
-
-        // Merge with RRF
         return mergeWithRRF(bm25Results, semanticResults, k ?? 10);
       };
 
@@ -610,10 +587,10 @@ const workerApi = {
           return hybridSearchWrapper(query, opts?.limit) as any;
         },
         grep: async (_pattern: string, _limit?: number) => [] as any[],
-        readFile: async (filePath: string) => storedFileContents.get(filePath) ?? '',
+        readFile: async (filePath: string) => state.storedFileContents.get(filePath) ?? '',
       };
-      currentAgent = createGraphRAGAgent(config, localBackend, codebaseContext);
-      currentProviderConfig = config;
+      state.currentAgent = createGraphRAGAgent(config, localBackend, codebaseContext);
+      state.currentProviderConfig = config;
 
       if (import.meta.env.DEV) {
         console.log('🤖 Graph RAG Agent initialized with provider:', config.provider);
@@ -654,7 +631,7 @@ const workerApi = {
     try {
       // Rebuild Map from serializable entries (Comlink can't transfer Maps)
       const contents = new Map<string, string>(fileContentsEntries);
-      storedFileContents = contents;
+      state.storedFileContents = contents;
 
       // Create HTTP-based tool wrappers
       const executeQuery = createHttpExecuteQuery(backendUrl, repoName);
@@ -680,9 +657,9 @@ const workerApi = {
         grep: async (_pattern: string, _limit?: number) => [] as any[],
         readFile: async (filePath: string) => contents.get(filePath) ?? '',
       };
-      currentAgent = createGraphRAGAgent(config, httpBackend, codebaseContext);
+      state.currentAgent = createGraphRAGAgent(config, httpBackend, codebaseContext);
 
-      currentProviderConfig = config;
+      state.currentProviderConfig = config;
 
       if (import.meta.env.DEV) {
         console.log('🤖 Backend agent initialized with provider:', config.provider);
@@ -701,17 +678,17 @@ const workerApi = {
    * Check if the agent is initialized
    */
   isAgentReady(): boolean {
-    return currentAgent !== null;
+    return state.currentAgent !== null;
   },
 
   /**
    * Get current provider info
    */
   getAgentProvider(): { provider: string; model: string } | null {
-    if (!currentProviderConfig) return null;
+    if (!state.currentProviderConfig) return null;
     return {
-      provider: currentProviderConfig.provider,
-      model: currentProviderConfig.model,
+      provider: state.currentProviderConfig.provider,
+      model: state.currentProviderConfig.model,
     };
   },
 
@@ -725,23 +702,23 @@ const workerApi = {
     messages: AgentMessage[],
     onChunk: (chunk: AgentStreamChunk) => void
   ): Promise<void> {
-    if (!currentAgent) {
+    if (!state.currentAgent) {
       onChunk({ type: 'error', error: 'Agent not initialized. Please configure an LLM provider first.' });
       return;
     }
 
-    chatCancelled = false;
+    state.chatCancelled = false;
 
     try {
-      for await (const chunk of streamAgentResponse(currentAgent, messages)) {
-        if (chatCancelled) {
+      for await (const chunk of streamAgentResponse(state.currentAgent, messages)) {
+        if (state.chatCancelled) {
           onChunk({ type: 'done' });
           break;
         }
         onChunk(chunk);
       }
     } catch (error) {
-      if (chatCancelled) {
+      if (state.chatCancelled) {
         // Swallow errors from cancellation
         onChunk({ type: 'done' });
         return;
@@ -755,15 +732,15 @@ const workerApi = {
    * Stop the current chat stream
    */
   stopChat(): void {
-    chatCancelled = true;
+    state.chatCancelled = true;
   },
 
   /**
    * Dispose of the current agent
    */
   disposeAgent(): void {
-    currentAgent = null;
-    currentProviderConfig = null;
+    state.currentAgent = null;
+    state.currentProviderConfig = null;
   },
 
   /**
@@ -773,13 +750,13 @@ const workerApi = {
     providerConfig: ProviderConfig,
     onProgress: (current: number, total: number) => void
   ): Promise<{ enrichments: Record<string, ClusterEnrichment>, tokensUsed: number }> {
-    if (!currentGraphResult) {
+    if (!state.currentGraphResult) {
       throw new Error('No graph loaded. Please ingest a repository first.');
     }
 
-    enrichmentCancelled = false;
+    state.enrichmentCancelled = false;
 
-    const { graph } = currentGraphResult;
+    const { graph } = state.currentGraphResult;
 
     // Filter for community nodes
     const communityNodes: CommunityNode[] = [];
@@ -810,7 +787,7 @@ const workerApi = {
 
     // Find all MEMBER_OF edges
     for (const rel of graph.relationships) {
-      if (enrichmentCancelled) {
+      if (state.enrichmentCancelled) {
         console.log('Enrichment cancelled, stopping');
         break;
       }
@@ -906,7 +883,7 @@ const workerApi = {
   },
 
   readLocalFile(filePath: string): string {
-    return storedFileContents.get(filePath) ?? '';
+    return state.storedFileContents.get(filePath) ?? '';
   },
 };
 
