@@ -80,6 +80,9 @@
     "web-tree-sitter": "^0.26.8",
     "zod": "^3.25.76"
   },
+  "knip": {
+    "ignore": ["gitnexus-shared/dist/**", "gitnexus-shared/src/**"]
+  },
   "devDependencies": {
     "@babel/types": "^7.28.5",
     "@playwright/test": "^1.58.2",
