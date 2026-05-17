@@ -108,7 +108,7 @@ npm test
 
 ## Author
 
-Built by [Francisco Alejandro Valero Martin](https://github.com/franciscovaleromartin).
+Built by [Francisco Valero](https://github.com/franciscovaleromartin).
 
 ---
 
