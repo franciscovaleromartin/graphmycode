@@ -41,9 +41,39 @@ Shows real coupling between files. Bidirectional dependencies appear as orange e
 
 ---
 
+## CLI — visualize any project in one command
+
+```bash
+npx graphmycode
+```
+
+Run this inside any project directory. GraphMyCode will:
+
+1. Compress your code into a `.zip` (ignoring `node_modules`, `.git`, `dist`, etc.)
+2. Start a local server on `127.0.0.1` to serve the zip
+3. Open [graphmycode.com](https://graphmycode.com) in your browser and load your code automatically
+
+**Your code never leaves your machine.** The zip is served from your own localhost — the website fetches it locally and processes everything in your browser.
+
+> Requires Node.js ≥ 20. No installation needed with `npx`.
+
+### Examples
+
+```bash
+# Visualize the current project
+cd ~/projects/my-app
+npx graphmycode
+
+# Visualize any directory
+cd ~/projects/my-api
+npx graphmycode
+```
+
+---
+
 ## How it works
 
-Upload a `.zip` of your project or paste a public GitHub URL. GraphMyCode:
+Upload a `.zip` of your project, paste a public GitHub URL, or use the CLI above. GraphMyCode:
 
 1. Parses your code with [tree-sitter](https://tree-sitter.github.io/tree-sitter/) (via WASM)
 2. Builds a knowledge graph of symbols and dependencies in memory
