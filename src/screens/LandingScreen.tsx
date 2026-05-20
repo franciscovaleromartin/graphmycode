@@ -311,6 +311,40 @@ export const LandingScreen = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Carga automática cuando el CLI pasa ?localzip=http://127.0.0.1:PORT/repo.zip
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const localzip = params.get('localzip')
+    const project = params.get('project') ?? 'local-project'
+    if (!localzip) return
+
+    // Limpiar la URL para no re-disparar si el usuario recarga
+    window.history.replaceState({}, '', window.location.pathname)
+
+    ;(async () => {
+      try {
+        setError(null)
+        setIsProcessing(true)
+        setViewMode('loading')
+        setProgress({ phase: 'extracting', percent: 5, message: 'Cargando proyecto local...' })
+
+        const res = await fetch(localzip)
+        if (!res.ok) throw new Error(`No se pudo obtener el zip local (${res.status})`)
+        const blob = await res.blob()
+        const file = new File([blob], `${project}.zip`, { type: 'application/zip' })
+
+        const entries = await extractZip(file)
+        if (entries.length === 0) throw new Error('El zip no contiene archivos de código fuente')
+
+        await runPipeline(entries, project)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error al cargar el proyecto local')
+        setIsProcessing(false)
+        setViewMode('onboarding')
+      }
+    })()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Pre-calentar el worker y los WASM de lenguaje durante el tiempo de
   // inactividad del navegador, para que estén en caché antes de que el usuario
   // pueda desconectarse de internet, sin interferir con la carga inicial.

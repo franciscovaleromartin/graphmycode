@@ -16,6 +16,7 @@
     "node": ">=20.0.0"
   },
   "type": "module",
+  "files": ["bin/"],
   "scripts": {
     "dev": "vite",
     "build": "(cd gitnexus-shared && npm install && npm run build) && tsc -b && vite build",
@@ -29,7 +30,6 @@
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
-    "playwright": "^1.42.1",
     "@dagrejs/dagre": "^3.0.0",
     "@huggingface/transformers": "3.5.2",
     "@isomorphic-git/lightning-fs": "^4.6.2",
@@ -85,6 +85,7 @@
   },
   "devDependencies": {
     "@babel/types": "^7.28.5",
+    "playwright": "^1.42.1",
     "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

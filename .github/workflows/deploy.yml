@@ -1,0 +1,40 @@
+name: Deploy + Publish
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy to Vercel
+        run: vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Check if npm version changed
+        id: ver
+        run: |
+          PUBLISHED=$(npm view graphmycode version 2>/dev/null || echo "0.0.0")
+          CURRENT=$(node -p "require('./package.json').version")
+          echo "published=$PUBLISHED" >> $GITHUB_OUTPUT
+          echo "current=$CURRENT"    >> $GITHUB_OUTPUT
+          [ "$PUBLISHED" != "$CURRENT" ] && echo "changed=true" >> $GITHUB_OUTPUT || echo "changed=false" >> $GITHUB_OUTPUT
+
+      - name: Publish to npm
+        if: steps.ver.outputs.changed == 'true'
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
