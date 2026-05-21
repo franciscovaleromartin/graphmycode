@@ -311,14 +311,14 @@ export const LandingScreen = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Carga automática cuando el CLI pasa ?localzip=http://127.0.0.1:PORT/repo.zip
+  // Carga automática cuando el CLI pasa #localzip=BASE64&project=nombre
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const localzip = params.get('localzip')
-    const project = params.get('project') ?? 'local-project'
+    const hash = new URLSearchParams(window.location.hash.slice(1))
+    const localzip = hash.get('localzip')
+    const project = hash.get('project') ?? 'local-project'
     if (!localzip) return
 
-    // Limpiar la URL para no re-disparar si el usuario recarga
+    // Limpiar el hash para no re-disparar si el usuario recarga
     window.history.replaceState({}, '', window.location.pathname)
 
     ;(async () => {
@@ -328,9 +328,12 @@ export const LandingScreen = () => {
         setViewMode('loading')
         setProgress({ phase: 'extracting', percent: 5, message: 'Cargando proyecto local...' })
 
-        const res = await fetch(localzip)
-        if (!res.ok) throw new Error(`No se pudo obtener el zip local (${res.status})`)
-        const blob = await res.blob()
+        // Decodificar base64url a Blob sin hacer ninguna petición HTTP
+        const b64 = localzip.replace(/-/g, '+').replace(/_/g, '/')
+        const binary = atob(b64)
+        const bytes = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+        const blob = new Blob([bytes], { type: 'application/zip' })
         const file = new File([blob], `${project}.zip`, { type: 'application/zip' })
 
         const entries = await extractZip(file)

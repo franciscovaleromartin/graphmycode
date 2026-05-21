@@ -2,9 +2,9 @@
 // Copyright (C) 2026 Francisco Alejandro Valero Martin
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import { readFileSync, readdirSync, statSync } from 'fs'
+import { readFileSync, readdirSync, statSync, writeFileSync } from 'fs'
 import { join, basename } from 'path'
-import { createServer } from 'http'
+import { tmpdir } from 'os'
 import { exec } from 'child_process'
 import JSZip from 'jszip'
 
@@ -49,30 +49,25 @@ async function main() {
   addDir(zip, cwd)
   const buf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
 
-  console.log(`✅ ${(buf.length / 1024 / 1024).toFixed(1)} MB`)
+  const mb = (buf.length / 1024 / 1024).toFixed(1)
+  console.log(`✅ ${mb} MB`)
 
-  // Puerto aleatorio en rango efímero
-  const port = 49152 + Math.floor(Math.random() * 16383)
+  if (buf.length > 50 * 1024 * 1024) {
+    console.error('❌ El proyecto comprimido supera 50 MB. Asegúrate de excluir node_modules, dist y similares.')
+    process.exit(1)
+  }
 
-  const server = createServer((_req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-    res.setHeader('Content-Type', 'application/zip')
-    res.setHeader('Content-Length', buf.length)
-    res.end(buf)
-  })
+  // Codificar en base64 URL-safe y pasar por fragment hash — evita mixed content en Safari
+  const b64 = buf.toString('base64url')
+  const target = `https://graphmycode.com#localzip=${b64}&project=${encodeURIComponent(projectName)}`
 
-  server.listen(port, '127.0.0.1', () => {
-    const url = `https://graphmycode.com?localzip=http://127.0.0.1:${port}/repo.zip&project=${encodeURIComponent(projectName)}`
-    console.log(`🌐 Abriendo graphmycode.com...`)
-    openBrowser(url)
-    console.log(`⏳ Servidor activo 90s — Ctrl+C para salir antes\n`)
-  })
+  // HTML temporal que redirige instantáneamente al fragment con los datos
+  const html = `<!DOCTYPE html><meta charset="utf-8"><script>location.replace(${JSON.stringify(target)})</script>`
+  const tmp = join(tmpdir(), 'graphmycode-launch.html')
+  writeFileSync(tmp, html)
 
-  const shutdown = () => { server.close(); process.exit(0) }
-  setTimeout(shutdown, 90_000)
-  process.on('SIGINT', shutdown)
-  process.on('SIGTERM', shutdown)
+  console.log(`🌐 Abriendo graphmycode.com...\n`)
+  openBrowser(`file://${tmp}`)
 }
 
 main().catch(e => {
