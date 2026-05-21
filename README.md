@@ -71,18 +71,6 @@ npx graphmycode
 
 ---
 
-## How it works
-
-Upload a `.zip` of your project, paste a public GitHub URL, or use the CLI above. GraphMyCode:
-
-1. Parses your code with [tree-sitter](https://tree-sitter.github.io/tree-sitter/) (via WASM)
-2. Builds a knowledge graph of symbols and dependencies in memory
-3. Renders it interactively in the browser
-
-Your code never leaves your browser.
-
----
-
 ## Optional: AI Q&A
 
 Once the graph is loaded, you can connect your own AI provider (OpenAI, Gemini, Anthropic, or Ollama) to ask questions in natural language about your codebase. Your API key is stored only in your browser.
