@@ -1,7 +1,7 @@
 {
   "name": "graphmycode",
   "bin": "./bin/cli.js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Visualize your codebase as an interactive knowledge graph — entirely in your browser.",
   "homepage": "https://graphmycode.com",
   "repository": {
@@ -28,6 +28,12 @@
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
+    "jszip": "^3.10.1"
+  },
+  "knip": {
+    "ignore": ["gitnexus-shared/dist/**", "gitnexus-shared/src/**"]
+  },
+  "devDependencies": {
     "@dagrejs/dagre": "^3.0.0",
     "@huggingface/transformers": "3.5.2",
     "@isomorphic-git/lightning-fs": "^4.6.2",
@@ -55,7 +61,6 @@
     "graphology-layout-noverlap": "^0.4.2",
     "graphology-utils": "^2.3.0",
     "isomorphic-git": "^1.37.4",
-    "jszip": "^3.10.1",
     "langchain": "^1.2.10",
     "lru-cache": "^11.2.4",
     "lucide-react": "^0.562.0",
@@ -76,12 +81,7 @@
     "umap-js": "^1.4.0",
     "uuid": "^13.0.0",
     "web-tree-sitter": "^0.26.8",
-    "zod": "^3.25.76"
-  },
-  "knip": {
-    "ignore": ["gitnexus-shared/dist/**", "gitnexus-shared/src/**"]
-  },
-  "devDependencies": {
+    "zod": "^3.25.76",
     "@babel/types": "^7.28.5",
     "playwright": "^1.42.1",
     "@playwright/test": "^1.58.2",
