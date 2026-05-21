@@ -101,29 +101,6 @@ JavaScript, TypeScript, Python, Java, Go, Rust, C, C++, C#, PHP, Ruby, Swift
 
 ---
 
-## Getting started
-
-```bash
-npm install
-npm run dev
-```
-
-Open `http://localhost:5173`, drop a `.zip` of any codebase, and explore.
-
-## Build
-
-```bash
-npm run build
-```
-
-## Tests
-
-```bash
-npm test
-```
-
----
-
 ## Author
 
 Built by [Francisco Valero](https://github.com/franciscovaleromartin).
