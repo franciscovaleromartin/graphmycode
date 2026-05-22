@@ -15,7 +15,7 @@ GraphMyCode parses your source code and renders it as a navigable graph of files
 
 ---
 
-## Four views
+## Five views
 
 ### 🕸️ Structural
 Interactive graph of files, classes, functions, imports, and call relationships. Answer questions like:
@@ -41,6 +41,13 @@ Shows real coupling between files. Bidirectional dependencies appear as orange e
 - Import cycles
 - Circularly coupled modules
 - Spaghetti code at a glance
+
+### ⚡ Code Flow
+Renders the internal execution flow of a single file as a directed flowchart. Each node represents a function, method, class, decision branch, loop, or error handler. Useful for:
+- Tracing how execution moves through a file
+- Seeing which functions call each other
+- Locating every `if`, loop, and `try/catch` at a glance
+- Exporting the full flowchart as SVG
 
 ---
 
