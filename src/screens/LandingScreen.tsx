@@ -5,7 +5,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Comlink from 'comlink';
 import { useAppState } from '../hooks/useAppState';
-import { useT } from '../lib/i18n';
+import { useT, detectLang } from '../lib/i18n';
 import { extractZip } from '../services/zip';
 import { createKnowledgeGraph } from '../core/graph/graph';
 import { getWorkerApi } from '../services/ingestion-worker';
@@ -532,7 +532,7 @@ export const LandingScreen = () => {
           </div>
           <div className="mt-4 overflow-hidden rounded-xl border border-border-subtle shadow-lg">
             <video
-              src="/anuncio_GraphMyCode.mp4"
+              src={detectLang() === 'en' ? '/anuncio_GraphMyCode_en.mp4' : '/anuncio_GraphMyCode.mp4'}
               controls
               playsInline
               preload="none"
