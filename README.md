@@ -1,6 +1,7 @@
 # GraphMyCode
 
 ![GraphMyCode](public/og-image.png)
+video: https://youtu.be/M9WKj7Hn5m0?si=5U75N80ezUs5-Heg
 
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0-blue.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0)
 
