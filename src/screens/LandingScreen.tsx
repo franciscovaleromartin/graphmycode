@@ -252,6 +252,39 @@ const CYPHER_CODE_STYLE: React.CSSProperties = {
   letterSpacing: '0.01em',
 };
 
+// ── AuthorSection ─────────────────────────────────────────────────────────────
+
+const AuthorSection = () => {
+  const t = useT();
+  return (
+    <div style={{
+      borderRadius: '14px', border: '1px solid #1e293b',
+      background: '#0c111d', padding: '18px 20px', marginTop: '10px',
+      position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(56,189,248,.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#64748b', marginBottom: '10px' }}>
+        {t.authorTitle}
+      </p>
+      <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '8px' }}>
+        {t.authorName}
+      </p>
+      <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.65, marginBottom: '12px' }}>
+        {t.authorBio}{' '}
+        <a href="https://convertertomarkdown.com" target="_blank" rel="noopener noreferrer" style={{ color: '#38bdf8', textDecoration: 'none' }}>
+          {t.authorOtherProject}
+        </a>.
+      </p>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <a href="https://www.linkedin.com/in/francisco-valero/" target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none', background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.07)', padding: '3px 10px', borderRadius: '6px' }}>
+          LinkedIn
+        </a>
+      </div>
+    </div>
+  );
+};
+
 // ── LandingFooter ─────────────────────────────────────────────────────────────
 
 const GitHubMark = () => (
@@ -598,6 +631,9 @@ export const LandingScreen = () => {
 
         {/* Tarjetas informativas */}
         <LandingCards />
+
+        {/* Tarjeta del creador */}
+        <AuthorSection />
 
         {/* Privacy badge */}
         <p className="mt-6 text-center text-xs text-text-muted">

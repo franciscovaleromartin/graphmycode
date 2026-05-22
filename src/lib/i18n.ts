@@ -153,6 +153,12 @@ const translations = {
       'Déjalo vacío para usar la API por defecto. Ponlo para proxies o APIs compatibles.',
     connected: 'Conectado',
     notConnected: 'No conectado',
+
+    // ── Author section ────────────────────────────────────────────────────
+    authorTitle: 'Sobre el creador',
+    authorName: 'Francisco Valero',
+    authorBio: 'Soy desarrollador independiente especializado en herramientas web de productividad. Construí GraphMyCode para explorar visualmente la arquitectura de proyectos de código, entender dependencias y navegar codebases complejas directamente en el navegador. Si te resulta útil, también puedes ver mi otro proyecto,',
+    authorOtherProject: 'ConverterToMarkdown — convierte archivos a Markdown sin subir nada',
   },
 
   en: {
@@ -286,6 +292,12 @@ const translations = {
     baseUrlHint: 'Leave empty to use the default API. Set a custom URL for proxies or compatible APIs.',
     connected: 'Connected',
     notConnected: 'Not connected',
+
+    // ── Author section ────────────────────────────────────────────────────
+    authorTitle: 'About the creator',
+    authorName: 'Francisco Valero',
+    authorBio: "I'm an independent developer focused on web productivity tools. I built GraphMyCode to visually explore code architecture, understand dependencies, and navigate complex codebases directly in the browser. If you find it useful, also check out my other project,",
+    authorOtherProject: 'ConverterToMarkdown — convert files to Markdown without uploading anything',
   },
 };
 
