@@ -81,6 +81,14 @@ npx graphmycode
 
 ---
 
+## Export project context for AI agents
+
+One click generates a `CLAUDE.md` (and optionally `AGENTS.md`) with the most connected nodes, folder structure, external dependencies, and detected code communities — ready to drop into your project so your AI agent starts with full context.
+
+The main advantage: **fewer tokens, better responses.** With the file in place, your agent knows from the first message which files matter most, what each layer does, the stack in use, and the key entry points — without you having to explain it every time.
+
+---
+
 ## Optional: AI Q&A
 
 Once the graph is loaded, you can connect your own AI provider (OpenAI, Gemini, Anthropic, or Ollama) to ask questions in natural language about your codebase. Your API key is stored only in your browser.
