@@ -1,7 +1,7 @@
 {
   "name": "graphmycode",
   "bin": "./bin/cli.js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Visualize your codebase as an interactive knowledge graph — entirely in your browser.",
   "homepage": "https://graphmycode.com",
   "repository": {
@@ -14,7 +14,9 @@
     "node": ">=20.0.0"
   },
   "type": "module",
-  "files": ["bin/"],
+  "files": [
+    "bin/"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "(cd gitnexus-shared && npm install && npm run build) && tsc -b && vite build",
@@ -31,7 +33,10 @@
     "jszip": "^3.10.1"
   },
   "knip": {
-    "ignore": ["gitnexus-shared/dist/**", "gitnexus-shared/src/**"]
+    "ignore": [
+      "gitnexus-shared/dist/**",
+      "gitnexus-shared/src/**"
+    ]
   },
   "devDependencies": {
     "@dagrejs/dagre": "^3.0.0",
