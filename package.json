@@ -42,6 +42,7 @@
     ]
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "0.91.1",
     "@babel/types": "^7.28.5",
     "@dagrejs/dagre": "^3.0.0",
     "@huggingface/transformers": "3.5.2",
