@@ -344,14 +344,14 @@ export const LandingScreen = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Carga automática desde el CLI: #localserver=URL (v1.0.5+) o #localzip=BASE64 (legacy)
+  // Carga automática cuando el CLI pasa #localzip=BASE64&project=nombre
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.slice(1))
-    const localserver = hash.get('localserver')
     const localzip = hash.get('localzip')
     const project = hash.get('project') ?? 'local-project'
-    if (!localserver && !localzip) return
+    if (!localzip) return
 
+    // Limpiar el hash para no re-disparar si el usuario recarga
     window.history.replaceState({}, '', window.location.pathname)
 
     ;(async () => {
@@ -361,34 +361,13 @@ export const LandingScreen = () => {
         setViewMode('loading')
         setProgress({ phase: 'extracting', percent: 5, message: 'Cargando proyecto local...' })
 
-        let file: File
-        if (localserver) {
-          let blob: Blob
-          try {
-            const res = await fetch(localserver)
-            if (!res.ok) throw new Error(`status ${res.status}`)
-            blob = await res.blob()
-          } catch {
-            // Safari bloquea fetch de HTTPS→HTTP. Mostrar drop zone con la ruta del fichero.
-            const localpath = hash.get('localpath') ?? ''
-            setError(
-              localpath
-                ? `Tu navegador bloqueó la carga automática.\n\nArrastra este fichero a la zona de abajo:\n${localpath}`
-                : 'Tu navegador bloqueó la carga automática. Arrastra el ZIP de tu proyecto aquí.'
-            )
-            setIsProcessing(false)
-            setViewMode('onboarding')
-            return
-          }
-          file = new File([blob], `${project}.zip`, { type: 'application/zip' })
-        } else {
-          const b64 = localzip!.replace(/-/g, '+').replace(/_/g, '/')
-          const binary = atob(b64)
-          const bytes = new Uint8Array(binary.length)
-          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-          const blob = new Blob([bytes], { type: 'application/zip' })
-          file = new File([blob], `${project}.zip`, { type: 'application/zip' })
-        }
+        // Decodificar base64url a Blob sin hacer ninguna petición HTTP
+        const b64 = localzip.replace(/-/g, '+').replace(/_/g, '/')
+        const binary = atob(b64)
+        const bytes = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+        const blob = new Blob([bytes], { type: 'application/zip' })
+        const file = new File([blob], `${project}.zip`, { type: 'application/zip' })
 
         const entries = await extractZip(file)
         if (entries.length === 0) throw new Error('El zip no contiene archivos de código fuente')
