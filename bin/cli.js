@@ -18,6 +18,22 @@ const IGNORE = new Set([
   '.turbo', '.vercel', '.DS_Store', 'vendor', 'target',
 ])
 
+const BINARY_EXTS = new Set([
+  '.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.bmp', '.tiff', '.avif', '.svg',
+  '.mp4', '.mp3', '.wav', '.ogg', '.avi', '.mov', '.webm', '.flac',
+  '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+  '.zip', '.tar', '.gz', '.bz2', '.7z', '.rar',
+  '.wasm', '.so', '.dll', '.dylib', '.exe', '.bin',
+  '.ttf', '.otf', '.woff', '.woff2', '.eot',
+  '.db', '.sqlite', '.sqlite3',
+  '.pyc', '.class', '.o', '.a',
+])
+
+function isBinary(name) {
+  const dot = name.lastIndexOf('.')
+  return dot !== -1 && BINARY_EXTS.has(name.slice(dot).toLowerCase())
+}
+
 function addDir(zip, dir, base = '') {
   let entries
   try { entries = readdirSync(dir) } catch { return }
@@ -29,7 +45,7 @@ function addDir(zip, dir, base = '') {
       const st = statSync(full)
       if (st.isDirectory()) {
         addDir(zip, full, rel)
-      } else if (st.size < 500_000) {
+      } else if (st.size < 500_000 && !isBinary(item)) {
         zip.file(rel, readFileSync(full))
       }
     } catch { /* skip permission errors */ }
