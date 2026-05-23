@@ -363,9 +363,23 @@ export const LandingScreen = () => {
 
         let file: File
         if (localserver) {
-          const res = await fetch(localserver)
-          if (!res.ok) throw new Error(`El servidor local respondió ${res.status}`)
-          const blob = await res.blob()
+          let blob: Blob
+          try {
+            const res = await fetch(localserver)
+            if (!res.ok) throw new Error(`status ${res.status}`)
+            blob = await res.blob()
+          } catch {
+            // Safari bloquea fetch de HTTPS→HTTP. Mostrar drop zone con la ruta del fichero.
+            const localpath = hash.get('localpath') ?? ''
+            setError(
+              localpath
+                ? `Tu navegador bloqueó la carga automática.\n\nArrastra este fichero a la zona de abajo:\n${localpath}`
+                : 'Tu navegador bloqueó la carga automática. Arrastra el ZIP de tu proyecto aquí.'
+            )
+            setIsProcessing(false)
+            setViewMode('onboarding')
+            return
+          }
           file = new File([blob], `${project}.zip`, { type: 'application/zip' })
         } else {
           const b64 = localzip!.replace(/-/g, '+').replace(/_/g, '/')

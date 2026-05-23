@@ -2,8 +2,9 @@
 // Copyright (C) 2026 Francisco Alejandro Valero Martin
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import { readFileSync, readdirSync, statSync } from 'fs'
+import { readFileSync, readdirSync, statSync, writeFileSync } from 'fs'
 import { join, basename } from 'path'
+import { tmpdir } from 'os'
 import { createServer } from 'http'
 import { exec } from 'child_process'
 import JSZip from 'jszip'
@@ -57,7 +58,11 @@ async function main() {
     process.exit(1)
   }
 
-  // Servidor HTTP local que sirve el zip con CORS para graphmycode.com
+  // Guardar zip en fichero temporal (fallback para Safari)
+  const tmpZip = join(tmpdir(), `graphmycode-${projectName}.zip`)
+  writeFileSync(tmpZip, buf)
+
+  // Servidor HTTP local con CORS (Chrome/Firefox)
   const server = createServer((req, res) => {
     if (req.method === 'OPTIONS') {
       res.setHeader('Access-Control-Allow-Origin', '*')
@@ -76,19 +81,16 @@ async function main() {
 
   server.listen(0, '127.0.0.1', () => {
     const { port } = server.address()
-    const url = `https://graphmycode.com/#localserver=http://127.0.0.1:${port}&project=${encodeURIComponent(projectName)}`
+    const url = `https://graphmycode.com/#localserver=http://127.0.0.1:${port}&localpath=${encodeURIComponent(tmpZip)}&project=${encodeURIComponent(projectName)}`
 
     console.log(`🌐 Abriendo graphmycode.com...\n`)
+    console.log(`   Si Safari bloquea la carga, arrastra este fichero a la web:`)
+    console.log(`   ${tmpZip}\n`)
     openBrowser(url)
-    console.log(`   Servidor local activo en: http://127.0.0.1:${port}`)
-    console.log(`   Pulsa Ctrl+C para salir cuando el análisis termine.\n`)
   })
 
-  // Cierre automático tras 5 minutos por si el usuario olvida Ctrl+C
-  setTimeout(() => {
-    server.close()
-    process.exit(0)
-  }, 5 * 60 * 1000).unref()
+  // Cierre automático tras 5 minutos
+  setTimeout(() => { server.close(); process.exit(0) }, 5 * 60 * 1000).unref()
 }
 
 main().catch(e => {
