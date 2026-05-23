@@ -66,15 +66,17 @@ function buildArchitectureSection(
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
+  const nodeByIdLocal = new Map<string, GraphNode>(graph.nodes.map(n => [n.id, n]));
+
   const smells: string[] = [];
   const seenSmells = new Set<string>();
   for (const rel of graph.relationships) {
     const srcLayer = nodeLayerMap.get(rel.sourceId);
     const tgtLayer = nodeLayerMap.get(rel.targetId);
-    if (!srcLayer || !tgtLayer || srcLayer === tgtLayer) continue;
+    if (!srcLayer || !tgtLayer || srcLayer === tgtLayer || srcLayer === 'unknown' || tgtLayer === 'unknown') continue;
     if (LAYER_ORDER[srcLayer] > LAYER_ORDER[tgtLayer]) {
-      const srcPath = ((graph.nodes.find(n => n.id === rel.sourceId)?.properties.filePath as string | undefined) ?? rel.sourceId).split('/').slice(-2).join('/');
-      const tgtPath = ((graph.nodes.find(n => n.id === rel.targetId)?.properties.filePath as string | undefined) ?? rel.targetId).split('/').slice(-2).join('/');
+      const srcPath = ((nodeByIdLocal.get(rel.sourceId)?.properties.filePath as string | undefined) ?? rel.sourceId).split('/').slice(-2).join('/');
+      const tgtPath = ((nodeByIdLocal.get(rel.targetId)?.properties.filePath as string | undefined) ?? rel.targetId).split('/').slice(-2).join('/');
       const key = `${srcLayer}→${tgtLayer}:${srcPath}`;
       if (!seenSmells.has(key)) {
         seenSmells.add(key);
