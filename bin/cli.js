@@ -79,9 +79,9 @@ async function main() {
     res.end(buf)
   })
 
-  server.listen(0, '127.0.0.1', () => {
+  server.listen(0, 'localhost', () => {
     const { port } = server.address()
-    const url = `https://graphmycode.com/#localserver=http://127.0.0.1:${port}&localpath=${encodeURIComponent(tmpZip)}&project=${encodeURIComponent(projectName)}`
+    const url = `https://graphmycode.com/#localserver=http://localhost:${port}&localpath=${encodeURIComponent(tmpZip)}&project=${encodeURIComponent(projectName)}`
 
     console.log(`🌐 Abriendo graphmycode.com...\n`)
     console.log(`   Si Safari bloquea la carga, arrastra este fichero a la web:`)
