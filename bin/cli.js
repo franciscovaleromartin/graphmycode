@@ -61,12 +61,23 @@ async function main() {
   const tmpZip = join(tmpdir(), `graphmycode-${projectName}.zip`)
   writeFileSync(tmpZip, buf)
 
-  // Codificar en base64url para el relay HTML (mecanismo window.name)
-  const b64 = buf.toString('base64url')
+  // Proyectos pequeños (≤700 KB): base64url en el hash → funciona en todos los navegadores
+  // incluido Safari, sin servidor local, sin mixed content.
+  const SMALL_THRESHOLD = 700 * 1024
+  if (buf.length <= SMALL_THRESHOLD) {
+    const b64 = buf.toString('base64url')
+    const url = `https://graphmycode.com/#localzip=${b64}&project=${encodeURIComponent(projectName)}`
+    const html = `<!DOCTYPE html><meta charset="utf-8"><script>location.replace(${JSON.stringify(url)})<\/script>`
+    const tmp = join(tmpdir(), 'graphmycode-launch.html')
+    writeFileSync(tmp, html)
+    console.log(`🌐 Abriendo graphmycode.com...\n`)
+    openBrowser(`file://${tmp}`)
+    setTimeout(() => process.exit(0), 3000).unref()
+    return
+  }
 
-  // Servidor HTTP local: Chrome y Firefox lo usan directamente.
-  // Access-Control-Allow-Private-Network es obligatorio desde Chrome 94
-  // para que fetch() desde HTTPS pueda llegar a localhost.
+  // Proyectos grandes: servidor HTTP local (Chrome y Firefox).
+  // Safari bloquea fetch() a localhost desde HTTPS; se muestra el path del zip para arrastrarlo.
   const server = createServer((req, res) => {
     if (req.method === 'OPTIONS') {
       res.setHeader('Access-Control-Allow-Origin', '*')
@@ -88,17 +99,11 @@ async function main() {
   server.listen(0, 'localhost', () => {
     const { port } = server.address()
     const url = `https://graphmycode.com/#localserver=http://localhost:${port}&localpath=${encodeURIComponent(tmpZip)}&project=${encodeURIComponent(projectName)}`
-
-    // Relay HTML: escribe el ZIP en window.name antes de navegar a graphmycode.com.
-    // window.name persiste entre navegaciones cross-origin, por lo que Safari puede
-    // leerlo aunque bloquee fetch() a localhost. Chrome/Firefox usan el servidor.
-    const payload = JSON.stringify({ zip: b64, project: projectName })
-    const relayHtml = `<!DOCTYPE html><meta charset="utf-8"><script>try{window.name=${JSON.stringify(payload)}}catch(e){}location.replace(${JSON.stringify(url)})<\/script>`
+    const relayHtml = `<!DOCTYPE html><meta charset="utf-8"><script>location.replace(${JSON.stringify(url)})<\/script>`
     const relayTmp = join(tmpdir(), 'graphmycode-relay.html')
     writeFileSync(relayTmp, relayHtml)
-
     console.log(`🌐 Abriendo graphmycode.com...\n`)
-    console.log(`   Si el navegador bloquea la carga, arrastra este fichero:`)
+    console.log(`   En Safari, arrastra este fichero a la zona de carga:`)
     console.log(`   ${tmpZip}\n`)
     openBrowser(`file://${relayTmp}`)
   })
