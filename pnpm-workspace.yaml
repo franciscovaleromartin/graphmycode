@@ -1,0 +1,8 @@
+packages:
+  - 'gitnexus-shared'
+
+allowBuilds:
+  esbuild: true
+  onnxruntime-node: true
+  protobufjs: true
+  sharp: true

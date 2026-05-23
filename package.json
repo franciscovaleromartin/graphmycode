@@ -1,7 +1,7 @@
 {
   "name": "graphmycode",
   "bin": "./bin/cli.js",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Visualize your codebase as an interactive knowledge graph — entirely in your browser.",
   "homepage": "https://graphmycode.com",
   "repository": {
@@ -13,13 +13,14 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "packageManager": "pnpm@11.1.1",
   "type": "module",
   "files": [
     "bin/"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "(cd gitnexus-shared && npm install && npm run build) && tsc -b && vite build",
+    "build": "pnpm --filter gitnexus-shared run build && tsc -b && vite build",
     "graphmycode": "node bin/cli.js",
     "preview": "vite preview",
     "test": "vitest run",

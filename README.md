@@ -54,7 +54,11 @@ Renders the internal execution flow of a single file as a directed flowchart. Ea
 ## CLI — visualize any project in one command
 
 ```bash
+# npm
 npx graphmycode
+
+# pnpm
+pnpx graphmycode
 ```
 
 Run this inside any project directory. GraphMyCode will:
@@ -65,18 +69,18 @@ Run this inside any project directory. GraphMyCode will:
 
 **Your code never leaves your machine.** The zip is served from your own localhost — the website fetches it locally and processes everything in your browser.
 
-> Requires Node.js ≥ 20. No installation needed with `npx`.
+> Requires Node.js ≥ 20. No installation needed with `npx` or `pnpx`.
 
 ### Examples
 
 ```bash
 # Visualize the current project
 cd ~/projects/my-app
-npx graphmycode
+npx graphmycode   # or: pnpx graphmycode
 
 # Visualize any directory
 cd ~/projects/my-api
-npx graphmycode
+npx graphmycode   # or: pnpx graphmycode
 ```
 
 ---
