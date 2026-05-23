@@ -2,9 +2,9 @@
 // Copyright (C) 2026 Francisco Alejandro Valero Martin
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
-import { readFileSync, readdirSync, statSync, writeFileSync } from 'fs'
+import { readFileSync, readdirSync, statSync } from 'fs'
 import { join, basename } from 'path'
-import { tmpdir } from 'os'
+import { createServer } from 'http'
 import { exec } from 'child_process'
 import JSZip from 'jszip'
 
@@ -57,17 +57,38 @@ async function main() {
     process.exit(1)
   }
 
-  // Codificar en base64 URL-safe y pasar por fragment hash — evita mixed content en Safari
-  const b64 = buf.toString('base64url')
-  const target = `https://graphmycode.com#localzip=${b64}&project=${encodeURIComponent(projectName)}`
+  // Servidor HTTP local que sirve el zip con CORS para graphmycode.com
+  const server = createServer((req, res) => {
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Origin', '*')
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+      res.writeHead(204)
+      res.end()
+      return
+    }
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+    res.setHeader('Content-Type', 'application/zip')
+    res.setHeader('Content-Length', buf.length)
+    res.writeHead(200)
+    res.end(buf)
+  })
 
-  // HTML temporal que redirige instantáneamente al fragment con los datos
-  const html = `<!DOCTYPE html><meta charset="utf-8"><script>location.replace(${JSON.stringify(target)})</script>`
-  const tmp = join(tmpdir(), 'graphmycode-launch.html')
-  writeFileSync(tmp, html)
+  server.listen(0, '127.0.0.1', () => {
+    const { port } = server.address()
+    const url = `https://graphmycode.com/#localserver=http://127.0.0.1:${port}&project=${encodeURIComponent(projectName)}`
 
-  console.log(`🌐 Abriendo graphmycode.com...\n`)
-  openBrowser(`file://${tmp}`)
+    console.log(`🌐 Abriendo graphmycode.com...\n`)
+    openBrowser(url)
+    console.log(`   Servidor local activo en: http://127.0.0.1:${port}`)
+    console.log(`   Pulsa Ctrl+C para salir cuando el análisis termine.\n`)
+  })
+
+  // Cierre automático tras 5 minutos por si el usuario olvida Ctrl+C
+  setTimeout(() => {
+    server.close()
+    process.exit(0)
+  }, 5 * 60 * 1000).unref()
 }
 
 main().catch(e => {
