@@ -165,6 +165,11 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
     setSelectedNode(null);
   }, [setSelectedNode]);
 
+  const handleArchitecturalNodeClick = useCallback((node: GraphNode) => {
+    setSelectedNode(node);
+    openCodePanel();
+  }, [setSelectedNode, openCodePanel]);
+
   const handleToggleAIHighlights = useCallback(() => {
     if (isAIHighlightsEnabled) {
       clearAIToolHighlights();
@@ -619,10 +624,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
             ref={architecturalRef}
             graph={graph}
             isActive={graphViewType === 'architectural'}
-            onNodeClick={(node) => {
-              setSelectedNode(node);
-              openCodePanel();
-            }}
+            onNodeClick={handleArchitecturalNodeClick}
           />
         </div>
       )}

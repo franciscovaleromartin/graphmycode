@@ -3,6 +3,7 @@
 
 import {
   forwardRef,
+  memo,
   useImperativeHandle,
   useRef,
   useState,
@@ -88,9 +89,96 @@ interface Props {
 
 const RENDER_RELATION_TYPES = new Set(['IMPORTS', 'CALLS', 'USES', 'CONTAINS', 'DEFINES']);
 
+// ── Estilos de arista (módulo-nivel, sin estado) ─────────────────────────────
+
+function getEdgeStyle(kind: LayoutEdge['kind']) {
+  switch (kind) {
+    case 'intra':
+      return { stroke: 'rgba(255,255,255,0.12)', strokeWidth: 1, strokeDasharray: undefined };
+    case 'cross-down':
+      return { stroke: '#6366f1', strokeWidth: 1.5, strokeDasharray: undefined };
+    case 'cross-up':
+      return { stroke: '#f97316', strokeWidth: 2, strokeDasharray: '4 3' };
+  }
+}
+
+// ── Sub-componentes memoizados ────────────────────────────────────────────────
+
+interface LayoutEdgeElProps {
+  d: string;
+  stroke: string;
+  strokeWidth: number;
+  strokeDasharray?: string;
+  isOnPath: boolean;
+}
+
+const LayoutEdgeEl = memo(({ d, stroke, strokeWidth, strokeDasharray, isOnPath }: LayoutEdgeElProps) => (
+  <path
+    d={d}
+    fill="none"
+    stroke={isOnPath ? '#34d399' : stroke}
+    strokeWidth={isOnPath ? 2.5 : strokeWidth}
+    strokeDasharray={strokeDasharray}
+    opacity={isOnPath ? 1 : 0.7}
+  />
+));
+LayoutEdgeEl.displayName = 'LayoutEdgeEl';
+
+interface LayoutNodeElProps {
+  nodeId: string;
+  node: GraphNode;
+  x: number;
+  y: number;
+  fill: string;
+  opacity: number;
+  name: string;
+  isSelected: boolean;
+  isPathNode: boolean;
+  isPathFrom: boolean;
+  onClick: (e: React.MouseEvent, nodeId: string, node: GraphNode) => void;
+}
+
+const LayoutNodeEl = memo(
+  ({ nodeId, node, x, y, fill, opacity, name, isSelected, isPathNode, isPathFrom, onClick }: LayoutNodeElProps) => {
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => onClick(e, nodeId, node),
+      [onClick, nodeId, node],
+    );
+    return (
+      <g
+        transform={`translate(${x},${y})`}
+        style={{ cursor: 'pointer' }}
+        onClick={handleClick}
+      >
+        {(isSelected || isPathNode || isPathFrom) && (
+          <circle
+            r={NODE_RADIUS + 4}
+            fill="none"
+            stroke={isPathNode ? '#34d399' : '#a78bfa'}
+            strokeWidth={1.5}
+            opacity={0.7}
+          />
+        )}
+        <circle r={NODE_RADIUS} fill={fill} opacity={opacity} />
+        <text
+          x={NODE_RADIUS + 4}
+          y={4}
+          fontSize={9}
+          fill="rgba(255,255,255,0.75)"
+          style={{ userSelect: 'none', pointerEvents: 'none' }}
+        >
+          {name.length > 18 ? `${name.slice(0, 17)}…` : name}
+        </text>
+      </g>
+    );
+  },
+);
+LayoutNodeEl.displayName = 'LayoutNodeEl';
+
 // ── Componente ───────────────────────────────────────────────────────────────
 
-export const ArchitecturalLayersView = forwardRef<ArchitecturalLayersViewHandle, Props>(
+export const ArchitecturalLayersView = memo(
+  forwardRef<ArchitecturalLayersViewHandle, Props>(
   ({ graph, onNodeClick, isActive: _isActive }, ref) => {
     // ── Estado local ──────────────────────────────────────────────────────
     const [diffModeActive, setDiffModeActive] = useState(false);
@@ -103,6 +191,10 @@ export const ArchitecturalLayersView = forwardRef<ArchitecturalLayersViewHandle,
     const svgRef = useRef<SVGSVGElement>(null);
     const gRef = useRef<SVGGElement>(null);
     const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+
+    // Refs para estabilizar handleNodeClick sin cerrar sobre estado mutable
+    const pathFromRef = useRef<string | null>(null);
+    const diffModeActiveRef = useRef(false);
 
     // ── Layout (useMemo) ──────────────────────────────────────────────────
 
@@ -233,6 +325,10 @@ export const ArchitecturalLayersView = forwardRef<ArchitecturalLayersViewHandle,
       setImpactResult(enrichWithLayers(raw, nodeLayerMap));
     }, [diffModeActive, selectedForDiff, graph.relationships, nodeLayerMap]);
 
+    // Mantener refs sincronizados con el estado para handleNodeClick estable
+    useEffect(() => { pathFromRef.current = pathFrom; }, [pathFrom]);
+    useEffect(() => { diffModeActiveRef.current = diffModeActive; }, [diffModeActive]);
+
     // ── D3-zoom setup ─────────────────────────────────────────────────────
 
     useEffect(() => {
@@ -294,13 +390,13 @@ export const ArchitecturalLayersView = forwardRef<ArchitecturalLayersViewHandle,
     );
 
     const handleNodeClick = useCallback(
-      (e: React.MouseEvent, nodeId: string) => {
+      (e: React.MouseEvent, nodeId: string, node: GraphNode) => {
         e.stopPropagation();
 
         if (e.shiftKey) {
-          // Modo path finder: Shift+click
-          if (pathFrom !== null && pathFrom !== nodeId) {
-            const path = findShortestPath(pathFrom, nodeId, graph.relationships);
+          // Modo path finder: Shift+click — usa ref para no cerrar sobre pathFrom
+          if (pathFromRef.current !== null && pathFromRef.current !== nodeId) {
+            const path = findShortestPath(pathFromRef.current, nodeId, graph.relationships);
             setPathResult(path);
             setPathFrom(null);
           } else {
@@ -310,7 +406,7 @@ export const ArchitecturalLayersView = forwardRef<ArchitecturalLayersViewHandle,
           return;
         }
 
-        if (diffModeActive) {
+        if (diffModeActiveRef.current) {
           // Añadir/quitar de selección diff
           setSelectedForDiff((prev) => {
             const next = new Set(prev);
@@ -319,11 +415,10 @@ export const ArchitecturalLayersView = forwardRef<ArchitecturalLayersViewHandle,
             return next;
           });
         } else {
-          const ln = layoutNodes.find((l) => l.node.id === nodeId);
-          if (ln) onNodeClick(ln.node);
+          onNodeClick(node);
         }
       },
-      [pathFrom, diffModeActive, graph.relationships, layoutNodes, onNodeClick],
+      [graph.relationships, onNodeClick],
     );
 
     // ── Color de nodo según modo ──────────────────────────────────────────
@@ -345,19 +440,6 @@ export const ArchitecturalLayersView = forwardRef<ArchitecturalLayersViewHandle,
       [diffModeActive, impactResult, selectedForDiff, pathFrom, pathResult],
     );
 
-    // ── Estilos de arista ─────────────────────────────────────────────────
-
-    const getEdgeStyle = (kind: LayoutEdge['kind']) => {
-      switch (kind) {
-        case 'intra':
-          return { stroke: 'rgba(255,255,255,0.12)', strokeWidth: 1, strokeDasharray: undefined };
-        case 'cross-down':
-          return { stroke: '#6366f1', strokeWidth: 1.5, strokeDasharray: undefined };
-        case 'cross-up':
-          return { stroke: '#f97316', strokeWidth: 2, strokeDasharray: '4 3' };
-      }
-    };
-
     // ── Estadísticas de capas ordenadas para el panel ─────────────────────
 
     const sortedLayerStats = useMemo(
@@ -369,6 +451,8 @@ export const ArchitecturalLayersView = forwardRef<ArchitecturalLayersViewHandle,
     );
 
     // ── Render ────────────────────────────────────────────────────────────
+
+    if (!_isActive) return <div className="h-full w-full" />;
 
     return (
       <div className="flex h-full w-full overflow-hidden">
@@ -426,14 +510,13 @@ export const ArchitecturalLayersView = forwardRef<ArchitecturalLayersViewHandle,
                   pathResult.includes(edge.sourceId) &&
                   pathResult.includes(edge.targetId);
                 return (
-                  <path
+                  <LayoutEdgeEl
                     key={edge.id}
                     d={edge.path}
-                    fill="none"
-                    stroke={isOnPath ? '#34d399' : style.stroke}
-                    strokeWidth={isOnPath ? 2.5 : style.strokeWidth}
+                    stroke={style.stroke}
+                    strokeWidth={style.strokeWidth}
                     strokeDasharray={style.strokeDasharray}
-                    opacity={isOnPath ? 1 : 0.7}
+                    isOnPath={isOnPath}
                   />
                 );
               })}
@@ -446,33 +529,20 @@ export const ArchitecturalLayersView = forwardRef<ArchitecturalLayersViewHandle,
                 const isPathNode = pathResult?.includes(ln.node.id) ?? false;
 
                 return (
-                  <g
+                  <LayoutNodeEl
                     key={ln.node.id}
-                    transform={`translate(${ln.x},${ln.y})`}
-                    style={{ cursor: 'pointer' }}
-                    onClick={(e) => handleNodeClick(e, ln.node.id)}
-                  >
-                    {/* Halo de selección */}
-                    {(isSelected || isPathNode || pathFrom === ln.node.id) && (
-                      <circle
-                        r={NODE_RADIUS + 4}
-                        fill="none"
-                        stroke={isPathNode ? '#34d399' : '#a78bfa'}
-                        strokeWidth={1.5}
-                        opacity={0.7}
-                      />
-                    )}
-                    <circle r={NODE_RADIUS} fill={fill} opacity={opacity} />
-                    <text
-                      x={NODE_RADIUS + 4}
-                      y={4}
-                      fontSize={9}
-                      fill="rgba(255,255,255,0.75)"
-                      style={{ userSelect: 'none', pointerEvents: 'none' }}
-                    >
-                      {name.length > 18 ? `${name.slice(0, 17)}…` : name}
-                    </text>
-                  </g>
+                    nodeId={ln.node.id}
+                    node={ln.node}
+                    x={ln.x}
+                    y={ln.y}
+                    fill={fill}
+                    opacity={opacity}
+                    name={name}
+                    isSelected={isSelected}
+                    isPathNode={isPathNode}
+                    isPathFrom={pathFrom === ln.node.id}
+                    onClick={handleNodeClick}
+                  />
                 );
               })}
             </g>
@@ -573,6 +643,6 @@ export const ArchitecturalLayersView = forwardRef<ArchitecturalLayersViewHandle,
       </div>
     );
   },
-);
+));
 
 ArchitecturalLayersView.displayName = 'ArchitecturalLayersView';
