@@ -364,13 +364,41 @@ export const LandingScreen = () => {
 
         let file: File
         if (localserver) {
-          // Servidor HTTP local iniciado por el CLI (Chrome/Firefox/Safari 16.4+)
-          // El servidor responde con Access-Control-Allow-Private-Network: true
-          // para satisfacer Chrome Private Network Access y usa localhost (no 127.0.0.1)
-          // para que Safari lo trate como origen seguro.
-          const res = await fetch(localserver)
-          if (!res.ok) throw new Error(`El servidor local respondió con estado ${res.status}`)
-          const blob = await res.blob()
+          let blob: Blob | null = null
+
+          // Intento 1: servidor HTTP local (Chrome, Firefox)
+          // Requiere Access-Control-Allow-Private-Network: true en el servidor
+          try {
+            const res = await fetch(localserver)
+            if (!res.ok) throw new Error(`status ${res.status}`)
+            blob = await res.blob()
+          } catch {
+            // Intento 2: window.name (Safari y cualquier browser que bloquee localhost)
+            // El relay HTML del CLI mete el ZIP en window.name antes de navegar aquí.
+            // window.name persiste entre navegaciones cross-origin sin restricciones.
+            try {
+              const data = JSON.parse(window.name || '{}')
+              if (data.zip) {
+                const b64 = (data.zip as string).replace(/-/g, '+').replace(/_/g, '/')
+                const binary = atob(b64)
+                const bytes = new Uint8Array(binary.length)
+                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+                blob = new Blob([bytes], { type: 'application/zip' })
+              }
+            } catch { /* window.name vacío, inválido o demasiado grande */ }
+          }
+
+          // Limpiar window.name para que recargas no rereinicien el flujo
+          window.name = ''
+
+          if (!blob) {
+            throw new Error(
+              localpath
+                ? `El navegador bloqueó la carga automática.\nArrastra este fichero a la zona de abajo:\n${localpath}`
+                : 'El navegador bloqueó la carga automática. Arrastra el ZIP del proyecto aquí.'
+            )
+          }
+
           file = new File([blob], `${project}.zip`, { type: 'application/zip' })
         } else {
           // Legacy: CLI v1.0.3 pasaba el zip como base64url en el hash
@@ -387,10 +415,7 @@ export const LandingScreen = () => {
 
         await runPipeline(entries, project)
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Error al cargar el proyecto local'
-        setError(localpath
-          ? `${msg}\n\nSi el problema persiste, arrastra este fichero a la zona de abajo:\n${localpath}`
-          : msg)
+        setError(err instanceof Error ? err.message : 'Error al cargar el proyecto local')
         setIsProcessing(false)
         setViewMode('onboarding')
       }

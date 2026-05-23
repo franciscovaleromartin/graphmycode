@@ -1,7 +1,7 @@
 {
   "name": "graphmycode",
   "bin": "./bin/cli.js",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Visualize your codebase as an interactive knowledge graph — entirely in your browser.",
   "homepage": "https://graphmycode.com",
   "repository": {

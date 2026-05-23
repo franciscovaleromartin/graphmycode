@@ -58,14 +58,15 @@ async function main() {
     process.exit(1)
   }
 
-  // Guardar zip en fichero temporal (fallback para arrastrarlo manualmente)
   const tmpZip = join(tmpdir(), `graphmycode-${projectName}.zip`)
   writeFileSync(tmpZip, buf)
 
-  // Servidor HTTP local que sirve el zip al navegador
-  // - localhost (no 127.0.0.1): Safari trata localhost como origen seguro
-  // - Access-Control-Allow-Private-Network: Chrome requiere este header para
-  //   permitir fetch() desde HTTPS a localhost (Chrome Private Network Access)
+  // Codificar en base64url para el relay HTML (mecanismo window.name)
+  const b64 = buf.toString('base64url')
+
+  // Servidor HTTP local: Chrome y Firefox lo usan directamente.
+  // Access-Control-Allow-Private-Network es obligatorio desde Chrome 94
+  // para que fetch() desde HTTPS pueda llegar a localhost.
   const server = createServer((req, res) => {
     if (req.method === 'OPTIONS') {
       res.setHeader('Access-Control-Allow-Origin', '*')
@@ -88,13 +89,20 @@ async function main() {
     const { port } = server.address()
     const url = `https://graphmycode.com/#localserver=http://localhost:${port}&localpath=${encodeURIComponent(tmpZip)}&project=${encodeURIComponent(projectName)}`
 
+    // Relay HTML: escribe el ZIP en window.name antes de navegar a graphmycode.com.
+    // window.name persiste entre navegaciones cross-origin, por lo que Safari puede
+    // leerlo aunque bloquee fetch() a localhost. Chrome/Firefox usan el servidor.
+    const payload = JSON.stringify({ zip: b64, project: projectName })
+    const relayHtml = `<!DOCTYPE html><meta charset="utf-8"><script>try{window.name=${JSON.stringify(payload)}}catch(e){}location.replace(${JSON.stringify(url)})<\/script>`
+    const relayTmp = join(tmpdir(), 'graphmycode-relay.html')
+    writeFileSync(relayTmp, relayHtml)
+
     console.log(`🌐 Abriendo graphmycode.com...\n`)
-    console.log(`   Si el navegador bloquea la carga, arrastra este fichero a la web:`)
+    console.log(`   Si el navegador bloquea la carga, arrastra este fichero:`)
     console.log(`   ${tmpZip}\n`)
-    openBrowser(url)
+    openBrowser(`file://${relayTmp}`)
   })
 
-  // Cierre automático tras 5 minutos
   setTimeout(() => { server.close(); process.exit(0) }, 5 * 60 * 1000).unref()
 }
 
