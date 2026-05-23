@@ -51,6 +51,7 @@ export {
   Loader2,
   Maximize2,
   MousePointerClick,
+  Network,
   PanelLeft,
   PanelLeftClose,
   PanelRightClose,
