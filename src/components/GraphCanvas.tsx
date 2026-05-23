@@ -21,10 +21,12 @@ import {
   List,
   Zap,
   Box,
+  Network,
 } from '@/lib/lucide-icons';
 import { CityView, type CityViewHandle } from './CityView';
 import { HeatmapView, type HeatmapViewHandle } from './HeatmapView';
 import { CodeFlowView, type CodeFlowViewHandle } from './CodeFlowView';
+import { ArchitecturalLayersView, type ArchitecturalLayersViewHandle } from './ArchitecturalLayersView';
 import { GraphViewToggle } from './GraphViewToggle';
 import { useSigma } from '../hooks/useSigma';
 import { useAppState } from '../hooks/useAppState';
@@ -99,6 +101,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
   const [hasCodeFlowBeenActivated, setHasCodeFlowBeenActivated] = useState(false);
   const codeFlowRef = useRef<CodeFlowViewHandle>(null);
   const [codeFlowDepth, setCodeFlowDepth] = useState<'high' | 'low'>('high');
+  const [hasArchitecturalBeenActivated, setHasArchitecturalBeenActivated] = useState(false);
+  const [isDiffModeActive, setIsDiffModeActive] = useState(false);
+  const architecturalRef = useRef<ArchitecturalLayersViewHandle>(null);
   const [heatmapFilter, setHeatmapFilter] = useState<'all' | 'hot' | 'cold'>('all');
 
   const effectiveHighlightedNodeIds = useMemo(() => {
@@ -307,6 +312,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
       else if (graphViewType === 'city') cityRef.current?.[action]();
       else if (graphViewType === 'heatmap') heatmapRef.current?.[action]();
       else if (graphViewType === 'codeflow') codeFlowRef.current?.[action]();
+      else if (graphViewType === 'architectural') architecturalRef.current?.[action]();
       else if (action === 'zoomIn') zoomIn();
       else if (action === 'zoomOut') zoomOut();
       else resetZoom();
@@ -339,6 +345,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
             else if (view === 'city') setHasCityBeenActivated(true);
             else if (view === 'heatmap') setHasHeatmapBeenActivated(true);
             else if (view === 'codeflow') setHasCodeFlowBeenActivated(true);
+            else if (view === 'architectural') setHasArchitecturalBeenActivated(true);
           }}
         />
       )}
@@ -476,6 +483,30 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
         </div>
       )}
 
+      {/* Control Diff Mode — visible solo en Arch. Layers */}
+      {graph && graphViewType === 'architectural' && (
+        <div
+          className={`absolute top-12 z-20 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm transition-all duration-300 ${isSidebarCollapsed ? 'left-14' : 'left-60'}`}
+        >
+          <button
+            onClick={() => {
+              const next = !isDiffModeActive;
+              setIsDiffModeActive(next);
+              architecturalRef.current?.setDiffModeActive(next);
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              isDiffModeActive
+                ? 'bg-red-500/20 text-red-300'
+                : 'text-text-muted hover:bg-hover hover:text-text-secondary'
+            }`}
+            title="Activa el modo de análisis de impacto"
+          >
+            <Network className="size-3" />
+            {isDiffModeActive ? 'Diff On' : 'Diff Mode'}
+          </button>
+        </div>
+      )}
+
       {/* Controles de Code Flow — centrados */}
       {graph && graphViewType === 'codeflow' && (
         <div className="absolute top-12 left-1/2 z-20 -translate-x-1/2 flex overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-sm">
@@ -519,7 +550,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
       {/* Sigma container — oculto (no destruido) en modo semántico */}
       <div
         ref={containerRef}
-        className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' || graphViewType === 'city' || graphViewType === 'heatmap' || graphViewType === 'codeflow' ? ' invisible pointer-events-none' : ''}`}
+        className={`sigma-container h-full w-full cursor-grab active:cursor-grabbing${graphViewType === 'semantic' || graphViewType === 'city' || graphViewType === 'heatmap' || graphViewType === 'codeflow' || graphViewType === 'architectural' ? ' invisible pointer-events-none' : ''}`}
       />
 
       {/* Vista semántica 3D — se monta una vez y permanece (invisible cuando no activa) */}
@@ -574,6 +605,25 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
           className={`absolute bottom-0 right-0 z-10 overflow-hidden transition-all duration-300${graphViewType !== 'codeflow' ? ' invisible pointer-events-none' : ''} top-11 ${isSidebarCollapsed ? 'left-10' : 'left-56'}`}
         >
           <CodeFlowView ref={codeFlowRef} depth={codeFlowDepth} />
+        </div>
+      )}
+
+      {/* Vista Architectural Layers — SVG en carriles */}
+      {hasArchitecturalBeenActivated && graph && (
+        <div
+          className={`absolute inset-0 z-10 overflow-hidden${
+            graphViewType !== 'architectural' ? ' invisible pointer-events-none' : ''
+          }`}
+        >
+          <ArchitecturalLayersView
+            ref={architecturalRef}
+            graph={graph}
+            isActive={graphViewType === 'architectural'}
+            onNodeClick={(node) => {
+              setSelectedNode(node);
+              openCodePanel();
+            }}
+          />
         </div>
       )}
 

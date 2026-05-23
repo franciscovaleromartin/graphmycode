@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
-import { Layers, Brain, Building2, GitBranch, Share2 } from '@/lib/lucide-icons';
+import { Layers, Brain, Building2, GitBranch, Share2, Network } from '@/lib/lucide-icons';
 import type { ReactNode } from 'react';
 
-type ViewType = 'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow';
+type ViewType = 'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow' | 'architectural';
 
 interface ViewOption {
   type: ViewType;
@@ -45,6 +45,12 @@ const VIEW_OPTIONS: ViewOption[] = [
     label: 'Code Flow',
     title: 'Flujo de ejecución del archivo seleccionado',
   },
+  {
+    type: 'architectural',
+    icon: <Network className="size-3" />,
+    label: 'Arch. Layers',
+    title: 'Vista de capas arquitectónicas (layout en carriles)',
+  },
 ];
 
 const ACTIVATED_VIEWS: Partial<Record<ViewType, true>> = {
@@ -52,6 +58,7 @@ const ACTIVATED_VIEWS: Partial<Record<ViewType, true>> = {
   city: true,
   heatmap: true,
   codeflow: true,
+  architectural: true,
 };
 
 interface GraphViewToggleProps {

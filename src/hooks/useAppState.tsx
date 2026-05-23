@@ -127,8 +127,8 @@ interface AppState {
   setSettingsPanelOpen: (open: boolean) => void;
   isSidebarCollapsed: boolean;
   setSidebarCollapsed: (v: boolean) => void;
-  graphViewType: 'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow';
-  setGraphViewType: (v: 'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow') => void;
+  graphViewType: 'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow' | 'architectural';
+  setGraphViewType: (v: 'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow' | 'architectural') => void;
   cityMetric: 'degree' | 'depth';
   setCityMetric: (v: 'degree' | 'depth') => void;
   externalDeps: Record<string, string[]>;
@@ -196,7 +196,7 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
   const [isSettingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [graphViewType, setGraphViewType] = useState<
-    'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow'
+    'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow' | 'architectural'
   >('structural');
   const [cityMetric, setCityMetric] = useState<'degree' | 'depth'>('degree');
   const [externalDeps, setExternalDeps] = useState<Record<string, string[]>>({});
