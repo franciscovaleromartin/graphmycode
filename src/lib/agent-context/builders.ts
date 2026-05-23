@@ -12,8 +12,99 @@ import {
   detectBoundaries, detectPointers,
 } from './analysis';
 import { inferPurposeSignals } from './purpose';
+import type { GraphNode } from 'gitnexus-shared';
+import { computeLayerStats, groupNodesByLayer, detectLayer, LAYER_ORDER, LANE_ORDER, type LayerName } from '../layerDetection';
 
 // ── CLAUDE.md ────────────────────────────────────────────────────────────────
+
+function buildArchitectureSection(
+  graph: KnowledgeGraph,
+  cleanNodes: GraphNode[],
+): string {
+  const filteredNodes = cleanNodes.filter(
+    n => n.label !== 'Community' && n.label !== 'Project',
+  );
+
+  const stats = computeLayerStats(filteredNodes, graph.relationships);
+  const layersWithNodes = stats.filter(s => s.nodeCount > 0);
+  if (layersWithNodes.length < 2) return '';
+
+  const nodeLayerMap = new Map<string, LayerName>(
+    filteredNodes.map(n => [n.id, detectLayer(n)]),
+  );
+
+  const fanInMap = new Map<string, number>();
+  for (const rel of graph.relationships) {
+    fanInMap.set(rel.targetId, (fanInMap.get(rel.targetId) ?? 0) + 1);
+  }
+
+  const groups = groupNodesByLayer(filteredNodes);
+  const criticalByLayer = new Map<LayerName, { path: string; fanIn: number }>();
+  for (const [layer, nodes] of groups) {
+    let best: { path: string; fanIn: number } | null = null;
+    for (const n of nodes) {
+      const fi = fanInMap.get(n.id) ?? 0;
+      if (!best || fi > best.fanIn) {
+        best = {
+          path: (n.properties.filePath as string | undefined) ?? (n.properties.name as string | undefined) ?? n.id,
+          fanIn: fi,
+        };
+      }
+    }
+    if (best && best.fanIn > 0) criticalByLayer.set(layer, best);
+  }
+
+  const crossLayerVolume = new Map<string, number>();
+  for (const rel of graph.relationships) {
+    const srcLayer = nodeLayerMap.get(rel.sourceId);
+    const tgtLayer = nodeLayerMap.get(rel.targetId);
+    if (!srcLayer || !tgtLayer || srcLayer === tgtLayer) continue;
+    const key = `${srcLayer} → ${tgtLayer}`;
+    crossLayerVolume.set(key, (crossLayerVolume.get(key) ?? 0) + 1);
+  }
+  const topCross = [...crossLayerVolume.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const smells: string[] = [];
+  const seenSmells = new Set<string>();
+  for (const rel of graph.relationships) {
+    const srcLayer = nodeLayerMap.get(rel.sourceId);
+    const tgtLayer = nodeLayerMap.get(rel.targetId);
+    if (!srcLayer || !tgtLayer || srcLayer === tgtLayer) continue;
+    if (LAYER_ORDER[srcLayer] > LAYER_ORDER[tgtLayer]) {
+      const srcPath = ((graph.nodes.find(n => n.id === rel.sourceId)?.properties.filePath as string | undefined) ?? rel.sourceId).split('/').slice(-2).join('/');
+      const tgtPath = ((graph.nodes.find(n => n.id === rel.targetId)?.properties.filePath as string | undefined) ?? rel.targetId).split('/').slice(-2).join('/');
+      const key = `${srcLayer}→${tgtLayer}:${srcPath}`;
+      if (!seenSmells.has(key)) {
+        seenSmells.add(key);
+        smells.push(`- ${srcLayer} → ${tgtLayer}: \`${srcPath}\` → \`${tgtPath}\``);
+      }
+    }
+  }
+
+  const lines: string[] = ['## Architecture'];
+
+  for (const stat of layersWithNodes.sort((a, b) => LANE_ORDER.indexOf(a.layer) - LANE_ORDER.indexOf(b.layer))) {
+    const critical = criticalByLayer.get(stat.layer);
+    const criticalStr = critical ? ` — critical: \`${critical.path}\` (fan-in ${critical.fanIn})` : '';
+    lines.push(`- **${stat.layer}** (${stat.nodeCount} nodes): cross-deps ${stat.crossLayerDeps}${criticalStr}`);
+  }
+
+  if (topCross.length > 0) {
+    lines.push('', 'Top cross-layer deps (by volume):');
+    for (const [pair, count] of topCross) {
+      lines.push(`- ${pair} (${count} edges)`);
+    }
+  }
+
+  if (smells.length > 0) {
+    lines.push('', 'Code smells (upward deps):');
+    lines.push(...smells.slice(0, 5));
+  }
+
+  return lines.join('\n');
+}
 
 function assembleClaude(parts: Record<string, string>): string {
   return [
@@ -23,6 +114,7 @@ function assembleClaude(parts: Record<string, string>): string {
     parts.commands,
     parts.entries,
     parts.moduleMap,
+    parts.architecture,
     parts.keySymbols,
     parts.criticalEdges,
     parts.bridgeFiles,
@@ -65,6 +157,7 @@ export function buildClaudeMd(
 
   const entries = findEntryPoints(cleanNodes, graph);
   const moduleMapContent = buildModuleMap(cleanNodes, degreeMap, communityMembers, communityLabelMap);
+  const architectureContent = buildArchitectureSection(graph, cleanNodes);
   let keySymbolsContent = buildKeySymbols(cleanNodes, degreeMap, 12);
   let criticalEdgeLines = buildCriticalEdges(graph, nodeById, testNodeIds);
   let bridgeFileLines = buildBridgeFiles(allCleanNodes, graph, degreeMap, nodeToCommunity, visibleLabelMap);
@@ -127,6 +220,7 @@ export function buildClaudeMd(
       ? `## Entry Points\n${entries.map((e) => `- \`${e.path}\` — ${e.role}`).join('\n')}`
       : '',
     moduleMap: moduleMapContent ? `## Module Map\n${moduleMapContent}` : '',
+    architecture: architectureContent,
     keySymbols: `## Key Symbols  (signatures only — no implementations)\n${keySymbolsContent}`,
     criticalEdges: criticalEdgeLines.length
       ? `## Critical Edges  (top 5 call relationships)\n${criticalEdgeLines.join('\n')}`
@@ -268,8 +362,10 @@ export function buildAgentsMd(
     lines.push('', '## Tools');
     for (const { node } of tools) {
       const name = (node.properties.name ?? node.id) as string;
-      const file = (node.properties.filePath ?? '').split('/').pop() ?? '';
-      lines.push(`- \`${name}(...)\` — ${describeFromSnakeCase(name)}; defined in \`${file}\``);
+      const file = (node.properties.filePath as string | undefined ?? '').split('/').pop() ?? '';
+      const layer = detectLayer(node);
+      const layerStr = layer !== 'unknown' ? `; layer: ${layer}` : '';
+      lines.push(`- \`${name}(...)\` — ${describeFromSnakeCase(name)}; defined in \`${file}\`${layerStr}`);
     }
   }
 
