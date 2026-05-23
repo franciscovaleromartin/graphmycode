@@ -344,14 +344,15 @@ export const LandingScreen = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Carga automática cuando el CLI pasa #localzip=BASE64&project=nombre
+  // Carga automática desde CLI: #localserver=URL (v1.0.9+) o #localzip=BASE64 (legacy)
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.slice(1))
+    const localserver = hash.get('localserver')
     const localzip = hash.get('localzip')
+    const localpath = hash.get('localpath') ?? ''
     const project = hash.get('project') ?? 'local-project'
-    if (!localzip) return
+    if (!localserver && !localzip) return
 
-    // Limpiar el hash para no re-disparar si el usuario recarga
     window.history.replaceState({}, '', window.location.pathname)
 
     ;(async () => {
@@ -361,20 +362,35 @@ export const LandingScreen = () => {
         setViewMode('loading')
         setProgress({ phase: 'extracting', percent: 5, message: 'Cargando proyecto local...' })
 
-        // Decodificar base64url a Blob sin hacer ninguna petición HTTP
-        const b64 = localzip.replace(/-/g, '+').replace(/_/g, '/')
-        const binary = atob(b64)
-        const bytes = new Uint8Array(binary.length)
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-        const blob = new Blob([bytes], { type: 'application/zip' })
-        const file = new File([blob], `${project}.zip`, { type: 'application/zip' })
+        let file: File
+        if (localserver) {
+          // Servidor HTTP local iniciado por el CLI (Chrome/Firefox/Safari 16.4+)
+          // El servidor responde con Access-Control-Allow-Private-Network: true
+          // para satisfacer Chrome Private Network Access y usa localhost (no 127.0.0.1)
+          // para que Safari lo trate como origen seguro.
+          const res = await fetch(localserver)
+          if (!res.ok) throw new Error(`El servidor local respondió con estado ${res.status}`)
+          const blob = await res.blob()
+          file = new File([blob], `${project}.zip`, { type: 'application/zip' })
+        } else {
+          // Legacy: CLI v1.0.3 pasaba el zip como base64url en el hash
+          const b64 = localzip!.replace(/-/g, '+').replace(/_/g, '/')
+          const binary = atob(b64)
+          const bytes = new Uint8Array(binary.length)
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+          const blob = new Blob([bytes], { type: 'application/zip' })
+          file = new File([blob], `${project}.zip`, { type: 'application/zip' })
+        }
 
         const entries = await extractZip(file)
         if (entries.length === 0) throw new Error('El zip no contiene archivos de código fuente')
 
         await runPipeline(entries, project)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar el proyecto local')
+        const msg = err instanceof Error ? err.message : 'Error al cargar el proyecto local'
+        setError(localpath
+          ? `${msg}\n\nSi el problema persiste, arrastra este fichero a la zona de abajo:\n${localpath}`
+          : msg)
         setIsProcessing(false)
         setViewMode('onboarding')
       }

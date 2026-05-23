@@ -5,6 +5,7 @@
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'fs'
 import { join, basename } from 'path'
 import { tmpdir } from 'os'
+import { createServer } from 'http'
 import { exec } from 'child_process'
 import JSZip from 'jszip'
 
@@ -57,17 +58,44 @@ async function main() {
     process.exit(1)
   }
 
-  // Codificar en base64 URL-safe y pasar por fragment hash — evita mixed content en Safari
-  const b64 = buf.toString('base64url')
-  const target = `https://graphmycode.com#localzip=${b64}&project=${encodeURIComponent(projectName)}`
+  // Guardar zip en fichero temporal (fallback para arrastrarlo manualmente)
+  const tmpZip = join(tmpdir(), `graphmycode-${projectName}.zip`)
+  writeFileSync(tmpZip, buf)
 
-  // HTML temporal que redirige instantáneamente al fragment con los datos
-  const html = `<!DOCTYPE html><meta charset="utf-8"><script>location.replace(${JSON.stringify(target)})</script>`
-  const tmp = join(tmpdir(), 'graphmycode-launch.html')
-  writeFileSync(tmp, html)
+  // Servidor HTTP local que sirve el zip al navegador
+  // - localhost (no 127.0.0.1): Safari trata localhost como origen seguro
+  // - Access-Control-Allow-Private-Network: Chrome requiere este header para
+  //   permitir fetch() desde HTTPS a localhost (Chrome Private Network Access)
+  const server = createServer((req, res) => {
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Origin', '*')
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+      res.setHeader('Access-Control-Allow-Private-Network', 'true')
+      res.writeHead(204)
+      res.end()
+      return
+    }
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Private-Network', 'true')
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+    res.setHeader('Content-Type', 'application/zip')
+    res.setHeader('Content-Length', buf.length)
+    res.writeHead(200)
+    res.end(buf)
+  })
 
-  console.log(`🌐 Abriendo graphmycode.com...\n`)
-  openBrowser(`file://${tmp}`)
+  server.listen(0, 'localhost', () => {
+    const { port } = server.address()
+    const url = `https://graphmycode.com/#localserver=http://localhost:${port}&localpath=${encodeURIComponent(tmpZip)}&project=${encodeURIComponent(projectName)}`
+
+    console.log(`🌐 Abriendo graphmycode.com...\n`)
+    console.log(`   Si el navegador bloquea la carga, arrastra este fichero a la web:`)
+    console.log(`   ${tmpZip}\n`)
+    openBrowser(url)
+  })
+
+  // Cierre automático tras 5 minutos
+  setTimeout(() => { server.close(); process.exit(0) }, 5 * 60 * 1000).unref()
 }
 
 main().catch(e => {
