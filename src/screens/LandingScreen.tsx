@@ -344,12 +344,13 @@ export const LandingScreen = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Carga automática cuando el CLI pasa #localserver=URL&project=nombre
+  // Carga automática desde el CLI: #localserver=URL (v1.0.5+) o #localzip=BASE64 (legacy)
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.slice(1))
     const localserver = hash.get('localserver')
+    const localzip = hash.get('localzip')
     const project = hash.get('project') ?? 'local-project'
-    if (!localserver) return
+    if (!localserver && !localzip) return
 
     window.history.replaceState({}, '', window.location.pathname)
 
@@ -360,10 +361,20 @@ export const LandingScreen = () => {
         setViewMode('loading')
         setProgress({ phase: 'extracting', percent: 5, message: 'Cargando proyecto local...' })
 
-        const res = await fetch(localserver)
-        if (!res.ok) throw new Error(`El servidor local respondió ${res.status}`)
-        const blob = await res.blob()
-        const file = new File([blob], `${project}.zip`, { type: 'application/zip' })
+        let file: File
+        if (localserver) {
+          const res = await fetch(localserver)
+          if (!res.ok) throw new Error(`El servidor local respondió ${res.status}`)
+          const blob = await res.blob()
+          file = new File([blob], `${project}.zip`, { type: 'application/zip' })
+        } else {
+          const b64 = localzip!.replace(/-/g, '+').replace(/_/g, '/')
+          const binary = atob(b64)
+          const bytes = new Uint8Array(binary.length)
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+          const blob = new Blob([bytes], { type: 'application/zip' })
+          file = new File([blob], `${project}.zip`, { type: 'application/zip' })
+        }
 
         const entries = await extractZip(file)
         if (entries.length === 0) throw new Error('El zip no contiene archivos de código fuente')
