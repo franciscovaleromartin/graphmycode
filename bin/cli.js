@@ -61,9 +61,9 @@ async function main() {
   const tmpZip = join(tmpdir(), `graphmycode-${projectName}.zip`)
   writeFileSync(tmpZip, buf)
 
-  // Proyectos pequeños (≤700 KB): base64url en el hash → funciona en todos los navegadores
+  // Proyectos hasta 5 MB comprimido: base64url en el hash → funciona en todos los navegadores
   // incluido Safari, sin servidor local, sin mixed content.
-  const SMALL_THRESHOLD = 700 * 1024
+  const SMALL_THRESHOLD = 5 * 1024 * 1024
   if (buf.length <= SMALL_THRESHOLD) {
     const b64 = buf.toString('base64url')
     const url = `https://graphmycode.com/#localzip=${b64}&project=${encodeURIComponent(projectName)}`
