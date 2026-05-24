@@ -552,48 +552,9 @@ export const ArchitecturalLayersView = memo(
 
       if (!_isActive) return <div className="h-full w-full" />;
 
-      if (!isReady) {
-        return (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-void">
-            {/* Gradientes de fondo */}
-            <div className="pointer-events-none absolute inset-0">
-              <div className="absolute top-1/3 left-1/3 size-96 animate-pulse rounded-full bg-[#818cf8]/10 blur-3xl" />
-              <div className="absolute right-1/3 bottom-1/3 size-96 animate-pulse rounded-full bg-[#34d399]/10 blur-3xl" />
-            </div>
-            {/* Orb pulsante */}
-            <div className="relative mb-10">
-              <div className="size-28 animate-pulse-glow rounded-full bg-gradient-to-br from-[#818cf8] to-[#34d399]" />
-              <div className="absolute inset-0 size-28 rounded-full bg-gradient-to-br from-[#818cf8] to-[#34d399] opacity-50 blur-xl" />
-            </div>
-            {/* Barra de progreso */}
-            <div className="mb-4 w-80">
-              <div className="h-1.5 overflow-hidden rounded-full bg-elevated">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#818cf8] to-[#34d399] transition-all duration-300 ease-out"
-                  style={{ width: `${loadingPercent}%` }}
-                />
-              </div>
-            </div>
-            {/* Texto de estado */}
-            <div className="text-center">
-              <p className="mb-1 font-mono text-sm text-text-secondary">
-                Calculando capas arquitectónicas…<span className="animate-pulse">|</span>
-              </p>
-              <p className="font-mono text-xs text-text-muted">
-                {layoutNodes.length} nodos · {layoutEdges.length} aristas
-              </p>
-            </div>
-            {/* Porcentaje */}
-            <p className="mt-4 font-mono text-3xl font-semibold text-text-primary">
-              {loadingPercent}%
-            </p>
-          </div>
-        );
-      }
-
       return (
-        <div className="flex h-full w-full flex-col">
-          {/* Canvas con scroll vertical */}
+        <div className="relative flex h-full w-full flex-col">
+          {/* Canvas siempre en el DOM para que el useEffect pueda dispararse */}
           <div
             className="relative flex-1 overflow-y-auto overflow-x-hidden"
             style={{ cursor: hoveredNodeId ? 'pointer' : 'default' }}
@@ -613,6 +574,43 @@ export const ArchitecturalLayersView = memo(
               style={{ height: svgHeight + 'px' }}
             />
           </div>
+          {/* Overlay superpuesto hasta que isReady */}
+          {!isReady && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-void">
+              {/* Gradientes de fondo */}
+              <div className="pointer-events-none absolute inset-0">
+                <div className="absolute top-1/3 left-1/3 size-96 animate-pulse rounded-full bg-[#818cf8]/10 blur-3xl" />
+                <div className="absolute right-1/3 bottom-1/3 size-96 animate-pulse rounded-full bg-[#34d399]/10 blur-3xl" />
+              </div>
+              {/* Orb pulsante */}
+              <div className="relative mb-10">
+                <div className="size-28 animate-pulse-glow rounded-full bg-gradient-to-br from-[#818cf8] to-[#34d399]" />
+                <div className="absolute inset-0 size-28 rounded-full bg-gradient-to-br from-[#818cf8] to-[#34d399] opacity-50 blur-xl" />
+              </div>
+              {/* Barra de progreso */}
+              <div className="mb-4 w-80">
+                <div className="h-1.5 overflow-hidden rounded-full bg-elevated">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#818cf8] to-[#34d399] transition-all duration-300 ease-out"
+                    style={{ width: `${loadingPercent}%` }}
+                  />
+                </div>
+              </div>
+              {/* Texto de estado */}
+              <div className="text-center">
+                <p className="mb-1 font-mono text-sm text-text-secondary">
+                  Calculando capas arquitectónicas…<span className="animate-pulse">|</span>
+                </p>
+                <p className="font-mono text-xs text-text-muted">
+                  {layoutNodes.length} nodos · {layoutEdges.length} aristas
+                </p>
+              </div>
+              {/* Porcentaje */}
+              <p className="mt-4 font-mono text-3xl font-semibold text-text-primary">
+                {loadingPercent}%
+              </p>
+            </div>
+          )}
         </div>
       );
     },
