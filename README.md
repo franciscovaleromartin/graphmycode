@@ -15,7 +15,7 @@ GraphMyCode parses your source code and renders it as a navigable graph of files
 
 ---
 
-## Five views
+## Six views
 
 ### 🕸️ Structural
 Interactive graph of files, classes, functions, imports, and call relationships. Answer questions like:
@@ -48,6 +48,13 @@ Renders the internal execution flow of a single file as a directed flowchart. Ea
 - Seeing which functions call each other
 - Locating every `if`, loop, and `try/catch` at a glance
 - Exporting the full flowchart as SVG
+
+### 🏗️ Architectural Layer
+Auto-detects your project's architectural layers (`api`, `service`, `data`, `ui`, `utility`, `config`, `test`) from file paths and renders them as parallel swim lanes. Cross-layer edges are color-coded: blue for correct-direction dependencies, orange for inverted ones (architectural violations). Useful for:
+- Seeing how your codebase maps to a layered architecture at a glance
+- Detecting incorrect cross-layer dependencies
+- Impact mode: select nodes and see which layers are affected (direct, 1-hop, transitive)
+- Path Finder: click two nodes to trace the shortest dependency path between them
 
 ---
 
@@ -95,9 +102,20 @@ The main advantage: **fewer tokens, better responses.** With the file in place, 
 
 ## Optional: AI Q&A
 
-Once the graph is loaded, you can connect your own AI provider (OpenAI, Gemini, Anthropic, or Ollama) to ask questions in natural language about your codebase. Your API key is stored only in your browser.
+Once the graph is loaded, connect your own AI provider to ask questions in natural language about your codebase. Your API key is stored only in your browser — never sent anywhere except directly to the provider you choose.
 
-> ⚠️ When using a cloud AI provider, parts of your code will be sent to that provider. Use Ollama to keep everything local.
+| Provider | Platform | Status |
+|---|---|---|
+| OpenAI (GPT-4o, GPT-4o-mini…) | Cloud | ✅ Supported |
+| Azure OpenAI | Cloud | ✅ Supported |
+| Anthropic (Claude 3.5, Claude 4…) | Cloud | ✅ Supported |
+| Google Gemini (2.0 Flash, 1.5 Pro…) | Cloud | ✅ Supported |
+| Ollama (Llama, Mistral, Qwen…) | Local | ✅ Supported |
+| OpenRouter | Cloud | ✅ Supported |
+| MiniMax | Cloud | ✅ Supported |
+| GLM / Z.AI | Cloud | ✅ Supported |
+
+> ⚠️ When using a cloud provider, parts of your code will be sent to that provider. Use **Ollama** to keep everything local.
 
 ---
 
@@ -115,6 +133,7 @@ JavaScript, TypeScript, Python, Java, Go, Rust, C, C++, C#, PHP, Ruby, Swift
 | Styling | Tailwind CSS v4 |
 | Graph rendering (2D) | Sigma.js + Graphology + ForceAtlas2 |
 | Graph rendering (3D) | Three.js / React Three Fiber |
+| Architectural layers | Canvas 2D (swim-lane layout) |
 | Heatmap | Canvas 2D + graphology-layout-noverlap |
 | Code parsing | web-tree-sitter (WASM) |
 | Semantic embeddings | @huggingface/transformers (WASM) |
