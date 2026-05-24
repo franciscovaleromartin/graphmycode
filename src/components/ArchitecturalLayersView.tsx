@@ -95,8 +95,28 @@ export const ArchitecturalLayersView = memo(
       const [pathResult, setPathResult] = useState<string[] | null>(null);
       const [impactResult, setImpactResult] = useState<ImpactResult | null>(null);
       const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+      const [isReady, setIsReady] = useState(false);
+      const [loadingPercent, setLoadingPercent] = useState(0);
 
       const { setArchImpactResult, setArchPathResult } = useAppState();
+
+      // Resetear isReady cuando cambia el grafo
+      useEffect(() => { setIsReady(false); setLoadingPercent(0); }, [graph]);
+
+      // Animar la barra de carga 0→90% mientras no está lista; saltar a 100% al terminar
+      useEffect(() => {
+        if (isReady) { setLoadingPercent(100); return; }
+        const start = performance.now();
+        const duration = 900;
+        let raf: number;
+        const tick = (now: number) => {
+          const pct = Math.min(90, Math.round(((now - start) / duration) * 90));
+          setLoadingPercent(pct);
+          if (pct < 90) raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(raf);
+      }, [isReady]);
 
       // ── Refs ──────────────────────────────────────────────────────────────
       const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -394,6 +414,7 @@ export const ArchitecturalLayersView = memo(
         }
 
         ctx.restore();
+        setIsReady(true);
       }, [
         layoutNodes,
         layoutEdges,
@@ -530,6 +551,45 @@ export const ArchitecturalLayersView = memo(
       // ── Render ────────────────────────────────────────────────────────────
 
       if (!_isActive) return <div className="h-full w-full" />;
+
+      if (!isReady) {
+        return (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-void">
+            {/* Gradientes de fondo */}
+            <div className="pointer-events-none absolute inset-0">
+              <div className="absolute top-1/3 left-1/3 size-96 animate-pulse rounded-full bg-[#818cf8]/10 blur-3xl" />
+              <div className="absolute right-1/3 bottom-1/3 size-96 animate-pulse rounded-full bg-[#34d399]/10 blur-3xl" />
+            </div>
+            {/* Orb pulsante */}
+            <div className="relative mb-10">
+              <div className="size-28 animate-pulse-glow rounded-full bg-gradient-to-br from-[#818cf8] to-[#34d399]" />
+              <div className="absolute inset-0 size-28 rounded-full bg-gradient-to-br from-[#818cf8] to-[#34d399] opacity-50 blur-xl" />
+            </div>
+            {/* Barra de progreso */}
+            <div className="mb-4 w-80">
+              <div className="h-1.5 overflow-hidden rounded-full bg-elevated">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#818cf8] to-[#34d399] transition-all duration-300 ease-out"
+                  style={{ width: `${loadingPercent}%` }}
+                />
+              </div>
+            </div>
+            {/* Texto de estado */}
+            <div className="text-center">
+              <p className="mb-1 font-mono text-sm text-text-secondary">
+                Calculando capas arquitectónicas…<span className="animate-pulse">|</span>
+              </p>
+              <p className="font-mono text-xs text-text-muted">
+                {layoutNodes.length} nodos · {layoutEdges.length} aristas
+              </p>
+            </div>
+            {/* Porcentaje */}
+            <p className="mt-4 font-mono text-3xl font-semibold text-text-primary">
+              {loadingPercent}%
+            </p>
+          </div>
+        );
+      }
 
       return (
         <div className="flex h-full w-full flex-col">
