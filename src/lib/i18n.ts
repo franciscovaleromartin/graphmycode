@@ -38,9 +38,9 @@ const translations = {
     privacy: 'Tu código nunca sale de tu navegador',
     // Acordeón
     // ── Landing cards ────────────────────────────────────────────────
-    cardsViewsTag: '✦ Cinco vistas',
+    cardsViewsTag: '✦ Seis vistas',
     cardsViewsTitle: 'Entiende cualquier código en segundos',
-    cardsViewsSub: 'Cinco formas de ver tu código. Ninguna requiere leer carpeta a carpeta.',
+    cardsViewsSub: 'Seis formas de ver tu código. Ninguna requiere leer carpeta a carpeta.',
     cardsStructuralName: 'Structural',
     cardsStructuralBullets: [
       '¿Qué importa este fichero?',
@@ -75,6 +75,13 @@ const translations = {
       '¿Qué funciones se llaman entre sí?',
       '¿Dónde están los ifs, bucles y try/catch?',
       'Exporta el flowchart completo como SVG',
+    ],
+    cardsArchName: 'Architectural Layer',
+    cardsArchBullets: [
+      '¿Qué capas tiene mi proyecto? (api, service, ui…)',
+      '¿Hay dependencias entre capas incorrectas?',
+      'Detecta violaciones de arquitectura de un vistazo',
+      'Modo impacto: qué capas afecta un cambio',
     ],
     cardsPrivacyTag: 'Privacidad',
     cardsPrivacyTitle: 'Sin servidor.\nSin base de datos.',
@@ -180,9 +187,9 @@ const translations = {
     errNoFiles: 'No source files found',
     privacy: 'Your code never leaves your browser',
     // ── Landing cards ────────────────────────────────────────────────
-    cardsViewsTag: '✦ Five views',
+    cardsViewsTag: '✦ Six views',
     cardsViewsTitle: 'Understand any codebase in seconds',
-    cardsViewsSub: 'Five ways to see your code. None require reading folder by folder.',
+    cardsViewsSub: 'Six ways to see your code. None require reading folder by folder.',
     cardsStructuralName: 'Structural',
     cardsStructuralBullets: [
       'What does this file import?',
@@ -217,6 +224,13 @@ const translations = {
       'Which functions call each other?',
       'Where are the ifs, loops and try/catch?',
       'Export the full flowchart as SVG',
+    ],
+    cardsArchName: 'Architectural Layer',
+    cardsArchBullets: [
+      'What layers does my project have? (api, service, ui…)',
+      'Are there incorrect cross-layer dependencies?',
+      'Spot architecture violations at a glance',
+      'Impact mode: which layers are affected by a change',
     ],
     cardsPrivacyTag: 'Privacy',
     cardsPrivacyTitle: 'No server.\nNo database.',

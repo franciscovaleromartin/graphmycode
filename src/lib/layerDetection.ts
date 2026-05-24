@@ -25,6 +25,17 @@ export const LANE_ORDER: LayerName[] = [
   'ui', 'api', 'service', 'data', 'utility', 'config', 'test', 'unknown',
 ];
 
+export const LAYER_COLORS: Record<LayerName, string> = {
+  api: '#818cf8',
+  service: '#34d399',
+  data: '#f472b6',
+  ui: '#60a5fa',
+  utility: '#fbbf24',
+  config: '#94a3b8',
+  test: '#a78bfa',
+  unknown: '#6b7280',
+};
+
 const PATH_PATTERNS: Array<{ pattern: string; layer: LayerName }> = [
   { pattern: '/api/', layer: 'api' },
   { pattern: '/routes/', layer: 'api' },

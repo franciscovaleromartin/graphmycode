@@ -48,7 +48,7 @@ const VIEW_OPTIONS: ViewOption[] = [
   {
     type: 'architectural',
     icon: <Network className="size-3" />,
-    label: 'Arch. Layers',
+    label: 'Architectural Layer',
     title: 'Vista de capas arquitectónicas (layout en carriles)',
   },
 ];

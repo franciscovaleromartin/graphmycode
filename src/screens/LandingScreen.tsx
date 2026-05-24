@@ -102,6 +102,7 @@ const LandingCards = () => {
     { icon: '🏙️', name: t.cardsDebtName, bullets: t.cardsDebtBullets },
     { icon: '🔥', name: t.cardsHeatmapName, bullets: t.cardsHeatmapBullets },
     { icon: '🔀', name: t.cardsCodeFlowName, bullets: t.cardsCodeFlowBullets },
+    { icon: '🏗️', name: t.cardsArchName, bullets: t.cardsArchBullets },
   ];
 
   return (
@@ -565,7 +566,7 @@ export const LandingScreen = () => {
           <p className="mb-2 text-xs text-text-muted">{t.by}</p>
           <p className="text-sm text-text-secondary">{t.tagline}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {['12 lenguajes', 'hasta 250 archivos', '0 servidores', '5 vistas'].map((label) => (
+            {['12 lenguajes', 'hasta 250 archivos', '0 servidores', '6 vistas'].map((label) => (
               <span key={label} className="rounded-full border border-border-subtle bg-surface px-3 py-1 text-xs text-text-muted">
                 {label}
               </span>

@@ -25,6 +25,7 @@ export const RightPanel = () => {
     setRightPanelOpen,
     graph,
     addCodeReference,
+    setSettingsPanelOpen,
     // LLM / chat state
     chatMessages,
     isChatLoading,
@@ -271,9 +272,12 @@ export const RightPanel = () => {
           <div className="flex items-center gap-2.5 border-b border-border-subtle bg-elevated/50 px-4 py-3">
             <div className="ml-auto flex items-center gap-2">
               {!isAgentReady && (
-                <span className="rounded-full border border-amber-500/30 bg-amber-500/15 px-2 py-1 text-[12px] text-amber-300">
+                <button
+                  onClick={() => setSettingsPanelOpen(true)}
+                  className="rounded-full border border-amber-500/30 bg-amber-500/15 px-2 py-1 text-[12px] text-amber-300 transition-colors hover:border-amber-400/50 hover:bg-amber-500/25"
+                >
                   {t.configureAI}
-                </span>
+                </button>
               )}
               {isAgentInitializing && (
                 <span className="flex items-center gap-1 rounded-full border border-border-subtle bg-surface px-2 py-1 text-[12px] text-text-muted">
@@ -441,12 +445,20 @@ export const RightPanel = () => {
             </div>
             {!isAgentReady && !isAgentInitializing && (
               <div className="mt-2 flex items-center gap-2 text-xs text-amber-200">
-                <AlertTriangle className="size-3.5" />
-                <span>
+                <AlertTriangle className="size-3.5 shrink-0" />
+                <span className="flex-1">
                   {isProviderConfigured()
                     ? t.initializingAgent
                     : t.configureProvider}
                 </span>
+                {!isProviderConfigured() && (
+                  <button
+                    onClick={() => setSettingsPanelOpen(true)}
+                    className="shrink-0 rounded-md border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-amber-300 transition-colors hover:bg-amber-500/25"
+                  >
+                    Configurar
+                  </button>
+                )}
               </div>
             )}
           </div>

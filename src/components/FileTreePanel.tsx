@@ -24,6 +24,7 @@ import {
 } from '@/lib/lucide-icons';
 import { useAppState } from '../hooks/useAppState';
 import { FILTERABLE_LABELS, NODE_COLORS, ALL_EDGE_TYPES, EDGE_INFO } from '../lib/constants';
+import { computeLayerStats, LAYER_COLORS, LANE_ORDER, type LayerName } from '../lib/layerDetection';
 import type { GraphNode, NodeLabel } from 'gitnexus-shared';
 
 // Tree node structure
@@ -222,6 +223,7 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
     openCodePanel,
     depthFilter,
     setDepthFilter,
+    graphViewType,
   } = useAppState();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -234,6 +236,15 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
     if (!graph) return [];
     return buildFileTree(graph.nodes);
   }, [graph]);
+
+  const layerStats = useMemo(() => {
+    if (!graph || graphViewType !== 'architectural') return null;
+    const filtered = graph.nodes.filter((n) => n.label !== 'Community' && n.label !== 'Project');
+    const stats = computeLayerStats(filtered, graph.relationships);
+    return stats
+      .filter((s) => s.nodeCount > 0)
+      .sort((a, b) => (LANE_ORDER.indexOf(a.layer) ?? 99) - (LANE_ORDER.indexOf(b.layer) ?? 99));
+  }, [graph, graphViewType]);
 
   // Auto-expand first level on initial load
   useEffect(() => {
@@ -523,33 +534,48 @@ export const FileTreePanel = ({ onFocusNode }: FileTreePanelProps) => {
 
           {/* Legend */}
           <div className="mt-6 border-t border-border-subtle pt-4">
-            <h3 className="mb-3 text-xs font-medium tracking-wide text-text-secondary uppercase">
-              Color Legend
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
-              {(
-                [
-                  'Folder',
-                  'File',
-                  'Class',
-                  'Interface',
-                  'Enum',
-                  'Type',
-                  'Function',
-                  'Method',
-                  'Variable',
-                  'Decorator',
-                ] as NodeLabel[]
-              ).map((label) => (
-                <div key={label} className="flex items-center gap-1.5">
-                  <div
-                    className="size-2.5 rounded-full"
-                    style={{ backgroundColor: NODE_COLORS[label] }}
-                  />
-                  <span className="text-[10px] text-text-muted">{label}</span>
+            {layerStats ? (
+              <>
+                <h3 className="mb-3 text-xs font-medium tracking-wide text-text-secondary uppercase">
+                  Architectural Layers
+                </h3>
+                <div className="flex flex-col gap-1.5">
+                  {layerStats.map((stat) => (
+                    <div key={stat.layer} className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <div className="size-2.5 rounded-full" style={{ backgroundColor: LAYER_COLORS[stat.layer as LayerName] }} />
+                        <span className="text-[10px]" style={{ color: LAYER_COLORS[stat.layer as LayerName] }}>{stat.layer}</span>
+                      </div>
+                      <div className="flex gap-2 text-[10px] text-text-muted">
+                        <span>{stat.nodeCount} nodes</span>
+                        {stat.crossLayerDeps > 0 && (
+                          <span className="text-text-muted/60">{stat.crossLayerDeps}x</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <>
+                <h3 className="mb-3 text-xs font-medium tracking-wide text-text-secondary uppercase">
+                  Color Legend
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      'Folder', 'File', 'Class', 'Interface', 'Enum', 'Type',
+                      'Function', 'Method', 'Variable', 'Decorator',
+                    ] as NodeLabel[]
+                  ).map((label) => (
+                    <div key={label} className="flex items-center gap-1.5">
+                      <div className="size-2.5 rounded-full" style={{ backgroundColor: NODE_COLORS[label] }} />
+                      <span className="text-[10px] text-text-muted">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

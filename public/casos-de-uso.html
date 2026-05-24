@@ -28,7 +28,7 @@
     "description": "GraphMyCode ayuda en el onboarding de proyectos, análisis de repositorios GitHub, detección de acoplamiento excesivo, planificación de refactorizaciones y exploración de proyectos open-source.",
     "url": "https://graphmycode.com/casos-de-uso",
     "datePublished": "2026-05-02",
-    "dateModified": "2026-05-15",
+    "dateModified": "2026-05-24",
     "author": {
       "@type": "Person",
       "name": "Francisco Valero",
@@ -114,6 +114,14 @@
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "GraphMyCode genera un fichero project-context.md con los nodos más conectados del proyecto, la estructura de carpetas, las dependencias externas detectadas y los grupos de código. Este fichero se pega en CLAUDE.md o como system prompt. En un proyecto de ~90 archivos, reduce el contexto necesario de ~100k tokens a ~2k tokens, permitiendo que el agente llegue al problema real mucho más rápido y con menos alucinaciones sobre la estructura del proyecto."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Qué es la vista Architectural Layer de GraphMyCode?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "La vista Architectural Layer detecta automáticamente las capas de tu proyecto (api, service, data, ui, utility, config, test) a partir de las rutas de los archivos y las muestra en carriles paralelos. Las dependencias entre capas se visualizan como aristas coloreadas: las que van en la dirección correcta en azul y las inversas en naranja. El modo impacto permite seleccionar nodos y ver qué capas se ven afectadas de forma directa, en primer salto o de manera transitiva."
         }
       },
       {
@@ -329,6 +337,16 @@
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:8px;">Con el <code style="font-family:monospace;font-size:0.85em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">.md</code> → sabe desde el primer mensaje que <code style="font-family:monospace;font-size:0.85em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">app.py</code> tiene 146 conexiones y es el entry point principal, que <code style="font-family:monospace;font-size:0.85em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">get_db_connection</code> es crítica, que el stack es Flask + PostgreSQL + React + Firebase.</p>
           <p style="font-size:13px;color:var(--emerald);font-weight:500;line-height:1.7;">En un proyecto de ~90 archivos: de ~100k tokens de contexto a ~2k tokens. El agente llega al problema real mucho más rápido y con menos alucinaciones sobre la estructura del proyecto.</p>
         </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-icon">🏗️</div>
+          <h2>Validar la arquitectura por capas con Architectural Layer</h2>
+        </div>
+        <p>La vista <span class="highlight">Architectural Layer</span> detecta automáticamente las capas de tu proyecto a partir de las rutas de los archivos — <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">api</code>, <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">service</code>, <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">data</code>, <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">ui</code>, <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">utility</code>, <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">config</code>, <code style="font-family:monospace;font-size:0.9em;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">test</code> — y los muestra en carriles paralelos. Las dependencias entre capas se representan como aristas coloreadas: azul para las que siguen la dirección correcta de la arquitectura, naranja para las inversas que indican una violación.</p>
+        <p>El <span class="highlight">modo impacto</span> permite seleccionar uno o más nodos y ver inmediatamente qué otros nodos se ven afectados: en rojo los directamente conectados, en naranja los alcanzables en un salto y en amarillo los transitivos. El resultado se muestra en la barra lateral por capa. El <span class="highlight">Path Finder</span> (shift + clic en dos nodos) traza el camino más corto entre ellos, útil para entender cómo dos módulos distantes se comunican a través de la jerarquía de capas.</p>
+        <p>Es especialmente útil para <span class="highlight">detectar dependencias inversas</span> — cuando una capa inferior importa de una superior — que normalmente indican un problema de diseño difícil de ver en el grafo estructural general.</p>
       </div>
 
       <div class="case-card">

@@ -9,6 +9,7 @@ import type { NodeLabel } from 'gitnexus-shared';
 import { useT } from '../lib/i18n';
 import { detectAgentCode } from '../lib/agent-detection';
 import { exportAgentContext } from '../lib/agent-context';
+import { computeLayerStats, LAYER_COLORS, LANE_ORDER, type LayerName } from '../lib/layerDetection';
 
 // Labels to show in legend (most useful ones)
 const LEGEND_LABELS: NodeLabel[] = [
@@ -20,6 +21,8 @@ export const SidePanel = () => {
     graph, setViewMode, setGraph, projectName,
     isSidebarCollapsed: collapsed, setSidebarCollapsed: setCollapsed,
     graphViewType, semanticClusterData, externalDeps,
+    archImpactResult, archPathResult,
+    openChatPanel, setQueryPanelOpen,
   } = useAppState();
   const t = useT();
 
@@ -46,6 +49,14 @@ export const SidePanel = () => {
     if (!graph) return { isAgent: false, confidence: 0 };
     return detectAgentCode(graph, externalDeps);
   }, [graph, externalDeps]);
+
+  const layerStats = useMemo(() => {
+    if (!graph || graphViewType !== 'architectural') return null;
+    const filtered = graph.nodes.filter((n) => n.label !== 'Community' && n.label !== 'Project');
+    return computeLayerStats(filtered, graph.relationships)
+      .filter((s) => s.nodeCount > 0)
+      .sort((a, b) => LANE_ORDER.indexOf(a.layer) - LANE_ORDER.indexOf(b.layer));
+  }, [graph, graphViewType]);
 
   const handleExportAgentContext = () => {
     if (!graph) return;
@@ -112,7 +123,7 @@ export const SidePanel = () => {
           {/* Legend — cambia según la vista activa */}
           <section className="mb-5">
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-text-muted">
-              {graphViewType === 'semantic' ? 'Clusters' : graphViewType === 'city' ? 'Technical Debt' : graphViewType === 'heatmap' ? 'Acoplamiento' : graphViewType === 'codeflow' ? 'Code Flow' : t.legendTitle}
+              {graphViewType === 'semantic' ? 'Clusters' : graphViewType === 'city' ? 'Technical Debt' : graphViewType === 'heatmap' ? 'Acoplamiento' : graphViewType === 'codeflow' ? 'Code Flow' : graphViewType === 'architectural' ? 'Architectural Layers' : t.legendTitle}
             </p>
             {graphViewType === 'semantic' ? (
               <div className="space-y-1.5">
@@ -233,6 +244,54 @@ export const SidePanel = () => {
                   </div>
                 </div>
               </div>
+            ) : graphViewType === 'architectural' ? (
+              <div className="space-y-1.5">
+                {layerStats?.map((stat) => (
+                  <div key={stat.layer} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="size-2 flex-shrink-0 rounded-full"
+                        style={{ backgroundColor: LAYER_COLORS[stat.layer as LayerName] }}
+                      />
+                      <span className="text-xs" style={{ color: LAYER_COLORS[stat.layer as LayerName] }}>
+                        {stat.layer}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 text-xs text-text-muted">
+                      <span>{stat.nodeCount}</span>
+                      {stat.crossLayerDeps > 0 && (
+                        <span className="text-text-muted/50">{stat.crossLayerDeps}x</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {archImpactResult && (
+                  <div className="mt-3 space-y-1 border-t border-border-subtle pt-3">
+                    <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-text-muted">Impacto</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-red-400">Directo</span>
+                      <span className="font-mono text-xs text-red-400">{archImpactResult.direct}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-orange-400">1 salto</span>
+                      <span className="font-mono text-xs text-orange-400">{archImpactResult.hop1}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-yellow-400">Transitivo</span>
+                      <span className="font-mono text-xs text-yellow-400">{archImpactResult.transitive}</span>
+                    </div>
+                  </div>
+                )}
+                {archPathResult && (
+                  <div className="mt-3 space-y-1 border-t border-border-subtle pt-3">
+                    <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-text-muted">Ruta</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-text-secondary">Nodos</span>
+                      <span className="font-mono text-xs text-emerald-400">{archPathResult.length}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : graphViewType === 'codeflow' ? (
               <div className="space-y-1.5">
                 {([
@@ -288,8 +347,22 @@ export const SidePanel = () => {
             </button>
           </section>
 
-          {/* Reset button */}
-          <div className="mt-auto">
+          {/* Action buttons */}
+          <div className="mt-auto space-y-2">
+            <button
+              onClick={openChatPanel}
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-xs text-text-secondary transition-colors hover:border-accent/40 hover:text-accent"
+            >
+              ✦ AI Question
+            </button>
+            {graphViewType === 'structural' && (
+              <button
+                onClick={() => setQueryPanelOpen(true)}
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-xs text-text-secondary transition-colors hover:border-accent/40 hover:text-accent"
+              >
+                ⌥ Consulta Cypher
+              </button>
+            )}
             <button
               onClick={handleReset}
               className="w-full rounded-lg border border-border-default px-3 py-2 text-xs text-text-secondary transition-colors hover:border-accent/40 hover:text-accent"

@@ -281,13 +281,19 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
     }
   }, [appSelectedNode, setSigmaSelectedNode]);
 
-  // Al volver a la vista estructural desde otra vista, arrancar el layout automáticamente
+  // Gestionar layout FA2 según vista activa:
+  // - Al entrar en estructural → arrancar
+  // - Al salir de estructural → parar el worker para evitar re-renders WebGL continuos
   useEffect(() => {
-    if (graphViewType === 'structural' && prevGraphViewTypeRef.current !== 'structural') {
-      startLayout();
+    if (graphViewType === 'structural') {
+      if (prevGraphViewTypeRef.current !== 'structural') {
+        startLayout();
+      }
+    } else {
+      stopLayout();
     }
     prevGraphViewTypeRef.current = graphViewType;
-  }, [graphViewType, startLayout]);
+  }, [graphViewType, startLayout, stopLayout]);
 
   // Focus on selected node
   const handleFocusSelected = useCallback(() => {
@@ -616,9 +622,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
       {/* Vista Architectural Layers — SVG en carriles */}
       {hasArchitecturalBeenActivated && graph && (
         <div
-          className={`absolute inset-0 z-10 overflow-hidden${
+          className={`absolute bottom-0 right-0 top-11 z-10 transition-all duration-300${
             graphViewType !== 'architectural' ? ' invisible pointer-events-none' : ''
-          }`}
+          } ${isSidebarCollapsed ? 'left-10' : 'left-56'}`}
         >
           <ArchitecturalLayersView
             ref={architecturalRef}
@@ -637,7 +643,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
       )}
 
       {/* Selection info bar */}
-      {sigmaSelectedNode && appSelectedNode && (
+      {sigmaSelectedNode && appSelectedNode && graphViewType !== 'architectural' && graphViewType !== 'city' && (
         <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 animate-slide-up items-center gap-2 rounded-xl border border-accent/30 bg-accent/20 px-4 py-2 backdrop-blur-sm">
           <div className="size-2 animate-pulse rounded-full bg-accent" />
           <span className="font-mono text-sm text-text-primary">
@@ -742,19 +748,6 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
       {/* Query FAB — solo disponible en la vista estructural */}
       {graphViewType === 'structural' && <QueryFAB />}
 
-      {/* AI FAB */}
-      <button
-        onClick={handleOpenAI}
-        className={`group absolute bottom-20 left-4 z-20 flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 ${
-          isRightPanelOpen
-            ? 'bg-accent shadow-[0_0_20px_rgba(139,92,246,0.5)]'
-            : 'bg-gradient-to-r from-accent to-accent-dim shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)]'
-        }`}
-        title={t.aiButtonTitle}
-      >
-        <Sparkles className="size-4" />
-        <span>AI Question</span>
-      </button>
 
       {/* Top Right: branding + AI Highlights toggle */}
       <div className="absolute top-4 right-4 z-20 flex items-center gap-3">

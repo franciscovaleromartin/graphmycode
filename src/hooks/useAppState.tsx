@@ -127,10 +127,16 @@ interface AppState {
   setSettingsPanelOpen: (open: boolean) => void;
   isSidebarCollapsed: boolean;
   setSidebarCollapsed: (v: boolean) => void;
+  isQueryPanelOpen: boolean;
+  setQueryPanelOpen: (v: boolean) => void;
   graphViewType: 'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow' | 'architectural';
   setGraphViewType: (v: 'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow' | 'architectural') => void;
   cityMetric: 'degree' | 'depth';
   setCityMetric: (v: 'degree' | 'depth') => void;
+  archImpactResult: { direct: number; hop1: number; transitive: number } | null;
+  setArchImpactResult: (r: { direct: number; hop1: number; transitive: number } | null) => void;
+  archPathResult: string[] | null;
+  setArchPathResult: (r: string[] | null) => void;
   externalDeps: Record<string, string[]>;
   setExternalDeps: (deps: Record<string, string[]>) => void;
   semanticClusterData: SemanticClusterEntry[] | null;
@@ -195,10 +201,13 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
   const [availableRepos, setAvailableRepos] = useState<BackendRepo[]>([]);
   const [isSettingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isQueryPanelOpen, setQueryPanelOpen] = useState(false);
   const [graphViewType, setGraphViewType] = useState<
     'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow' | 'architectural'
   >('structural');
   const [cityMetric, setCityMetric] = useState<'degree' | 'depth'>('degree');
+  const [archImpactResult, setArchImpactResult] = useState<{ direct: number; hop1: number; transitive: number } | null>(null);
+  const [archPathResult, setArchPathResult] = useState<string[] | null>(null);
   const [externalDeps, setExternalDeps] = useState<Record<string, string[]>>({});
   const [semanticClusterData, setSemanticClusterData] = useState<SemanticClusterEntry[] | null>(
     null,
@@ -480,10 +489,16 @@ const AppStateProviderInner = ({ children }: { children: ReactNode }) => {
     setSettingsPanelOpen,
     isSidebarCollapsed,
     setSidebarCollapsed,
+    isQueryPanelOpen,
+    setQueryPanelOpen,
     graphViewType,
     setGraphViewType,
     cityMetric,
     setCityMetric,
+    archImpactResult,
+    setArchImpactResult,
+    archPathResult,
+    setArchPathResult,
     externalDeps,
     setExternalDeps,
     semanticClusterData,
