@@ -30,7 +30,7 @@ interface ChatAgentDeps {
   projectName: string;
   graph: KnowledgeGraph | null;
   embeddingStatus: EmbeddingStatus;
-  graphViewType: 'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow';
+  graphViewType: 'structural' | 'semantic' | 'city' | 'heatmap' | 'codeflow' | 'architectural';
   cityMetric: 'degree' | 'depth';
   semanticClusterData: any[] | null;
   selectedNodeName: string | null;
