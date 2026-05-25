@@ -253,6 +253,32 @@ const CYPHER_CODE_STYLE: React.CSSProperties = {
   letterSpacing: '0.01em',
 };
 
+// ── FaqSection ────────────────────────────────────────────────────────────────
+
+const FaqSection = () => {
+  const t = useT();
+  return (
+    <div style={{
+      borderRadius: '14px', border: '1px solid #1e293b',
+      background: '#0c111d', padding: '18px 20px', marginTop: '10px',
+      position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '90px', height: '90px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,139,250,.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#64748b', marginBottom: '14px' }}>
+        {t.faqTitle}
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        {t.faqItems.map((item, i) => (
+          <div key={i}>
+            <p style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0', marginBottom: '4px', lineHeight: 1.4 }}>{item.q}</p>
+            <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.65, margin: 0 }}>{item.a}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ── AuthorSection ─────────────────────────────────────────────────────────────
 
 const AuthorSection = () => {
@@ -275,6 +301,12 @@ const AuthorSection = () => {
         <a href="https://convertertomarkdown.com" target="_blank" rel="noopener noreferrer" style={{ color: '#38bdf8', textDecoration: 'none' }}>
           {t.authorOtherProject}
         </a>.
+      </p>
+      <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.65, marginBottom: '12px' }}>
+        {t.authorGithubStar}{' '}
+        <a href="https://github.com/franciscovaleromartin/graphmycode" target="_blank" rel="noopener noreferrer" style={{ color: '#38bdf8', textDecoration: 'none' }}>
+          github.com/franciscovaleromartin/graphmycode
+        </a>
       </p>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <a href="https://www.linkedin.com/in/francisco-valero/" target="_blank" rel="noopener noreferrer"
@@ -673,6 +705,9 @@ export const LandingScreen = () => {
 
         {/* Tarjetas informativas */}
         <LandingCards />
+
+        {/* FAQ */}
+        <FaqSection />
 
         {/* Tarjeta del creador */}
         <AuthorSection />

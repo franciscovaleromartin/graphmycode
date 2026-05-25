@@ -161,11 +161,41 @@ const translations = {
     connected: 'Conectado',
     notConnected: 'No conectado',
 
+    // ── FAQ section ───────────────────────────────────────────────────────
+    faqTitle: 'Preguntas frecuentes',
+    faqItems: [
+      {
+        q: '¿Mi código se sube a algún servidor?',
+        a: 'No. Todo el análisis ocurre en tu navegador, en memoria. Al cerrar la pestaña, desaparece sin dejar rastro. Sin servidores, sin bases de datos, sin telemetría.',
+      },
+      {
+        q: '¿Qué lenguajes de programación soporta?',
+        a: 'TypeScript, JavaScript, Python, Java, Go, Rust, Ruby, PHP, C#, C, C++ y Swift. En total, 12 lenguajes.',
+      },
+      {
+        q: '¿Cuántos archivos puedo analizar?',
+        a: 'Hasta 250 archivos fuente por proyecto. Los archivos superiores a 200 KB se omiten automáticamente.',
+      },
+      {
+        q: '¿Puedo analizar repositorios privados?',
+        a: 'Con la opción ZIP, sí. Descarga tu repo como .zip y arrástralo aquí. La URL de GitHub solo funciona con repositorios públicos.',
+      },
+      {
+        q: '¿Es obligatorio usar la IA?',
+        a: 'No. Las seis vistas de visualización funcionan sin ninguna API key. La IA es completamente opcional y solo necesaria si quieres hacer preguntas sobre tu código.',
+      },
+      {
+        q: '¿Es gratis?',
+        a: 'Sí, completamente gratis para uso no comercial. Consulta la licencia PolyForm Noncommercial para más detalles.',
+      },
+    ],
+
     // ── Author section ────────────────────────────────────────────────────
     authorTitle: 'Sobre el creador',
     authorName: 'Francisco Valero',
     authorBio: 'Soy desarrollador independiente especializado en herramientas web de productividad. Construí GraphMyCode para explorar visualmente la arquitectura de proyectos de código, entender dependencias y navegar codebases complejas directamente en el navegador. Si te resulta útil, también puedes ver mi otro proyecto,',
     authorOtherProject: 'ConverterToMarkdown — convierte archivos a Markdown sin subir nada',
+    authorGithubStar: 'Si quieres agradecerme mi trabajo, puedes darme una estrella en GitHub, gracias.',
   },
 
   en: {
@@ -307,11 +337,41 @@ const translations = {
     connected: 'Connected',
     notConnected: 'Not connected',
 
+    // ── FAQ section ───────────────────────────────────────────────────────
+    faqTitle: 'Frequently asked questions',
+    faqItems: [
+      {
+        q: 'Is my code uploaded to a server?',
+        a: 'No. All analysis happens in your browser, in memory. When you close the tab, it disappears without a trace. No servers, no databases, no telemetry.',
+      },
+      {
+        q: 'Which programming languages are supported?',
+        a: 'TypeScript, JavaScript, Python, Java, Go, Rust, Ruby, PHP, C#, C, C++ and Swift — 12 languages in total.',
+      },
+      {
+        q: 'How many files can I analyze?',
+        a: 'Up to 250 source files per project. Files larger than 200 KB are automatically skipped.',
+      },
+      {
+        q: 'Can I analyze private repositories?',
+        a: 'Yes, with the ZIP option. Download your repo as a .zip and drop it here. The GitHub URL option only works with public repositories.',
+      },
+      {
+        q: 'Is the AI mandatory?',
+        a: 'No. All six visualization views work without any API key. AI is completely optional and only needed if you want to ask questions about your code.',
+      },
+      {
+        q: 'Is it free?',
+        a: 'Yes, completely free for non-commercial use. See the PolyForm Noncommercial license for details.',
+      },
+    ],
+
     // ── Author section ────────────────────────────────────────────────────
     authorTitle: 'About the creator',
     authorName: 'Francisco Valero',
     authorBio: "I'm an independent developer focused on web productivity tools. I built GraphMyCode to visually explore code architecture, understand dependencies, and navigate complex codebases directly in the browser. If you find it useful, also check out my other project,",
     authorOtherProject: 'ConverterToMarkdown — convert files to Markdown without uploading anything',
+    authorGithubStar: "If you'd like to show your appreciation, you can give me a star on GitHub, thanks.",
   },
 };
 
