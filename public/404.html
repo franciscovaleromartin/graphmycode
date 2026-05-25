@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Página no encontrada — GraphMyCode</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #080d18;
+      --surface:  #0c111d;
+      --border:   rgba(255,255,255,0.07);
+      --text-1:   #f1f5f9;
+      --text-2:   #94a3b8;
+      --text-3:   #475569;
+      --accent:   #e879f9;
+      --cyan:     #22d3ee;
+      --teal:     #2dd4bf;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text-2);
+      min-height: 100vh; display: flex; flex-direction: column;
+    }
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px;
+      background: rgba(8,13,24,0.88);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; color: var(--text-1); text-decoration: none; }
+    .logo .g { color: var(--accent); }
+    .logo .c { color: var(--cyan); }
+    main {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 24px; text-align: center;
+    }
+    .code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(64px, 15vw, 120px);
+      font-weight: 500;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 24px;
+      letter-spacing: -0.04em;
+    }
+    h1 {
+      font-size: clamp(18px, 3vw, 24px);
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+    p {
+      font-size: 14px;
+      color: var(--text-2);
+      max-width: 360px;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px;
+      background: rgba(232,121,249,0.08);
+      border: 1px solid rgba(232,121,249,0.2);
+      border-radius: 8px;
+      color: var(--accent);
+      font-size: 14px; font-weight: 500;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn:hover {
+      background: rgba(232,121,249,0.14);
+      border-color: rgba(232,121,249,0.35);
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 20px 24px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-3);
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <nav class="topbar">
+    <a href="/" class="logo"><span class="g">Graph</span>My<span class="c">Code</span></a>
+  </nav>
+
+  <main>
+    <div class="code">404</div>
+    <h1>Nodo no encontrado</h1>
+    <p>Esta página no existe en el grafo. Puede que la URL sea incorrecta o que el enlace haya cambiado.</p>
+    <a href="/" class="btn">← Volver a GraphMyCode</a>
+  </main>
+
+  <footer>© 2026 Francisco Valero</footer>
+</body>
+</html>

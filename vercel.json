@@ -3,6 +3,7 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "cleanUrls": true,
+  "error": [{ "statusCode": 404, "destination": "/404.html" }],
   "headers": [
     {
       "source": "/(.*)",
