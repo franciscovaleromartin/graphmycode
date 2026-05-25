@@ -443,7 +443,7 @@ export const Header = ({
       <div className="flex items-center gap-2">
         {/* Portfolio */}
         <a
-          href="https://www.franciscoo-valero.com"
+          href="https://francisco-valero.com"
           target="_blank"
           rel="noopener noreferrer"
           className="flex size-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"

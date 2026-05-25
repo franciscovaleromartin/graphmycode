@@ -48,13 +48,17 @@
       "applicationSubCategory": "Code Visualization",
       "operatingSystem": "Web Browser",
       "featureList": [
-        "Visualización 3D de grafos de dependencias",
-        "Análisis semántico de código con embeddings locales",
-        "Chat IA sobre el código (OpenAI, Gemini, Anthropic, Ollama)",
-        "Soporte para 15+ lenguajes (TypeScript, JavaScript, Python, Go, Rust, Java, PHP y más)",
-        "Detección de acoplamiento y dependencias circulares",
-        "Análisis de impacto de cambios",
-        "Funciona en el navegador sin instalación ni servidor"
+        "Grafo estructural de dependencias: visualización de imports/exports entre archivos, clases y funciones",
+        "Agrupación semántica 3D con embeddings locales (HuggingFace Transformers.js + UMAP)",
+        "Technical Debt City: mapa 3D donde la altura de cada edificio refleja la complejidad del archivo",
+        "Heatmap de dependencias: detección visual de acoplamiento excesivo y dependencias circulares",
+        "Code Flow: flowchart interactivo del flujo de ejecución, exportable como SVG",
+        "Architectural Layer: detección automática de capas (api, service, data, ui, utility, config, test) con visualización de dependencias inversas",
+        "Chat IA integrado (OpenAI, Gemini, Anthropic, Ollama)",
+        "Export Project Context: reduce contexto de ~100k a ~2k tokens para agentes de IA",
+        "Consultas Cypher compatibles con Neo4j sobre el grafo del codebase",
+        "Soporte para 13 lenguajes: TypeScript, JavaScript, Python, Go, Rust, Java, PHP, C, C++, C#, Swift, Kotlin, Ruby",
+        "100% local: código nunca sale del navegador salvo chat IA opcional"
       ],
       "screenshot": "https://graphmycode.com/og-image.png",
       "offers": {
@@ -71,7 +75,8 @@
         "url": "https://francisco-valero.com",
         "sameAs": [
           "https://github.com/franciscovaleromartin",
-          "https://francisco-valero.com"
+          "https://francisco-valero.com",
+          "https://www.linkedin.com/in/francisco-valero/"
         ]
       },
       "codeRepository": "https://github.com/franciscovaleromartin/graphmycode",
@@ -123,7 +128,8 @@
       },
       "sameAs": [
         "https://github.com/franciscovaleromartin",
-        "https://francisco-valero.com"
+        "https://francisco-valero.com",
+        "https://www.linkedin.com/in/francisco-valero/"
       ],
       "knowsAbout": ["Code Visualization", "Dependency Graphs", "Static Code Analysis", "React", "TypeScript", "Python", "Graph Theory", "WebAssembly", "Tree-sitter"]
     }
@@ -150,7 +156,10 @@
         "email": "correodefranciscovalero@gmail.com",
         "availableLanguage": ["Spanish", "English"]
       },
-      "sameAs": ["https://github.com/franciscovaleromartin/graphmycode"],
+      "sameAs": [
+        "https://github.com/franciscovaleromartin/graphmycode",
+        "https://www.linkedin.com/in/francisco-valero/"
+      ],
       "founder": {
         "@type": "Person",
         "name": "Francisco Valero",
@@ -172,6 +181,64 @@
         "url": "https://francisco-valero.com"
       },
       "inLanguage": "es"
+    }
+    </script>
+
+    <!-- Schema: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "¿Mi código se sube a algún servidor?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Todo el análisis ocurre en tu navegador, en memoria. Al cerrar la pestaña, desaparece sin dejar rastro. Sin servidores, sin bases de datos, sin telemetría."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Qué lenguajes de programación soporta GraphMyCode?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "TypeScript, JavaScript, Python, Java, Go, Rust, Ruby, PHP, C#, C, C++ y Swift. En total, 12 lenguajes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cuántos archivos puedo analizar con GraphMyCode?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Hasta 250 archivos fuente por proyecto. Los archivos superiores a 200 KB se omiten automáticamente."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Puedo analizar repositorios privados con GraphMyCode?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Con la opción ZIP, sí. Descarga tu repo como .zip y arrástralo en la página. La URL de GitHub solo funciona con repositorios públicos."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Es obligatorio usar la IA en GraphMyCode?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Las seis vistas de visualización funcionan sin ninguna API key. La IA es completamente opcional y solo necesaria si quieres hacer preguntas sobre tu código."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿GraphMyCode es gratis?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sí, completamente gratis para uso no comercial bajo la licencia PolyForm Noncommercial 1.0.0."
+          }
+        }
+      ]
     }
     </script>
 

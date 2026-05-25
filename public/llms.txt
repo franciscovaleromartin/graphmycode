@@ -58,6 +58,7 @@ Tu código nunca sale de tu navegador salvo cuando activas el chat IA con un pro
 Francisco Valero — Software Developer
 - Portfolio: https://francisco-valero.com
 - GitHub: https://github.com/franciscovaleromartin
+- LinkedIn: https://www.linkedin.com/in/francisco-valero/
 - Email: correodefranciscovalero@gmail.com
 
 ## Repositorio
