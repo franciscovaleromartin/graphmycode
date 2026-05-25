@@ -12,6 +12,9 @@
   <meta property="og:title" content="Cómo funciona GraphMyCode — Visualización de dependencias en el navegador" />
   <meta property="og:description" content="Pipeline completo: upload → AST parsing con tree-sitter WASM → grafo de dependencias → visualización 3D → agrupación semántica → chat IA. Todo en el navegador." />
   <meta property="og:image" content="https://graphmycode.com/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="es_ES" />
   <meta property="og:site_name" content="GraphMyCode" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://graphmycode.com/como-funciona" />
@@ -28,7 +31,8 @@
     "description": "GraphMyCode analiza repositorios de código en el navegador usando WebAssembly y tree-sitter, construye un grafo de dependencias y lo visualiza en 3D con soporte para 15+ lenguajes.",
     "url": "https://graphmycode.com/como-funciona",
     "datePublished": "2026-05-02",
-    "dateModified": "2026-05-15",
+    "dateModified": "2026-05-25",
+    "inLanguage": "es",
     "author": {
       "@type": "Person",
       "name": "Francisco Valero",
@@ -37,14 +41,32 @@
     "publisher": {
       "@type": "Organization",
       "name": "GraphMyCode",
-      "url": "https://graphmycode.com"
+      "url": "https://graphmycode.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://graphmycode.com/favicon.png"
+      }
+    },
+    "image": {
+      "@type": "ImageObject",
+      "url": "https://graphmycode.com/og-image.png",
+      "width": 1200,
+      "height": 630
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://graphmycode.com/como-funciona"
     },
     "about": {
       "@type": "SoftwareApplication",
       "name": "GraphMyCode",
       "url": "https://graphmycode.com"
     },
-    "keywords": "code visualization, dependency graph, tree-sitter, WebAssembly, AST parsing, 3D graph, code analysis"
+    "keywords": "code visualization, dependency graph, tree-sitter, WebAssembly, AST parsing, 3D graph, code analysis, architectural layers",
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": ["h1", "h2", "p"]
+    }
   }
   </script>
   <script type="application/ld+json">
@@ -84,7 +106,7 @@
         "@type": "HowToStep",
         "position": 4,
         "name": "Layout y visualización",
-        "text": "ForceAtlas2 calcula el layout del grafo mediante simulación de fuerzas: los nodos más relacionados se atraen entre sí, los independientes se repelen. El resultado revela la arquitectura real del proyecto. GraphMyCode ofrece cinco modos de visualización: grafo estructural, agrupación semántica 3D, Technical Debt City, heatmap de dependencias y Code Flow.",
+        "text": "ForceAtlas2 calcula el layout del grafo mediante simulación de fuerzas: los nodos más relacionados se atraen entre sí, los independientes se repelen. El resultado revela la arquitectura real del proyecto. GraphMyCode ofrece seis modos de visualización: grafo estructural, agrupación semántica 3D, Technical Debt City, heatmap de dependencias, Code Flow y Architectural Layer.",
         "url": "https://graphmycode.com/como-funciona#paso-4"
       },
       {
@@ -338,13 +360,14 @@
         <div class="step-body">
           <h2>Layout y visualización</h2>
           <p><strong style="color:var(--text-1)">ForceAtlas2</strong> calcula el layout del grafo mediante simulación de fuerzas: los nodos más relacionados se atraen entre sí, los independientes se repelen. El resultado es una distribución que revela la arquitectura real del proyecto.</p>
-          <p>GraphMyCode ofrece cinco modos de visualización:</p>
+          <p>GraphMyCode ofrece seis modos de visualización:</p>
           <div class="lang-grid" style="margin-top: 10px;">
             <span class="lang-pill">🕸️ Grafo estructural</span>
             <span class="lang-pill">🧠 Agrupación semántica 3D</span>
             <span class="lang-pill">🏙️ Technical Debt City</span>
             <span class="lang-pill">🔥 Heatmap de dependencias</span>
             <span class="lang-pill">🔀 Code Flow</span>
+            <span class="lang-pill">🏗️ Architectural Layer</span>
           </div>
         </div>
       </div>

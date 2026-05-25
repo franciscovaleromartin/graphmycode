@@ -6,7 +6,7 @@
     <title>GraphMyCode.com — Visualiza y entiende tu código como un grafo</title>
 
     <!-- SEO básico -->
-    <meta name="description" content="GraphMyCode visualiza cualquier repositorio como un grafo 3D de dependencias. Navega, detecta acoplamiento, analiza impacto e interroga tu código con IA. Sin instalación." />
+    <meta name="description" content="GraphMyCode turns any repository into a 3D dependency graph. Navigate files, detect coupling, analyze impact and query your code with AI. No installation." />
     <meta name="keywords" content="code graph, dependency graph, code visualization, semantic code analysis, codebase explorer, AI code assistant, knowledge graph" />
     <meta name="author" content="Francisco Valero" />
     <link rel="canonical" href="https://graphmycode.com" />
@@ -62,7 +62,7 @@
         "price": "0",
         "priceCurrency": "USD",
         "description": "Gratuito para uso no comercial bajo licencia PolyForm-Noncommercial-1.0.0",
-        "availability": "https://schema.org/OnlineOnly"
+        "availability": "https://schema.org/InStock"
       },
       "license": "https://polyformproject.org/licenses/noncommercial/1.0.0/",
       "creator": {
@@ -115,13 +115,17 @@
       "@type": "Person",
       "name": "Francisco Valero",
       "url": "https://francisco-valero.com",
-      "email": "correodefranciscovalero@gmail.com",
       "jobTitle": "Software Developer",
+      "worksFor": {
+        "@type": "Organization",
+        "name": "GraphMyCode",
+        "url": "https://graphmycode.com"
+      },
       "sameAs": [
         "https://github.com/franciscovaleromartin",
         "https://francisco-valero.com"
       ],
-      "knowsAbout": ["Code Visualization", "Dependency Graphs", "Static Code Analysis", "React", "TypeScript", "Python", "Graph Theory"]
+      "knowsAbout": ["Code Visualization", "Dependency Graphs", "Static Code Analysis", "React", "TypeScript", "Python", "Graph Theory", "WebAssembly", "Tree-sitter"]
     }
     </script>
 
@@ -133,7 +137,19 @@
       "name": "GraphMyCode",
       "url": "https://graphmycode.com",
       "description": "Herramienta web que convierte repositorios de código en grafos interactivos de dependencias 3D con análisis semántico e inteligencia artificial.",
-      "email": "correodefranciscovalero@gmail.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://graphmycode.com/favicon.png",
+        "width": 512,
+        "height": 512
+      },
+      "foundingDate": "2026",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "correodefranciscovalero@gmail.com",
+        "availableLanguage": ["Spanish", "English"]
+      },
       "sameAs": ["https://github.com/franciscovaleromartin/graphmycode"],
       "founder": {
         "@type": "Person",
@@ -213,6 +229,7 @@
           <li><strong>Technical Debt City:</strong> representa cada archivo como un edificio 3D cuya altura indica su complejidad y acoplamiento.</li>
           <li><strong>Heatmap de dependencias:</strong> colorea los nodos según el número de imports entrantes para detectar acoplamiento excesivo y dependencias circulares.</li>
           <li><strong>Code Flow:</strong> genera un flowchart interactivo del flujo de ejecución de cualquier archivo, exportable como SVG.</li>
+          <li><strong>Architectural Layer:</strong> detecta automáticamente las capas del proyecto (api, service, data, ui, utility, config, test) en carriles paralelos. Las dependencias inversas aparecen en naranja para detectar violaciones arquitectónicas al instante.</li>
         </ul>
 
         <h2>Export Project Context — Contexto para agentes de IA</h2>

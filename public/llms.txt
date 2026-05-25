@@ -13,6 +13,7 @@ GraphMyCode es una herramienta web de visualización de código que analiza repo
 - Technical Debt City: vista 3D estilo mapa de ciudad para identificar zonas de deuda técnica (la altura de cada "edificio" refleja la complejidad del archivo)
 - Heatmap de dependencias: detección visual de imports circulares y acoplamiento alto
 - Code Flow: flowchart interactivo del flujo de ejecución de cualquier archivo, exportable como SVG
+- Architectural Layer: detecta automáticamente las capas del proyecto (api, service, data, ui, utility, config, test) en carriles paralelos; resalta dependencias inversas (violaciones arquitectónicas) en naranja; incluye modo impacto con propagación directa/transitiva y Path Finder entre nodos
 - Chat IA integrado: preguntas en lenguaje natural sobre el código con soporte a OpenAI, Gemini, Anthropic y Ollama
 - Análisis de impacto: qué archivos se ven afectados al modificar uno dado
 - Consultas Cypher: lenguaje de consultas compatible con Neo4j para interrogar el grafo del codebase
@@ -49,7 +50,7 @@ Tu código nunca sale de tu navegador salvo cuando activas el chat IA con un pro
 
 - https://graphmycode.com/ — Homepage: descripción del producto, demo, características principales y llamadas a la acción
 - https://graphmycode.com/como-funciona — Pipeline técnico completo: upload → AST parsing con tree-sitter WASM → grafo de conocimiento → layout ForceAtlas2 → modos de visualización → agrupación semántica → chat IA → export de contexto
-- https://graphmycode.com/casos-de-uso — 10 casos de uso detallados: onboarding, análisis GitHub, acoplamiento, refactoring, code review, open-source, deuda técnica, Code Flow, contexto para IA, consultas Cypher
+- https://graphmycode.com/casos-de-uso — 11 casos de uso detallados: onboarding, análisis GitHub, acoplamiento, refactoring, code review, open-source, deuda técnica, Code Flow, contexto para IA, Architectural Layer, consultas Cypher
 - https://graphmycode.com/privacy — Política de privacidad: procesamiento 100% local, sin almacenamiento de código, analytics anónimos con Vercel Analytics
 
 ## Autor
