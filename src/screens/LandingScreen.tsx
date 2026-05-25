@@ -303,10 +303,11 @@ const AuthorSection = () => {
         </a>.
       </p>
       <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.65, marginBottom: '12px' }}>
-        {t.authorGithubStar}{' '}
+        Si quieres agradecerme mi trabajo, puedes{' '}
         <a href="https://github.com/franciscovaleromartin/graphmycode" target="_blank" rel="noopener noreferrer" style={{ color: '#38bdf8', textDecoration: 'none' }}>
-          github.com/franciscovaleromartin/graphmycode
+          darme una estrella en GitHub
         </a>
+        , gracias.
       </p>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <a href="https://www.linkedin.com/in/francisco-valero/" target="_blank" rel="noopener noreferrer"
