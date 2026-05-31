@@ -99,6 +99,10 @@ const translations = {
     cardsExportTitle: 'Exporta el contexto de tu proyecto',
     cardsExportBody: 'Un clic genera project-context.md con los nodos más conectados, la estructura de carpetas, las dependencias externas y los grupos de código detectados — listo para pegarlo en CLAUDE.md o pasárselo a tu agente de IA.',
     cardsExportBenefit: 'La ventaja principal es reducir tokens y mejorar la calidad de respuesta del agente. Con el .md en CLAUDE.md, el agente arranca sabiendo qué archivos son más importantes, qué hace cada capa, qué stack usa y cuáles son los entry points clave.',
+    cardsMcpTag: 'Claude Code · MCP',
+    cardsMcpTitle: 'Úsalo directamente desde Claude Code',
+    cardsMcpBody: 'Si usas Claude Code, instala el servidor MCP oficial y tendrás las herramientas de GraphMyCode disponibles como tools nativas en tu agente. Analiza estructura, detecta el stack o exporta contexto sin salir del terminal.',
+    cardsMcpInstall: 'npm install -g graphmycode-mcp',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',
@@ -278,6 +282,10 @@ const translations = {
     cardsExportTitle: 'Export your project context',
     cardsExportBody: 'One click generates project-context.md with the most connected nodes, folder structure, external dependencies and detected code communities — ready to paste into CLAUDE.md or hand off to your AI agent.',
     cardsExportBenefit: 'The main advantage: fewer tokens, better agent responses. With the .md in CLAUDE.md, your agent knows from message one which files matter most, what each layer does, the stack in use and the key entry points.',
+    cardsMcpTag: 'Claude Code · MCP',
+    cardsMcpTitle: 'Use it directly from Claude Code',
+    cardsMcpBody: 'If you use Claude Code, install the official MCP server and get GraphMyCode tools available as native tools in your agent. Analyze structure, detect the stack, or export context without leaving the terminal.',
+    cardsMcpInstall: 'npm install -g graphmycode-mcp',
 
     // ── SidePanel ────────────────────────────────────────────────────────
     statsTitle: 'Stats',

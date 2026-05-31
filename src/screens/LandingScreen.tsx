@@ -173,6 +173,24 @@ const LandingCards = () => {
         </p>
       </div>
 
+      {/* ── MCP / Claude Code card ── */}
+      <div style={CARD_STYLE}>
+        <div style={{ ...GLOW_BASE, width: '110px', height: '110px', background: 'radial-gradient(circle, rgba(251,146,60,.15) 0%, transparent 70%)' }} />
+        <div style={{ ...ICON_BOX_BASE, background: 'rgba(251,146,60,.1)', border: '1px solid rgba(251,146,60,.2)', fontSize: '16px' }}>⚡</div>
+        <span style={{ ...TAG_BASE, background: 'rgba(251,146,60,.08)', color: '#fb923c', border: '1px solid rgba(251,146,60,.22)' }}>
+          {t.cardsMcpTag}
+        </span>
+        <p style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px', lineHeight: 1.35 }}>
+          {t.cardsMcpTitle}
+        </p>
+        <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.6, marginBottom: '12px' }}>
+          {t.cardsMcpBody}
+        </p>
+        <code style={{ ...CYPHER_CODE_STYLE, color: '#fb923c', background: 'rgba(251,146,60,.06)', border: '1px solid rgba(251,146,60,.18)' }}>
+          {t.cardsMcpInstall}
+        </code>
+      </div>
+
       {/* ── Pair row ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
 
