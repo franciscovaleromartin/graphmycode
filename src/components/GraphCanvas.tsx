@@ -105,6 +105,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
   const [isDiffModeActive, setIsDiffModeActive] = useState(false);
   const architecturalRef = useRef<ArchitecturalLayersViewHandle>(null);
   const [heatmapFilter, setHeatmapFilter] = useState<'all' | 'hot' | 'cold'>('all');
+  const [sqlMode, setSqlMode] = useState(false);
 
   const effectiveHighlightedNodeIds = useMemo(() => {
     if (!isAIHighlightsEnabled) return highlightedNodeIds;
@@ -131,6 +132,11 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
     if (!isAIHighlightsEnabled) return new Map();
     return animatedNodes;
   }, [animatedNodes, isAIHighlightsEnabled]);
+
+  const hasSqlNodes = useMemo(
+    () => graph?.nodes.some(n => ['SqlTable', 'SqlColumn', 'SqlView', 'SqlProc'].includes(n.label)) ?? false,
+    [graph],
+  );
 
   const nodeById = useMemo(() => {
     if (!graph) return new Map<string, GraphNode>();
@@ -229,6 +235,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
     }),
     [focusNode, graph, nodeById, setSelectedNode, openCodePanel],
   );
+
+  useEffect(() => {
+    setSqlMode(false);
+  }, [graph]);
 
   // Update Sigma graph when KnowledgeGraph changes or external layer toggle changes
   useEffect(() => {
@@ -392,6 +402,23 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
               +
             </button>
           </div>
+
+          {/* Separador */}
+          <div className="w-px h-4 bg-border-subtle" />
+
+          {/* Toggle SQL Embedding */}
+          <button
+            onClick={() => hasSqlNodes && setSqlMode(v => !v)}
+            disabled={!hasSqlNodes}
+            className={`flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-medium transition-colors ${
+              sqlMode && hasSqlNodes
+                ? 'bg-violet-500/20 text-violet-300 border border-violet-500/50'
+                : 'text-text-muted hover:text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed'
+            }`}
+            title={hasSqlNodes ? 'Mostrar solo nodos SQL' : 'No hay archivos .sql en este proyecto'}
+          >
+            Embedding
+          </button>
         </div>
       )}
 
@@ -572,6 +599,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
             nodes={graph.nodes}
             onClustersReady={setSemanticClusterData}
             topN={semanticTopN}
+            sqlMode={sqlMode}
           />
         </div>
       )}

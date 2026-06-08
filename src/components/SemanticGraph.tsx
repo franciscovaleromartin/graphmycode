@@ -43,16 +43,19 @@ const ZOOM_FACTOR = 0.7;
 /** Posición de cámara por defecto de Plotly 3D */
 const DEFAULT_EYE = { x: 1.25, y: 1.25, z: 1.25 };
 
+const SQL_LABELS = ['SqlTable', 'SqlColumn', 'SqlView', 'SqlProc'] as const;
+
 // ─── Componente ───────────────────────────────────────────────────────────
 
 interface Props {
   nodes: GraphNode[];
   onClustersReady?: (data: SemanticClusterEntry[]) => void;
   topN?: number;
+  sqlMode?: boolean;
 }
 
 export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
-  ({ nodes, onClustersReady, topN = 10 }, ref) => {
+  ({ nodes, onClustersReady, topN = 10, sqlMode = false }, ref) => {
     const [state, setState] = useState<SemanticState>({ status: 'loading-model', percent: 0 });
     const [showFallback, setShowFallback] = useState(false);
     const plotRef = useRef<HTMLDivElement>(null);
@@ -292,8 +295,15 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
         try {
           setState({ status: 'loading-model', percent: 0 });
 
+          const filteredNodes = sqlMode
+            ? nodes.filter(n =>
+                (SQL_LABELS as readonly string[]).includes(n.label) ||
+                (n.label === 'File' && typeof n.properties.filePath === 'string' && n.properties.filePath.toLowerCase().endsWith('.sql'))
+              )
+            : nodes;
+
           const semNodes = await generateSemanticEmbeddings(
-            nodes,
+            filteredNodes,
             (percent) => setState({ status: 'loading-model', percent }),
             (processed, total) => setState({ status: 'embedding', processed, total }),
             forceDevice,
@@ -361,7 +371,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
           }
         }
       },
-      [nodes, renderPlot, onClustersReady],
+      [nodes, renderPlot, onClustersReady, sqlMode],
     );
 
     useEffect(() => {
