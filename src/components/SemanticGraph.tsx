@@ -77,6 +77,10 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
     const plotlyRef = useRef<any>(null);
     const cameraEyeRef = useRef({ ...DEFAULT_EYE });
 
+    // Ref sincrónico para leer sqlMode dentro de handleLoad sin incluirlo en deps
+    const sqlModeRef = useRef(sqlMode);
+    sqlModeRef.current = sqlMode;
+
     // ── Zoom imperativo ─────────────────────────────────────────────────
     useImperativeHandle(ref, () => ({
       zoomIn: () => {
@@ -295,7 +299,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
         try {
           setState({ status: 'loading-model', percent: 0 });
 
-          const filteredNodes = sqlMode
+          const filteredNodes = sqlModeRef.current
             ? nodes.filter(n =>
                 (SQL_LABELS as readonly string[]).includes(n.label) ||
                 (n.label === 'File' && typeof n.properties.filePath === 'string' && n.properties.filePath.toLowerCase().endsWith('.sql'))
@@ -371,7 +375,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
           }
         }
       },
-      [nodes, renderPlot, onClustersReady, sqlMode],
+      [nodes, renderPlot, onClustersReady],
     );
 
     useEffect(() => {
@@ -386,10 +390,12 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Relanzar pipeline cuando cambia sqlMode (alternar modo Embedding)
-    const isMountedRef = useRef(false);
+    // Ref sincrónico para llamar al handleLoad más reciente sin incluirlo en deps de effects
     const handleLoadRef = useRef(handleLoad);
-    useEffect(() => { handleLoadRef.current = handleLoad; }, [handleLoad]);
+    handleLoadRef.current = handleLoad;
+
+    // Relanzar pipeline cuando cambia sqlMode (alternar modo Embedding), saltar montaje inicial
+    const isMountedRef = useRef(false);
     useEffect(() => {
       if (!isMountedRef.current) {
         isMountedRef.current = true;
