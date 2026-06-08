@@ -11,6 +11,7 @@ import { processCalls } from './call-processor';
 import { processHeritage } from './heritage-processor';
 import { processCommunities, CommunityDetectionResult } from './community-processor';
 import { processProcesses, ProcessDetectionResult } from './process-processor';
+import { processSql } from './sql-processor';
 import { createSymbolTable } from './symbol-table';
 import { createASTCache } from './ast-cache';
 import { PipelineProgress, PipelineResult } from '../../types/pipeline';
@@ -109,6 +110,9 @@ export const runPipelineFromFiles = async (
     });
   });
 
+
+  // SQL Processing (after parsing, synchronous)
+  processSql(graph, files);
 
   // Phase 4: Imports (70-82%)
   onProgress({
