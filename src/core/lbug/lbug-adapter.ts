@@ -324,6 +324,8 @@ const BACKTICK_TABLES = new Set([
   'Constructor', 'Template', 'Module',
   // Reserved/ambiguous identifiers that need quoting
   'File',
+  // SQL support
+  'SqlTable', 'SqlColumn', 'SqlView', 'SqlProc',
 ]);
 
 const escapeTableName = (table: string): string => {
