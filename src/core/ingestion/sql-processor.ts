@@ -80,6 +80,35 @@ export const processSql = (
       }
     }
 
+    for (const row of result.rows) {
+      const tableId = generateId('SqlTable', `${file.path}:${row.tableName}`);
+      const tableExists = graph.nodes.some(n => n.id === tableId);
+      if (!tableExists) continue;
+
+      const rowId = generateId('SqlRow', `${file.path}:${row.tableName}[${row.rowIndex}]`);
+
+      graph.addNode({
+        id: rowId,
+        label: 'SqlRow' as any,
+        properties: {
+          name: `${row.tableName}[${row.rowIndex}]`,
+          filePath: file.path,
+          startLine: row.line,
+          endLine: row.line,
+          content: row.content.slice(0, 500),
+        },
+      });
+
+      graph.addRelationship({
+        id: generateId('CONTAINS', `${tableId}->${rowId}`),
+        sourceId: tableId,
+        targetId: rowId,
+        type: 'CONTAINS',
+        confidence: 1.0,
+        reason: '',
+      });
+    }
+
     for (const view of result.views) {
       const viewId = generateId('SqlView', `${file.path}:${view.name}`);
       graph.addNode({

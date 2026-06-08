@@ -22,7 +22,7 @@ export const NODE_TABLES = [
   'Struct', 'Enum', 'Macro', 'Typedef', 'Union', 'Namespace', 'Trait', 'Impl',
   'TypeAlias', 'Const', 'Static', 'Property', 'Record', 'Delegate', 'Annotation', 'Constructor', 'Template', 'Module',
   // SQL support
-  'SqlTable', 'SqlColumn', 'SqlView', 'SqlProc',
+  'SqlTable', 'SqlColumn', 'SqlView', 'SqlProc', 'SqlRow',
 ] as const;
 export type NodeTableName = typeof NODE_TABLES[number];
 
@@ -198,6 +198,7 @@ export const SQL_TABLE_SCHEMA = CODE_ELEMENT_BASE('SqlTable');
 export const SQL_COLUMN_SCHEMA = CODE_ELEMENT_BASE('SqlColumn');
 export const SQL_VIEW_SCHEMA = CODE_ELEMENT_BASE('SqlView');
 export const SQL_PROC_SCHEMA = CODE_ELEMENT_BASE('SqlProc');
+export const SQL_ROW_SCHEMA = CODE_ELEMENT_BASE('SqlRow');
 
 // ============================================================================
 // RELATION TABLE SCHEMA
@@ -357,10 +358,12 @@ CREATE REL TABLE ${REL_TABLE_NAME} (
   FROM File TO \`SqlProc\`,
   FROM \`SqlTable\` TO \`SqlColumn\`,
   FROM \`SqlTable\` TO \`SqlTable\`,
+  FROM \`SqlTable\` TO \`SqlRow\`,
   FROM \`SqlTable\` TO Community,
   FROM \`SqlColumn\` TO Community,
   FROM \`SqlView\` TO Community,
   FROM \`SqlProc\` TO Community,
+  FROM \`SqlRow\` TO Community,
   type STRING,
   confidence DOUBLE,
   reason STRING,
@@ -426,6 +429,7 @@ export const NODE_SCHEMA_QUERIES = [
   SQL_COLUMN_SCHEMA,
   SQL_VIEW_SCHEMA,
   SQL_PROC_SCHEMA,
+  SQL_ROW_SCHEMA,
 ];
 
 export const REL_SCHEMA_QUERIES = [

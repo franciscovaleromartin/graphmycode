@@ -34,10 +34,20 @@ export interface SqlProc {
   content: string;
 }
 
+export interface SqlRow {
+  tableName: string;
+  columns: string[];
+  values: string[];
+  rowIndex: number;
+  line: number;
+  content: string;
+}
+
 export interface SqlParseResult {
   tables: SqlTable[];
   views: SqlView[];
   procs: SqlProc[];
+  rows: SqlRow[];
 }
 
 const stripName = (raw: string): string =>
@@ -120,10 +130,99 @@ const parseColumns = (
   return { columns, foreignKeys };
 };
 
+// Extrae los valores de un par de paréntesis respetando strings y anidamiento
+const extractTupleValues = (sql: string, start: number): { values: string[]; end: number } => {
+  const values: string[] = [];
+  let i = start + 1; // skip '('
+  let current = '';
+  let depth = 0;
+  let inStr = false;
+  let strChar = '';
+
+  while (i < sql.length) {
+    const ch = sql[i];
+    if (inStr) {
+      if (ch === strChar && sql[i - 1] !== '\\') inStr = false;
+      current += ch;
+    } else if (ch === "'" || ch === '"') {
+      inStr = true;
+      strChar = ch;
+      current += ch;
+    } else if (ch === '(') {
+      depth++;
+      current += ch;
+    } else if (ch === ')') {
+      if (depth === 0) {
+        values.push(current.trim());
+        return { values, end: i + 1 };
+      }
+      depth--;
+      current += ch;
+    } else if (ch === ',' && depth === 0) {
+      values.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+    i++;
+  }
+  return { values, end: i };
+};
+
+// Límite para evitar saturar el grafo con ficheros de volcado muy grandes
+const MAX_ROWS_PER_FILE = 500;
+
+const parseInserts = (sql: string): SqlRow[] => {
+  const rows: SqlRow[] = [];
+  // INSERT INTO `table` (col, ...) VALUES (...), (...);
+  const headerRe = /INSERT\s+INTO\s+[`"]?(\w+)[`"]?\s*(?:\(([^)]*)\))?\s*VALUES\s*/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = headerRe.exec(sql)) !== null && rows.length < MAX_ROWS_PER_FILE) {
+    const tableName = stripName(match[1]);
+    const columns = match[2]
+      ? match[2].split(',').map(c => stripName(c))
+      : [];
+    const line = getLineNumber(sql, match.index);
+
+    let pos = headerRe.lastIndex;
+    let rowIndex = 0;
+
+    // Iterar sobre cada tupla de VALUES separadas por comas
+    while (pos < sql.length && rows.length < MAX_ROWS_PER_FILE) {
+      // Saltar espacios y comas entre tuplas
+      while (pos < sql.length && /[\s,]/.test(sql[pos])) pos++;
+      if (pos >= sql.length || sql[pos] !== '(') break;
+
+      const { values, end } = extractTupleValues(sql, pos);
+      pos = end;
+
+      // Formatear contenido para embedding: "tabla: col=val, col=val"
+      const pairs = values.map((v, idx) =>
+        columns[idx] ? `${columns[idx]}=${v}` : v
+      );
+      const content = `${tableName}: ${pairs.join(', ')}`;
+
+      rows.push({ tableName, columns, values, rowIndex, line, content });
+      rowIndex++;
+
+      // Saltar espacios; si lo siguiente es ';' o algo que no sea ',' ni '(' → fin del INSERT
+      let lookahead = pos;
+      while (lookahead < sql.length && /\s/.test(sql[lookahead])) lookahead++;
+      if (sql[lookahead] !== ',') break;
+    }
+
+    headerRe.lastIndex = pos;
+  }
+
+  return rows;
+};
+
 export const parseSql = (sql: string, _filePath: string): SqlParseResult => {
   const tables: SqlTable[] = [];
   const views: SqlView[] = [];
   const procs: SqlProc[] = [];
+  const rows: SqlRow[] = [];
 
   const tableRegex = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["'\`]?(\w+)["'\`]?\s*\(/gi;
   let match: RegExpExecArray | null;
@@ -160,5 +259,7 @@ export const parseSql = (sql: string, _filePath: string): SqlParseResult => {
     procs.push({ name, kind, line, content });
   }
 
-  return { tables, views, procs };
+  rows.push(...parseInserts(sql));
+
+  return { tables, views, procs, rows };
 };

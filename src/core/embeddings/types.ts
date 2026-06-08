@@ -23,6 +23,7 @@ export const EMBEDDABLE_LABELS = [
   'SqlColumn',
   'SqlView',
   'SqlProc',
+  'SqlRow',
 ] as const;
 
 type EmbeddableLabel = typeof EMBEDDABLE_LABELS[number];

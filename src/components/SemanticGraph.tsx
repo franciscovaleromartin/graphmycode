@@ -43,7 +43,7 @@ const ZOOM_FACTOR = 0.7;
 /** Posición de cámara por defecto de Plotly 3D */
 const DEFAULT_EYE = { x: 1.25, y: 1.25, z: 1.25 };
 
-const SQL_LABELS = ['SqlTable', 'SqlColumn', 'SqlView', 'SqlProc'] as const;
+const SQL_LABELS = ['SqlTable', 'SqlColumn', 'SqlView', 'SqlProc', 'SqlRow'] as const;
 
 // ─── Componente ───────────────────────────────────────────────────────────
 
