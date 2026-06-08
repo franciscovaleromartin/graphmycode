@@ -14,10 +14,15 @@
  */
 export const EMBEDDABLE_LABELS = [
   'Function',
-  'Class', 
+  'Class',
   'Method',
   'Interface',
   'File',
+  // SQL support
+  'SqlTable',
+  'SqlColumn',
+  'SqlView',
+  'SqlProc',
 ] as const;
 
 type EmbeddableLabel = typeof EMBEDDABLE_LABELS[number];
