@@ -20,7 +20,9 @@ export const NODE_TABLES = [
   'File', 'Folder', 'Function', 'Class', 'Interface', 'Method', 'CodeElement', 'Community', 'Process',
   // Multi-language support
   'Struct', 'Enum', 'Macro', 'Typedef', 'Union', 'Namespace', 'Trait', 'Impl',
-  'TypeAlias', 'Const', 'Static', 'Property', 'Record', 'Delegate', 'Annotation', 'Constructor', 'Template', 'Module'
+  'TypeAlias', 'Const', 'Static', 'Property', 'Record', 'Delegate', 'Annotation', 'Constructor', 'Template', 'Module',
+  // SQL support
+  'SqlTable', 'SqlColumn', 'SqlView', 'SqlProc',
 ] as const;
 export type NodeTableName = typeof NODE_TABLES[number];
 
@@ -189,6 +191,15 @@ export const TEMPLATE_SCHEMA = CODE_ELEMENT_BASE('Template');
 export const MODULE_SCHEMA = CODE_ELEMENT_BASE('Module');
 
 // ============================================================================
+// SQL NODE TABLE SCHEMAS
+// ============================================================================
+
+export const SQL_TABLE_SCHEMA = CODE_ELEMENT_BASE('SqlTable');
+export const SQL_COLUMN_SCHEMA = CODE_ELEMENT_BASE('SqlColumn');
+export const SQL_VIEW_SCHEMA = CODE_ELEMENT_BASE('SqlView');
+export const SQL_PROC_SCHEMA = CODE_ELEMENT_BASE('SqlProc');
+
+// ============================================================================
 // RELATION TABLE SCHEMA
 // Single table with 'type' property - connects all node tables
 // ============================================================================
@@ -341,6 +352,15 @@ CREATE REL TABLE ${REL_TABLE_NAME} (
   FROM \`Annotation\` TO Process,
   FROM \`Template\` TO Process,
   FROM CodeElement TO Process,
+  FROM File TO \`SqlTable\`,
+  FROM File TO \`SqlView\`,
+  FROM File TO \`SqlProc\`,
+  FROM \`SqlTable\` TO \`SqlColumn\`,
+  FROM \`SqlTable\` TO \`SqlTable\`,
+  FROM \`SqlTable\` TO Community,
+  FROM \`SqlColumn\` TO Community,
+  FROM \`SqlView\` TO Community,
+  FROM \`SqlProc\` TO Community,
   type STRING,
   confidence DOUBLE,
   reason STRING,
@@ -401,6 +421,11 @@ export const NODE_SCHEMA_QUERIES = [
   CONSTRUCTOR_SCHEMA,
   TEMPLATE_SCHEMA,
   MODULE_SCHEMA,
+  // SQL support
+  SQL_TABLE_SCHEMA,
+  SQL_COLUMN_SCHEMA,
+  SQL_VIEW_SCHEMA,
+  SQL_PROC_SCHEMA,
 ];
 
 export const REL_SCHEMA_QUERIES = [
