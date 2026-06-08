@@ -386,6 +386,16 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Relanzar pipeline cuando cambia sqlMode (alternar modo Embedding)
+    const isMountedRef = useRef(false);
+    useEffect(() => {
+      if (!isMountedRef.current) {
+        isMountedRef.current = true;
+        return;
+      }
+      handleLoad();
+    }, [sqlMode, handleLoad]);
+
     // ── Estados de carga — diseño igual a LoadingOverlay ─────────────
 
     const loadingContent = (() => {
