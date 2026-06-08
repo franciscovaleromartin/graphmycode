@@ -16,6 +16,7 @@ describe('parseSql', () => {
     expect(result.tables[0].columns).toHaveLength(3);
     expect(result.tables[0].columns[0].name).toBe('id');
     expect(result.tables[0].columns[1].name).toBe('email');
+    expect(result.tables[0].columns[2].name).toBe('name');
   });
 
   it('extrae múltiples tablas', () => {
