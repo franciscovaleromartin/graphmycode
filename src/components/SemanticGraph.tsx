@@ -43,7 +43,6 @@ const ZOOM_FACTOR = 0.7;
 /** Posición de cámara por defecto de Plotly 3D */
 const DEFAULT_EYE = { x: 1.25, y: 1.25, z: 1.25 };
 
-const SQL_LABELS = ['SqlTable', 'SqlColumn', 'SqlView', 'SqlProc', 'SqlRow'] as const;
 
 // ─── Componente ───────────────────────────────────────────────────────────
 
@@ -300,10 +299,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
           setState({ status: 'loading-model', percent: 0 });
 
           const filteredNodes = sqlModeRef.current
-            ? nodes.filter(n =>
-                (SQL_LABELS as readonly string[]).includes(n.label) ||
-                (n.label === 'File' && typeof n.properties.filePath === 'string' && n.properties.filePath.toLowerCase().endsWith('.sql'))
-              )
+            ? nodes.filter(n => n.label === 'SqlRow')
             : nodes;
 
           const semNodes = await generateSemanticEmbeddings(

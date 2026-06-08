@@ -134,7 +134,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
   }, [animatedNodes, isAIHighlightsEnabled]);
 
   const hasSqlNodes = useMemo(
-    () => graph?.nodes.some(n => ['SqlTable', 'SqlColumn', 'SqlView', 'SqlProc', 'SqlRow'].includes(n.label)) ?? false,
+    () => graph?.nodes.some(n => n.label === 'SqlRow') ?? false,
     [graph],
   );
 
@@ -415,7 +415,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
                 ? 'bg-violet-500/20 text-violet-300 border border-violet-500/50'
                 : 'text-text-muted hover:text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed'
             }`}
-            title={hasSqlNodes ? 'Mostrar solo nodos SQL' : 'No hay archivos .sql en este proyecto'}
+            title={hasSqlNodes ? 'Mostrar solo tuplas (INSERT INTO)' : 'No hay tuplas en el archivo .sql (se necesitan sentencias INSERT INTO)'}
           >
             Embedding
           </button>
