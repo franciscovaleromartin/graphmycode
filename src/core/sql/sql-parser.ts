@@ -186,7 +186,6 @@ const parseInserts = (sql: string): SqlRow[] => {
     const line = getLineNumber(sql, match.index);
 
     let pos = headerRe.lastIndex;
-    let rowIndex = 0;
 
     // Iterar sobre cada tupla de VALUES separadas por comas
     while (pos < sql.length && rows.length < MAX_ROWS_PER_FILE) {
@@ -203,8 +202,8 @@ const parseInserts = (sql: string): SqlRow[] => {
       );
       const content = `${tableName}: ${pairs.join(', ')}`;
 
-      rows.push({ tableName, columns, values, rowIndex, line, content });
-      rowIndex++;
+      // rows.length como rowIndex garantiza IDs únicos aunque cada INSERT tenga una sola fila
+      rows.push({ tableName, columns, values, rowIndex: rows.length, line, content });
 
       // Saltar espacios; si lo siguiente es ';' o algo que no sea ',' ni '(' → fin del INSERT
       let lookahead = pos;
