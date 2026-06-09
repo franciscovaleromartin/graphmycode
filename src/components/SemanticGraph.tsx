@@ -3,7 +3,7 @@
 // https://polyformproject.org/licenses/noncommercial/1.0.0
 
 // src/components/SemanticGraph.tsx
-import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useState, useRef, useCallback, useEffect, useLayoutEffect, forwardRef, useImperativeHandle } from 'react';
 import { AlertCircle } from '@/lib/lucide-icons';
 import type { GraphNode } from 'gitnexus-shared';
 import {
@@ -392,11 +392,22 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
 
     // Relanzar pipeline cuando cambia sqlMode (alternar modo Embedding), saltar montaje inicial
     const isMountedRef = useRef(false);
-    useEffect(() => {
+    const sqlModeChangedRef = useRef(false);
+
+    // useLayoutEffect: borra el plot antes del paint para que no se vea el estado anterior
+    useLayoutEffect(() => {
       if (!isMountedRef.current) {
         isMountedRef.current = true;
         return;
       }
+      sqlModeChangedRef.current = true;
+      setState({ status: 'loading-model', percent: 0 });
+    }, [sqlMode]);
+
+    // useEffect: lanza la carga real después del paint (evita bloquear el frame)
+    useEffect(() => {
+      if (!sqlModeChangedRef.current) return;
+      sqlModeChangedRef.current = false;
       handleLoadRef.current();
     }, [sqlMode]);
 
