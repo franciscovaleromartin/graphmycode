@@ -170,7 +170,7 @@ const extractTupleValues = (sql: string, start: number): { values: string[]; end
 };
 
 // Límite para evitar saturar el grafo con ficheros de volcado muy grandes
-const MAX_ROWS_PER_FILE = 20000;
+const MAX_ROWS_PER_FILE = 50000;
 
 const parseInserts = (sql: string): SqlRow[] => {
   const rows: SqlRow[] = [];
