@@ -299,7 +299,7 @@ export const SemanticGraph = forwardRef<SemanticGraphHandle, Props>(
           setState({ status: 'loading-model', percent: 0 });
 
           const filteredNodes = sqlModeRef.current
-            ? nodes.filter(n => n.label === 'SqlRow')
+            ? nodes.filter(n => (n.label as string) === 'SqlRow')
             : nodes;
 
           const semNodes = await generateSemanticEmbeddings(

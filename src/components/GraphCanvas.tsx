@@ -134,7 +134,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
   }, [animatedNodes, isAIHighlightsEnabled]);
 
   const hasSqlNodes = useMemo(
-    () => graph?.nodes.some(n => n.label === 'SqlRow') ?? false,
+    () => graph?.nodes.some(n => (n.label as string) === 'SqlRow') ?? false,
     [graph],
   );
 
