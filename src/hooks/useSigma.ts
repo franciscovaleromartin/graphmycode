@@ -85,20 +85,22 @@ interface UseSigmaReturn {
 }
 
 const NOVERLAP_SETTINGS = {
-  maxIterations: 20,
-  ratio: 1.1,
-  margin: 10,
-  expansion: 1.05,
+  maxIterations: 150,
+  ratio: 1.2,
+  margin: 20,
+  expansion: 1.3,
 };
 
+// Separación estilo entramado.org: repulsión alta y gravedad baja
+// para que los nodos respiren en vez de compactarse en blobs
 const getFA2Settings = (nodeCount: number) => {
   const isSmall = nodeCount < 500;
   const isMedium = nodeCount >= 500 && nodeCount < 2000;
   const isLarge = nodeCount >= 2000 && nodeCount < 10000;
 
   return {
-    gravity: isSmall ? 0.8 : isMedium ? 0.5 : isLarge ? 0.3 : 0.15,
-    scalingRatio: isSmall ? 15 : isMedium ? 30 : isLarge ? 60 : 100,
+    gravity: isSmall ? 0.4 : isMedium ? 0.25 : isLarge ? 0.15 : 0.08,
+    scalingRatio: isSmall ? 40 : isMedium ? 80 : isLarge ? 150 : 250,
     slowDown: isSmall ? 1 : isMedium ? 2 : isLarge ? 3 : 5,
     barnesHutOptimize: nodeCount > 200,
     barnesHutTheta: isLarge ? 0.8 : 0.6,
@@ -106,7 +108,7 @@ const getFA2Settings = (nodeCount: number) => {
     outboundAttractionDistribution: true,
     linLogMode: false,
     adjustSizes: true,
-    edgeWeightInfluence: 1,
+    edgeWeightInfluence: 0.5,
   };
 };
 
