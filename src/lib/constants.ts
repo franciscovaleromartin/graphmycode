@@ -4,44 +4,44 @@
 
 import type { NodeLabel } from 'gitnexus-shared';
 
-// Node colors by type - slightly muted for less visual noise
+// Node colors by type - vivid Tailwind-400 palette over dark background (entramado.org style)
 export const NODE_COLORS: Record<NodeLabel, string> = {
-  Project: '#a855f7', // Purple - prominent
-  Package: '#8b5cf6', // Violet
-  Module: '#7c3aed', // Violet darker
-  Folder: '#6366f1', // Indigo
-  File: '#3b82f6', // Blue
-  Class: '#f59e0b', // Amber - stands out
-  Function: '#10b981', // Emerald
-  Method: '#14b8a6', // Teal
-  Variable: '#64748b', // Slate - muted (less important)
-  Interface: '#ec4899', // Pink
-  Enum: '#f97316', // Orange
-  Decorator: '#eab308', // Yellow
-  Import: '#475569', // Slate darker - very muted
-  Type: '#a78bfa', // Violet light
-  CodeElement: '#64748b', // Slate - muted
+  Project: '#a78bfa', // Violet - prominent
+  Package: '#c4b5fd', // Violet light
+  Module: '#8b5cf6', // Violet darker
+  Folder: '#818cf8', // Indigo
+  File: '#38bdf8', // Sky
+  Class: '#fbbf24', // Amber - stands out
+  Function: '#34d399', // Emerald
+  Method: '#2dd4bf', // Teal
+  Variable: '#94a3b8', // Slate - muted (less important)
+  Interface: '#f472b6', // Pink
+  Enum: '#fb923c', // Orange
+  Decorator: '#fcd34d', // Yellow
+  Import: '#64748b', // Slate darker - very muted
+  Type: '#a5b4fc', // Indigo light
+  CodeElement: '#94a3b8', // Slate - muted
   Community: '#818cf8', // Indigo light - cluster indicator
-  Process: '#f43f5e', // Rose - execution flow indicator
-  Section: '#60a5fa', // Blue light - structural section
-  Struct: '#f59e0b', // Amber - like Class
-  Trait: '#ec4899', // Pink - like Interface
-  Impl: '#14b8a6', // Teal - like Method
-  TypeAlias: '#a78bfa', // Violet light - like Type
-  Const: '#64748b', // Slate - like Variable
-  Static: '#64748b', // Slate - like Variable
-  Namespace: '#7c3aed', // Violet - like Module
-  Union: '#f97316', // Orange - like Enum
-  Typedef: '#a78bfa', // Violet light - like Type
-  Macro: '#eab308', // Yellow - like Decorator
-  Property: '#64748b', // Slate - like Variable
-  Record: '#f59e0b', // Amber - like Class
-  Delegate: '#14b8a6', // Teal - like Method
-  Annotation: '#eab308', // Yellow - like Decorator
-  Constructor: '#10b981', // Emerald - like Function
-  Template: '#a78bfa', // Violet light - like Type
-  Route: '#f43f5e', // Rose - like Process
-  Tool: '#a855f7', // Purple - like Project
+  Process: '#fb7185', // Rose - execution flow indicator
+  Section: '#7dd3fc', // Sky light - structural section
+  Struct: '#fbbf24', // Amber - like Class
+  Trait: '#f472b6', // Pink - like Interface
+  Impl: '#2dd4bf', // Teal - like Method
+  TypeAlias: '#a5b4fc', // Indigo light - like Type
+  Const: '#94a3b8', // Slate - like Variable
+  Static: '#94a3b8', // Slate - like Variable
+  Namespace: '#8b5cf6', // Violet - like Module
+  Union: '#fb923c', // Orange - like Enum
+  Typedef: '#a5b4fc', // Indigo light - like Type
+  Macro: '#fcd34d', // Yellow - like Decorator
+  Property: '#94a3b8', // Slate - like Variable
+  Record: '#fbbf24', // Amber - like Class
+  Delegate: '#2dd4bf', // Teal - like Method
+  Annotation: '#fcd34d', // Yellow - like Decorator
+  Constructor: '#34d399', // Emerald - like Function
+  Template: '#a5b4fc', // Indigo light - like Type
+  Route: '#fb7185', // Rose - like Process
+  Tool: '#a78bfa', // Violet - like Project
 };
 
 // Node sizes by type - clear visual hierarchy with dramatic size differences
@@ -159,10 +159,10 @@ export const DEFAULT_VISIBLE_EDGES: EdgeType[] = [
 
 // Edge display info for UI
 export const EDGE_INFO: Record<EdgeType, { color: string; label: string }> = {
-  CONTAINS: { color: '#2d5a3d', label: 'Contains' },
-  DEFINES: { color: '#0e7490', label: 'Defines' },
-  IMPORTS: { color: '#1d4ed8', label: 'Imports' },
-  CALLS: { color: '#7c3aed', label: 'Calls' },
-  EXTENDS: { color: '#c2410c', label: 'Extends' },
-  IMPLEMENTS: { color: '#be185d', label: 'Implements' },
+  CONTAINS: { color: '#7c8aa0', label: 'Contains' },
+  DEFINES: { color: '#2dd4bf', label: 'Defines' },
+  IMPORTS: { color: '#7dd3fc', label: 'Imports' },
+  CALLS: { color: '#a78bfa', label: 'Calls' },
+  EXTENDS: { color: '#fb923c', label: 'Extends' },
+  IMPLEMENTS: { color: '#f472b6', label: 'Implements' },
 };

@@ -40,7 +40,7 @@ const rgbToHex = (r: number, g: number, b: number): string => {
 // Dim a color by mixing with dark background (keeps color hint)
 const dimColor = (hex: string, amount: number): string => {
   const rgb = hexToRgb(hex);
-  const darkBg = { r: 18, g: 18, b: 28 }; // #12121c - dark background
+  const darkBg = { r: 7, g: 10, b: 18 }; // #070a12 - dark background (entramado style)
   return rgbToHex(
     darkBg.r + (rgb.r - darkBg.r) * amount,
     darkBg.g + (rgb.g - darkBg.g) * amount,
@@ -197,20 +197,45 @@ export const useSigma = (options: UseSigmaOptions = {}): UseSigmaReturn => {
 
     const sigma = new Sigma(graph, containerRef.current, {
       renderLabels: true,
-      labelFont: 'JetBrains Mono, monospace',
-      labelSize: 11,
+      labelFont: 'ui-sans-serif, system-ui, sans-serif',
+      labelSize: 10,
       labelWeight: '500',
-      labelColor: { color: '#e4e4ed' },
+      labelColor: { color: '#e2e8f0' },
       labelRenderedSizeThreshold: 8,
       labelDensity: 0.1,
       labelGridCellSize: 70,
 
-      defaultNodeColor: '#6b7280',
-      defaultEdgeColor: '#2a2a3a',
+      defaultNodeColor: '#94a3b8',
+      defaultEdgeColor: '#303744', // #7c8aa0 mezclado ~35% hacia el fondo #070a12
 
       defaultEdgeType: 'curved',
       edgeProgramClasses: {
         curved: EdgeCurveProgram,
+      },
+
+      // Custom label renderer - dark pill below the node (entramado.org style)
+      defaultDrawNodeLabel: (context, data, settings) => {
+        if (!data.label) return;
+
+        const size = settings.labelSize || 10;
+        const font = settings.labelFont || 'ui-sans-serif, system-ui, sans-serif';
+        const weight = data.highlighted ? '600' : settings.labelWeight || '500';
+
+        context.font = `${weight} ${size}px ${font}`;
+        const textWidth = context.measureText(data.label).width;
+
+        const nodeSize = data.size || 4;
+        const x = data.x;
+        const y = data.y + nodeSize + 2;
+        const padX = 3;
+
+        context.fillStyle = 'rgba(7,10,18,0.65)';
+        context.fillRect(x - textWidth / 2 - padX, y - 1, textWidth + padX * 2, size + 3);
+
+        context.fillStyle = data.highlighted ? '#5ef2d8' : '#e2e8f0';
+        context.textAlign = 'center';
+        context.textBaseline = 'top';
+        context.fillText(data.label, x, y);
       },
 
       // Custom hover renderer - dark background instead of white
@@ -218,8 +243,8 @@ export const useSigma = (options: UseSigmaOptions = {}): UseSigmaReturn => {
         const label = data.label;
         if (!label) return;
 
-        const size = settings.labelSize || 11;
-        const font = settings.labelFont || 'JetBrains Mono, monospace';
+        const size = settings.labelSize || 10;
+        const font = settings.labelFont || 'ui-sans-serif, system-ui, sans-serif';
         const weight = settings.labelWeight || '500';
 
         context.font = `${weight} ${size}px ${font}`;
@@ -235,18 +260,18 @@ export const useSigma = (options: UseSigmaOptions = {}): UseSigmaReturn => {
         const radius = 4;
 
         // Dark background pill
-        context.fillStyle = '#12121c';
+        context.fillStyle = 'rgba(7,10,18,0.72)';
         context.beginPath();
         context.roundRect(x - width / 2, y - height / 2, width, height, radius);
         context.fill();
 
         // Border matching node color
-        context.strokeStyle = data.color || '#6366f1';
+        context.strokeStyle = data.color || '#818cf8';
         context.lineWidth = 2;
         context.stroke();
 
         // Label text - light color
-        context.fillStyle = '#f5f5f7';
+        context.fillStyle = '#e2e8f0';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.fillText(label, x, y);
@@ -254,7 +279,7 @@ export const useSigma = (options: UseSigmaOptions = {}): UseSigmaReturn => {
         // Also draw a subtle glow ring around the node
         context.beginPath();
         context.arc(data.x, data.y, nodeSize + 4, 0, Math.PI * 2);
-        context.strokeStyle = data.color || '#6366f1';
+        context.strokeStyle = data.color || '#818cf8';
         context.lineWidth = 2;
         context.globalAlpha = 0.5;
         context.stroke();

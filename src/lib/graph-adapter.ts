@@ -50,6 +50,27 @@ const getScaledNodeSize = (baseSize: number, nodeCount: number): number => {
 };
 
 /**
+ * Node size by degree (entramado.org formula: 1.8 + 1.15 * log2(1 + degree)),
+ * scaled up ~1.4x for Sigma pixel density and down for very large graphs
+ */
+const getDegreeBasedSize = (degree: number, nodeCount: number): number => {
+  const base = (1.8 + 1.15 * Math.log2(1 + Math.max(0, degree))) * 1.4;
+  return getScaledNodeSize(base, nodeCount);
+};
+
+// Simulate edge translucency by mixing toward the dark background (#070a12):
+// Sigma WebGL does not reliably support alpha in hex edge colors
+const mixToBg = (hex: string, amount: number): string => {
+  const bg = { r: 7, g: 10, b: 18 };
+  const c = parseInt(hex.slice(1), 16);
+  const mix = (channel: number, bgChannel: number) =>
+    Math.round(bgChannel + (channel - bgChannel) * amount)
+      .toString(16)
+      .padStart(2, '0');
+  return `#${mix((c >> 16) & 255, bg.r)}${mix((c >> 8) & 255, bg.g)}${mix(c & 255, bg.b)}`;
+};
+
+/**
  * Get mass for node type - higher mass = more repulsion in ForceAtlas2
  * Folders get MUCH higher mass so they spread out and pull their files with them
  */
@@ -282,30 +303,32 @@ export const knowledgeGraphToGraphology = (
   // Add edges with distinct colors per relationship type
   const edgeBaseSize = nodeCount > 20000 ? 0.4 : nodeCount > 5000 ? 0.6 : 1.0;
 
-  // Edge styles - each relationship type has a DISTINCT color for clarity
-  // Using varied hues so relationships are easily distinguishable
+  // Edge styles - thin translucent lines (entramado.org style): each relationship
+  // type keeps a distinct hue, pre-mixed ~35% toward the dark background
   const EDGE_STYLES: Record<string, { color: string; sizeMultiplier: number }> = {
-    // STRUCTURAL - Greens (folder/file hierarchy)
-    CONTAINS: { color: '#2d5a3d', sizeMultiplier: 0.4 }, // Forest green - folder contains
+    // STRUCTURAL - Neutral gray-blue (folder/file hierarchy)
+    CONTAINS: { color: mixToBg('#7c8aa0', 0.35), sizeMultiplier: 0.35 },
 
-    // DEFINITIONS - Cyan/Teal (code definitions)
-    DEFINES: { color: '#0e7490', sizeMultiplier: 0.5 }, // Cyan - file defines function/class
+    // DEFINITIONS - Teal (code definitions)
+    DEFINES: { color: mixToBg('#2dd4bf', 0.35), sizeMultiplier: 0.4 },
 
-    // DEPENDENCIES - Blue (imports between files)
-    IMPORTS: { color: '#1d4ed8', sizeMultiplier: 0.6 }, // Blue - file imports file
+    // DEPENDENCIES - Sky (imports between files)
+    IMPORTS: { color: mixToBg('#7dd3fc', 0.35), sizeMultiplier: 0.5 },
 
-    // FUNCTION FLOW - Purple (call graph)
-    CALLS: { color: '#7c3aed', sizeMultiplier: 0.8 }, // Violet - function calls
+    // FUNCTION FLOW - Violet (call graph)
+    CALLS: { color: mixToBg('#a78bfa', 0.35), sizeMultiplier: 0.6 },
 
     // TYPE RELATIONSHIPS - Warm colors (OOP)
-    EXTENDS: { color: '#c2410c', sizeMultiplier: 1.0 }, // Orange - extension
-    IMPLEMENTS: { color: '#be185d', sizeMultiplier: 0.9 }, // Pink - interface implementation
+    EXTENDS: { color: mixToBg('#fb923c', 0.4), sizeMultiplier: 0.7 },
+    IMPLEMENTS: { color: mixToBg('#f472b6', 0.4), sizeMultiplier: 0.7 },
   };
+
+  const defaultEdgeStyle = { color: mixToBg('#7c8aa0', 0.25), sizeMultiplier: 0.4 };
 
   knowledgeGraph.relationships.forEach((rel) => {
     if (graph.hasNode(rel.sourceId) && graph.hasNode(rel.targetId)) {
       if (!graph.hasEdge(rel.sourceId, rel.targetId)) {
-        const style = EDGE_STYLES[rel.type] || { color: '#4a4a5a', sizeMultiplier: 0.5 };
+        const style = EDGE_STYLES[rel.type] || defaultEdgeStyle;
         const curvature = 0.12 + Math.random() * 0.08;
 
         graph.addEdge(rel.sourceId, rel.targetId, {
@@ -317,6 +340,12 @@ export const knowledgeGraphToGraphology = (
         });
       }
     }
+  });
+
+  // Resize nodes by degree (entramado.org style): more connections = bigger dot.
+  // Structural nodes (Project/Folder...) keep visual hierarchy naturally via CONTAINS degree
+  graph.forEachNode((nodeId) => {
+    graph.setNodeAttribute(nodeId, 'size', getDegreeBasedSize(graph.degree(nodeId), nodeCount));
   });
 
   return graph;

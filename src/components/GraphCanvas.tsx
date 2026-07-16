@@ -343,15 +343,27 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>((_, r
 
   return (
     <div className="relative h-full min-w-0 flex-1 bg-void">
-      {/* Background gradient */}
+      {/* Background gradient - entramado.org style: dark blue base + teal/violet glows */}
       <div className="pointer-events-none absolute inset-0">
         <div
           className="absolute inset-0"
           style={{
-            background: `
-              radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.03) 0%, transparent 70%),
-              linear-gradient(to bottom, #06060a, #0a0a10)
+            backgroundColor: '#070a12',
+            backgroundImage: `
+              radial-gradient(900px 500px at 12% -10%, rgba(56, 225, 196, 0.10), transparent 60%),
+              radial-gradient(800px 600px at 100% 0, rgba(167, 139, 250, 0.08), transparent 55%)
             `,
+          }}
+        />
+        {/* Subtle 32px grid overlay */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+              linear-gradient(hsla(0, 0%, 100%, 0.025) 1px, transparent 0),
+              linear-gradient(90deg, hsla(0, 0%, 100%, 0.025) 1px, transparent 0)
+            `,
+            backgroundSize: '32px 32px',
           }}
         />
       </div>
